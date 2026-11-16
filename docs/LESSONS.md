@@ -21,3 +21,11 @@ A telemetry hook from an editor plugin pointed at a missing file, and every comm
 and file read failed before running. Nothing in the repo was wrong. The owner fixed
 the plugin; work resumed. Lesson: if every call fails with the same hook error, stop
 and report it rather than working around it.
+
+## 2026-11-16 Pin exact release tag when an action lacks a floating major tag
+
+`astral-sh/setup-uv` published `v10.3.3` without a floating `v10` tag, causing the CI
+runner to fail action resolution. Fixed by pinning `@v10.3.3`. Lesson: use the exact
+tag returned by `gh api repos/<owner>/<repo>/releases/latest --jq .tag_name` unless the
+floating major tag is verified to exist.
+
