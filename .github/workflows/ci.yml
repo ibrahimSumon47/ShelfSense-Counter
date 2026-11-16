@@ -50,8 +50,10 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-      - name: Unit tests for hooks and checks
-        run: node --test "scripts/test/*.test.mjs"
+      - name: Unit tests for hooks, checks and web TypeScript modules
+        run: |
+          node --test "scripts/test/*.test.mjs"
+          node --experimental-strip-types --test "apps/web/src/lib/shelfsense.test.ts"
       - name: features.json is well formed
         run: node scripts/check-done.mjs --validate
 
@@ -67,4 +69,21 @@ jobs:
           uv run --directory training pytest -v
           uv sync --directory python --extra dev
           uv run --directory python pytest -v
+
+  codeql:
+    name: CodeQL security analysis
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v7
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript, python
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
 
