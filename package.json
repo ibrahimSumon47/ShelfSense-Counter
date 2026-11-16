@@ -1,0 +1,16 @@
+{
+  "name": "shelfsense",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.15.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "hooks:install": "git config core.hooksPath .githooks",
+    "test:repo": "node --test \"scripts/test/*.test.mjs\"",
+    "check:done": "node scripts/check-done.mjs",
+    "check:files": "node scripts/check-repo-files.mjs",
+    "check:history": "node scripts/check-history.mjs"
+  }
+}

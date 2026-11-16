@@ -1,0 +1,4 @@
+#!/bin/sh
+# Rejects outgoing commits not authored by the owner, commits with trailers,
+# and pushes to any branch other than main.
+exec node scripts/hooks/pre-push.mjs "$@"

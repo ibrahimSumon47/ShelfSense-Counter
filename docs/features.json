@@ -1,0 +1,61 @@
+{
+  "evidence_format": "file:<path> and report:<path> are checked to exist; other strings are free text (ci run URL, command and result).",
+  "features": [
+    { "id": "S0-01", "phase": "S0", "title": "Repo hygiene: .gitignore, .gitattributes, private/ ignored before first commit", "status": "done", "model": "[MODEL: Claude Opus 5.5, HIGH]", "evidence": ["file:.gitignore", "file:.gitattributes", "file:.env.example", "git check-ignore private/OWNER_ANSWERS.md private/.env.local: both ignored"] },
+    { "id": "S0-02", "phase": "S0", "title": "Git hooks: commit-msg, pre-commit (gitleaks), pre-push; core.hooksPath set", "status": "done", "model": "[MODEL: Claude Opus 5.5, HIGH]", "evidence": ["file:.githooks/commit-msg", "file:.githooks/pre-commit", "file:.githooks/pre-push", "file:scripts/lib/repo-rules.mjs", "file:scripts/test/repo-rules.test.mjs", "git config core.hooksPath = .githooks"] },
+    { "id": "S0-03", "phase": "S0", "title": "CI skeleton: history, tracked files, gitleaks, repo script tests", "status": "done", "model": "[MODEL: Claude Opus 5.5, HIGH]", "evidence": ["file:.github/workflows/ci.yml", "file:scripts/check-history.mjs", "file:scripts/check-repo-files.mjs"] },
+    { "id": "S0-04", "phase": "S0", "title": "Documentation system and check-done script", "status": "done", "model": "[MODEL: Claude Opus 5.5, HIGH]", "evidence": ["file:AGENTS.md", "file:docs/PROJECT_STATE.md", "file:docs/HANDOFF.md", "file:scripts/check-done.mjs", "file:scripts/test/features.test.mjs"] },
+    { "id": "S0-05", "phase": "S0", "title": "Architecture ADRs with free-tier terms checked and dated", "status": "done", "model": "[MODEL: Claude Opus 5.5, HIGH]", "evidence": ["file:docs/DECISIONS.md"] },
+    { "id": "S0-06", "phase": "S0", "title": "OWNER_TODO steps for Clerk, Kaggle token and phone verification", "status": "done", "model": "[MODEL: Claude Opus 5.5, HIGH]", "evidence": ["file:docs/OWNER_TODO.md"] },
+
+    { "id": "S1-01", "phase": "S1", "title": "Dataset survey: dense shelf sets, licence and access method verified (DATA.md)", "status": "todo", "model": "[MODEL: Claude Opus 5.5, HIGH]", "evidence": [] },
+    { "id": "S1-02", "phase": "S1", "title": "Download scripts using the kaggle CLI (no data in git)", "status": "todo", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": [] },
+    { "id": "S1-03", "phase": "S1", "title": "Leak-free train/val/test split by store or source, near-duplicate check", "status": "todo", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": [] },
+    { "id": "S1-04", "phase": "S1", "title": "Data loader and annotation converters with tests", "status": "todo", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": [] },
+
+    { "id": "S2-01", "phase": "S2", "title": "Detector choice with licence comparison (ADR)", "status": "todo", "model": "[MODEL: Claude Opus 5.5, HIGH]", "evidence": [] },
+    { "id": "S2-02", "phase": "S2", "title": "Kaggle training pipeline pushed and run via kaggle CLI", "status": "todo", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": [] },
+    { "id": "S2-03", "phase": "S2", "title": "Baseline run: config and validation metrics in docs/reports/", "status": "todo", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": [] },
+    { "id": "S2-04", "phase": "S2", "title": "Improved run tuned on validation only, report committed", "status": "todo", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": [] },
+    { "id": "S2-05", "phase": "S2", "title": "ONNX export and int8 quantization with file size and accuracy delta", "status": "todo", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": [] },
+    { "id": "S2-06", "phase": "S2", "title": "Browser latency measured with onnxruntime-web (wasm and webgpu)", "status": "todo", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": [] },
+    { "id": "S2-07", "phase": "S2", "title": "Weights published to a GitHub Release with SHA-256", "status": "todo", "model": "[MODEL: Gemini 3.8 Flash, LOW]", "evidence": [] },
+
+    { "id": "S3-01", "phase": "S3", "title": "Test set reported once: mAP50, count MAE and percentage error", "status": "todo", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": [] },
+    { "id": "S3-02", "phase": "S3", "title": "Results broken down by shelf density", "status": "todo", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": [] },
+    { "id": "S3-03", "phase": "S3", "title": "Failure-case gallery", "status": "todo", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": [] },
+    { "id": "S3-04", "phase": "S3", "title": "Regression test: 20 fixed images with count tolerances in CI", "status": "todo", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": [] },
+    { "id": "S3-05", "phase": "S3", "title": "MODEL_CARD.md with intended use, limits and licence", "status": "todo", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": [] },
+
+    { "id": "S4-01", "phase": "S4", "title": "Next.js app scaffold, dark blue-grey and light themes, next-intl en/bn", "status": "todo", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": [] },
+    { "id": "S4-02", "phase": "S4", "title": "Clerk auth with owner and staff roles", "status": "todo", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": [] },
+    { "id": "S4-03", "phase": "S4", "title": "Neon Postgres schema with Drizzle: stores, aisles, shelves, scans, thresholds", "status": "todo", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": [] },
+    { "id": "S4-04", "phase": "S4", "title": "Upload and camera capture with client-side resize", "status": "todo", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": [] },
+    { "id": "S4-05", "phase": "S4", "title": "In-browser detection with box overlay and count", "status": "todo", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": [] },
+    { "id": "S4-06", "phase": "S4", "title": "Empty-gap detection from spacing between items, with tests", "status": "todo", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": [] },
+    { "id": "S4-07", "phase": "S4", "title": "Save scans per store/aisle/shelf with Cloudinary thumbnails", "status": "todo", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": [] },
+    { "id": "S4-08", "phase": "S4", "title": "Scan history and trend charts", "status": "todo", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": [] },
+    { "id": "S4-09", "phase": "S4", "title": "Low-stock thresholds (owner only) and alerts", "status": "todo", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": [] },
+    { "id": "S4-10", "phase": "S4", "title": "CSV export", "status": "todo", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": [] },
+    { "id": "S4-11", "phase": "S4", "title": "Empty, loading and error states; responsive and Bangla copy review", "status": "todo", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": [] },
+    { "id": "S4-12", "phase": "S4", "title": "Production deploy on Vercel with env vars set by CLI", "status": "todo", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": [] },
+
+    { "id": "S5-01", "phase": "S5", "title": "Typed, user-scoped database tools for the chat", "status": "todo", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": [] },
+    { "id": "S5-02", "phase": "S5", "title": "Bilingual chat with tool calling; numbers only from tools; refuses on missing data", "status": "todo", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": [] },
+    { "id": "S5-03", "phase": "S5", "title": "30-question evaluation in English and Bangla with recorded accuracy", "status": "todo", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": [] },
+
+    { "id": "S6-01", "phase": "S6", "title": "Python package: ONNX inference, counting and gap logic, with tests", "status": "todo", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": [] },
+    { "id": "S6-02", "phase": "S6", "title": "CLI: shelfsense count photo.jpg", "status": "todo", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": [] },
+    { "id": "S6-03", "phase": "S6", "title": "FastAPI batch app with Dockerfile and tests; hosting decision recorded", "status": "todo", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": [] },
+
+    { "id": "S7-01", "phase": "S7", "title": "Playwright flows against production", "status": "todo", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": [] },
+    { "id": "S7-02", "phase": "S7", "title": "axe zero violations and Lighthouse scores recorded", "status": "todo", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": [] },
+    { "id": "S7-03", "phase": "S7", "title": "Upload validation and rate limits", "status": "todo", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": [] },
+    { "id": "S7-04", "phase": "S7", "title": "Per-user data isolation tests", "status": "todo", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": [] },
+    { "id": "S7-05", "phase": "S7", "title": "Dependency audit and CodeQL", "status": "todo", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": [] },
+
+    { "id": "S8-01", "phase": "S8", "title": "README: live URL, architecture, screenshots, measured numbers with commands, limits, licences", "status": "todo", "model": "[MODEL: Gemini 3.8 Flash, LOW]", "evidence": [] },
+    { "id": "S8-02", "phase": "S8", "title": "docs/DEMO_SCRIPT.md", "status": "todo", "model": "[MODEL: Gemini 3.8 Flash, LOW]", "evidence": [] },
+    { "id": "S8-03", "phase": "S8", "title": "docs/DEPLOY.md", "status": "todo", "model": "[MODEL: Gemini 3.8 Flash, LOW]", "evidence": [] }
+  ]
+}

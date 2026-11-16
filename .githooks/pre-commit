@@ -1,0 +1,3 @@
+#!/bin/sh
+# Refuses staged secrets, datasets and weights, then runs gitleaks on the staged diff.
+exec node scripts/hooks/pre-commit.mjs
