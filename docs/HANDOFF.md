@@ -1,21 +1,24 @@
 # Handoff
 
-Last updated: 2026-11-16, end of S1.
+Last updated: 2026-11-16, end of S2-01 + Kaggle/eval harness.
 
 ## Next step
 
-**S2-01 Detector choice with licence comparison (ADR).** Use `[MODEL: Claude Opus 5.5, HIGH]`.
+**S4-01 Next.js app scaffold, dark blue-grey and light themes, next-intl en/bn.**
+Use `[MODEL: Gemini 4 Argon, MID]`.
 
-1. Compare permissive object detectors suitable for dense retail shelves and browser ONNX
-   execution (e.g. YOLOX Apache-2.0, RT-DETR / D-FINE Apache-2.0, vs Ultralytics AGPL-3.0)
-   on architecture, anchor-free/query capacity for 150–300 items per shelf, ONNX opset
-   compatibility with `onnxruntime-web`, and licensing. Record ADR-010 in `docs/DECISIONS.md`.
-2. Proceed to **S2-02** (`[MODEL: Gemini 4 Argon, MID]`): build the Kaggle training script/kernel
-   metadata (`kernel-metadata.json`), ONNX export + int8 quantization script (S2-05), and local
-   smoke training/export tests. If the owner's Kaggle token (`~/.kaggle/access_token` or
-   `kaggle.json`) is present, push and launch the Kaggle GPU run via `kaggle kernels push`;
-   if still waiting on `OWNER_TODO.md` item 2, keep `S2-02`/`S2-03`/`S2-04` marked `blocked` or
-   `in_progress` and continue with unblocked slices (e.g. S4 web app or S6 Python package).
+1. Create the pnpm workspace (`pnpm-workspace.yaml`) and `apps/web/` Next.js App Router
+   application with TypeScript and Tailwind CSS.
+2. Implement the dark blue-grey operations dashboard theme and light theme toggle,
+   and configure bilingual `next-intl` (or typed dictionary provider) with natural English
+   and Bangla (`en` / `bn`) copy.
+3. Also implement the pure TypeScript modules for **S4-04** (client-side image resize),
+   **S4-05** (in-browser `onnxruntime-web` detection & box overlay), **S4-06** (empty-gap
+   detection from horizontal spacing within shelf rows, with unit tests), and **S4-10**
+   (CSV export), or **S6-01..S6-03** (`python/` `shelfsense` package, CLI, and FastAPI app)
+   which have zero external account blockers.
+4. Once the owner completes `docs/OWNER_TODO.md` item 2 (Kaggle token + phone verification),
+   unblock and run `S2-02..S2-07` and `S3-01..S3-05`.
 
 ## Session notes
 
