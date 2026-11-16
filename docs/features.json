@@ -8,10 +8,10 @@
     { "id": "S0-05", "phase": "S0", "title": "Architecture ADRs with free-tier terms checked and dated", "status": "done", "model": "[MODEL: Claude Opus 5.5, HIGH]", "evidence": ["file:docs/DECISIONS.md"] },
     { "id": "S0-06", "phase": "S0", "title": "OWNER_TODO steps for Clerk, Kaggle token and phone verification", "status": "done", "model": "[MODEL: Claude Opus 5.5, HIGH]", "evidence": ["file:docs/OWNER_TODO.md"] },
 
-    { "id": "S1-01", "phase": "S1", "title": "Dataset survey: dense shelf sets, licence and access method verified (DATA.md)", "status": "todo", "model": "[MODEL: Claude Opus 5.5, HIGH]", "evidence": [] },
-    { "id": "S1-02", "phase": "S1", "title": "Download scripts using the kaggle CLI (no data in git)", "status": "todo", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": [] },
-    { "id": "S1-03", "phase": "S1", "title": "Leak-free train/val/test split by store or source, near-duplicate check", "status": "todo", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": [] },
-    { "id": "S1-04", "phase": "S1", "title": "Data loader and annotation converters with tests", "status": "todo", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": [] },
+    { "id": "S1-01", "phase": "S1", "title": "Dataset survey: dense shelf sets, licence and access method verified (DATA.md)", "status": "done", "model": "[MODEL: Claude Opus 5.5, HIGH]", "evidence": ["file:docs/DATA.md", "file:docs/DECISIONS.md"] },
+    { "id": "S1-02", "phase": "S1", "title": "Download scripts using the kaggle CLI (no data in git)", "status": "done", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": ["file:training/src/shelfsense_training/download.py", "file:training/tests/test_download.py"] },
+    { "id": "S1-03", "phase": "S1", "title": "Leak-free train/val/test split by store or source, near-duplicate check", "status": "done", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": ["file:training/src/shelfsense_training/splits.py", "file:training/tests/test_splits.py"] },
+    { "id": "S1-04", "phase": "S1", "title": "Data loader and annotation converters with tests", "status": "done", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": ["file:training/src/shelfsense_training/converters.py", "file:training/tests/test_converters.py", "uv run --directory training pytest: 13 passed"] },
 
     { "id": "S2-01", "phase": "S2", "title": "Detector choice with licence comparison (ADR)", "status": "todo", "model": "[MODEL: Claude Opus 5.5, HIGH]", "evidence": [] },
     { "id": "S2-02", "phase": "S2", "title": "Kaggle training pipeline pushed and run via kaggle CLI", "status": "todo", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": [] },

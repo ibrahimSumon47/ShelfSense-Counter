@@ -54,3 +54,15 @@ jobs:
         run: node --test "scripts/test/*.test.mjs"
       - name: features.json is well formed
         run: node scripts/check-done.mjs --validate
+
+  training-tests:
+    name: Training data pipeline tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+      - name: Sync training dependencies and run pytest
+        run: |
+          uv sync --directory training --extra dev
+          uv run --directory training pytest -v
+

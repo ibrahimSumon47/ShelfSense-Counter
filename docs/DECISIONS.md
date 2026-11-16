@@ -103,3 +103,27 @@ training datasets (see `docs/DATA.md`), which may be stricter than MIT.
 The FastAPI app ships with a Dockerfile. It is deployed only if a host with a genuine
 free-forever tier (no card) is verified in S6-03; otherwise `docs/DEPLOY.md` documents
 how to run it locally or on the owner's own machine.
+
+---
+
+## ADR-009 Dataset selection and licensing (2026-11-16)
+
+**Decision.** Use **SKU-110K** (*Goldman et al., CVPR 2019*) as the primary dense retail
+shelf benchmark and **Supermarket Shelves Dataset** (*Humans in the Loop*) as the
+CC0-licensed grocery shelf dataset.
+
+**Verified terms (2026-11-16):**
+
+- **SKU-110K:** 11,762 images (~147.4 items/image). Academic and non-commercial research
+  licence (Trax Retail / CC BY-NC-SA 3.0 on mirrors). Accessible via the Kaggle CLI
+  (`thedatasith/sku110k-annotations`, `mohamedessam3112002/sku-110k`) or the official
+  S3 archive (`http://trax-geometry.s3.amazonaws.com/cvpr_challenge/SKU110K_fixed.tar.gz`).
+- **Supermarket Shelves Dataset (Humans in the Loop):** 45 high-resolution images
+  (~260.9 boxes/image across `Product` and `Price`; filtered to `Product`). Released
+  under **CC0 1.0 Public Domain** on Kaggle (`humansintheloop/supermarket-shelves-dataset`).
+
+**Why.** Combining SKU-110K's scale with a CC0 supermarket dataset gives both standard
+benchmark comparability and a clean commercial-permissive option (`docs/DATA.md`).
+Splits follow store/source boundaries and are verified by a 64-bit perceptual dHash
+cross-split check before training.
+
