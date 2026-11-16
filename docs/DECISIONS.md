@@ -98,11 +98,22 @@ training datasets (see `docs/DATA.md`), which may be stricter than MIT.
 
 ---
 
-## ADR-008 Python batch API hosting (2026-11-16, open)
+## ADR-008 Python batch API hosting (2026-11-16, decided in S6-03)
 
-The FastAPI app ships with a Dockerfile. It is deployed only if a host with a genuine
-free-forever tier (no card) is verified in S6-03; otherwise `docs/DEPLOY.md` documents
-how to run it locally or on the owner's own machine.
+**Decision.** Ship the FastAPI batch service (`python/src/shelfsense/api.py`) and
+`python/Dockerfile` for local/self-hosted batch execution, and run interactive inference
+in the browser (`onnxruntime-web`) on Vercel. Do **not** deploy the FastAPI container to
+an external cloud host.
+
+**Verified terms (2026-11-16):**
+- Render free tier is excluded (monthly free hours already used by another project of the owner).
+- Hugging Face Spaces is excluded per owner rules.
+- Fly.io, Railway, Koyeb, and Cloud Run either require a credit card on file or use
+  expiring trial credits, which violates the "no card, no trial, free forever" rule.
+
+**Consequence.** Interactive users need no Python server at all because the ONNX model
+runs directly in their browser (`ADR-003`). Batch users run `shelfsense count photo.jpg`
+or `uvicorn shelfsense.api:app` / `docker build` locally as documented in `docs/DEPLOY.md`.
 
 ---
 

@@ -11,6 +11,10 @@ dependencies = [
 dev = [
   "pytest>=8.2.0",
 ]
+train = [
+  "numpy>=1.26.0",
+  "onnxruntime>=1.18.0",
+]
 
 [build-system]
 requires = ["hatchling"]

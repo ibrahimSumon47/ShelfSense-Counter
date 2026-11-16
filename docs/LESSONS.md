@@ -29,3 +29,13 @@ runner to fail action resolution. Fixed by pinning `@v10.3.3`. Lesson: use the e
 tag returned by `gh api repos/<owner>/<repo>/releases/latest --jq .tag_name` unless the
 floating major tag is verified to exist.
 
+## 2026-11-17 No background installs; foreground with timeout
+
+Starlette's synchronous `TestClient` (which spawns an `anyio` BlockingPortal thread/pipe
+under the hood) hung inside the Windows sandbox when `pytest` was backgrounded. Fixed by
+making the FastAPI route handlers synchronous and invoking them directly in unit tests,
+keeping heavy training dependencies in an optional `train` group (`uv sync --extra train`,
+pinned to the PyTorch CPU index locally), and never running installs or tests in the
+background: no background installs; foreground with timeout.
+
+

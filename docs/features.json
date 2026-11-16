@@ -44,9 +44,9 @@
     { "id": "S5-02", "phase": "S5", "title": "Bilingual chat with tool calling; numbers only from tools; refuses on missing data", "status": "todo", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": [] },
     { "id": "S5-03", "phase": "S5", "title": "30-question evaluation in English and Bangla with recorded accuracy", "status": "todo", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": [] },
 
-    { "id": "S6-01", "phase": "S6", "title": "Python package: ONNX inference, counting and gap logic, with tests", "status": "todo", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": [] },
-    { "id": "S6-02", "phase": "S6", "title": "CLI: shelfsense count photo.jpg", "status": "todo", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": [] },
-    { "id": "S6-03", "phase": "S6", "title": "FastAPI batch app with Dockerfile and tests; hosting decision recorded", "status": "todo", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": [] },
+    { "id": "S6-01", "phase": "S6", "title": "Python package: ONNX inference, counting and gap logic, with tests", "status": "done", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": ["file:python/src/shelfsense/detector.py", "file:python/src/shelfsense/gaps.py", "file:python/tests/test_shelfsense.py", "uv run --directory python pytest -x -q: 4 passed"] },
+    { "id": "S6-02", "phase": "S6", "title": "CLI: shelfsense count photo.jpg", "status": "done", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": ["file:python/src/shelfsense/cli.py", "file:python/tests/test_shelfsense.py"] },
+    { "id": "S6-03", "phase": "S6", "title": "FastAPI batch app with Dockerfile and tests; hosting decision recorded", "status": "done", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": ["file:python/src/shelfsense/api.py", "file:python/Dockerfile", "file:docs/DECISIONS.md", "file:python/tests/test_shelfsense.py"] },
 
     { "id": "S7-01", "phase": "S7", "title": "Playwright flows against production", "status": "todo", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": [] },
     { "id": "S7-02", "phase": "S7", "title": "axe zero violations and Lighthouse scores recorded", "status": "todo", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": [] },
