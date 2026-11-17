@@ -1,0 +1,17 @@
+{
+  "run_id": "improved-fcos-r50-fpn-v2",
+  "framework": "torchvision.models.detection.fcos_resnet50_fpn",
+  "license": "BSD-3-Clause",
+  "input_size": 800,
+  "sku110k_train_subset": 2200,
+  "sku110k_val_subset": 150,
+  "sku110k_test_subset": 200,
+  "epochs": 4,
+  "batch_size": 8,
+  "learning_rate": 0.00015,
+  "weight_decay": 0.0001,
+  "detections_per_img": 1000,
+  "nms_thresh": 0.45,
+  "score_thresh": 0.22,
+  "seed": 42
+}

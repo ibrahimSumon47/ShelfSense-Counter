@@ -184,3 +184,104 @@ def evaluate_by_density(inputs: Sequence[ImageEvalInput]) -> dict[str, EvalSumma
     for item in inputs:
         buckets[density_bucket(len(item.ground_truth))].append(item)
     return {name: evaluate_predictions(group) for name, group in buckets.items()}
+
+
+def compute_ap50_95(inputs: Sequence[ImageEvalInput]) -> float:
+    """Computes COCO mAP@[0.50:0.95] averaged across the 10 IoU thresholds 0.50, 0.55, ..., 0.95."""
+    if not inputs:
+        return 0.0
+    thresholds = [0.50 + 0.05 * i for i in range(10)]
+    aps = [compute_ap50(inputs, iou_threshold=t) for t in thresholds]
+    return round(sum(aps) / len(aps), 4)
+
+
+def bootstrap_confidence_intervals(
+    inputs: Sequence[ImageEvalInput],
+    n_resamples: int = 500,
+    seed: int = 42,
+) -> dict[str, tuple[float, float]]:
+    """Computes 95% bootstrap confidence intervals (2.5th, 97.5th percentiles) for mAP50, MAE, and MAPE."""
+    import random
+
+    if not inputs:
+        return {"map50": (0.0, 0.0), "count_mae": (0.0, 0.0), "count_mape_pct": (0.0, 0.0)}
+
+    rng = random.Random(seed)
+    n = len(inputs)
+    map_samples: list[float] = []
+    mae_samples: list[float] = []
+    mape_samples: list[float] = []
+
+    for _ in range(n_resamples):
+        sample = [inputs[rng.randrange(n)] for _ in range(n)]
+        # Rename image_ids in resampled duplicate items so AP matching treats each draw independently.
+        reindexed = [
+            ImageEvalInput(f"{item.image_id}#b{idx}", item.ground_truth, item.predictions)
+            for idx, item in enumerate(sample)
+        ]
+        summary = evaluate_predictions(reindexed)
+        map_samples.append(summary.map50)
+        mae_samples.append(summary.count_mae)
+        mape_samples.append(summary.count_mape_pct)
+
+    map_samples.sort()
+    mae_samples.sort()
+    mape_samples.sort()
+    lo_idx = max(0, int(0.025 * (n_resamples - 1)))
+    hi_idx = min(n_resamples - 1, int(0.975 * (n_resamples - 1)))
+
+    return {
+        "map50": (round(map_samples[lo_idx], 4), round(map_samples[hi_idx], 4)),
+        "count_mae": (round(mae_samples[lo_idx], 2), round(mae_samples[hi_idx], 2)),
+        "count_mape_pct": (round(mape_samples[lo_idx], 2), round(mape_samples[hi_idx], 2)),
+    }
+
+
+def verify_onnx_model_plausibility(
+    model_path: str,
+    min_params: int = 1_000_000,
+    min_size_bytes: int = 4_000_000,
+) -> dict[str, int | float | bool]:
+    """Verifies that an exported ONNX detector has >1M parameters, plausible byte size, and image-dependent outputs."""
+    from pathlib import Path
+    import numpy as np
+
+    p = Path(model_path)
+    if not p.is_file():
+        raise FileNotFoundError(f"ONNX model not found: {model_path}")
+    size_bytes = p.stat().st_size
+    if size_bytes < min_size_bytes:
+        raise ValueError(f"ONNX file size {size_bytes} B is below minimum plausible detector size ({min_size_bytes} B).")
+
+    # Approximate parameter count from initializer float32/int8 weight payload (>= 1M params).
+    estimated_params = size_bytes // 4
+    if estimated_params < min_params:
+        raise ValueError(f"Estimated parameter count {estimated_params} is below {min_params}.")
+
+    import onnxruntime as ort
+
+    sess = ort.InferenceSession(str(p), providers=["CPUExecutionProvider"])
+    inp = sess.get_inputs()[0]
+    shape = [d if isinstance(d, int) and d > 0 else 640 for d in inp.shape]
+    if len(shape) == 4:
+        shape[0] = 1
+        shape[1] = 3
+
+    zeros_in = np.zeros(shape, dtype=np.float32)
+    rng = np.random.default_rng(7)
+    noise_in = rng.uniform(0.0, 1.0, size=shape).astype(np.float32)
+
+    out_zeros = sess.run(None, {inp.name: zeros_in})[0]
+    out_noise = sess.run(None, {inp.name: noise_in})[0]
+    max_diff = float(np.max(np.abs(np.asarray(out_zeros, dtype=np.float32) - np.asarray(out_noise, dtype=np.float32))))
+    if max_diff < 1e-4:
+        raise ValueError("ONNX model output is constant / independent of the input image.")
+
+    return {
+        "size_bytes": size_bytes,
+        "estimated_params": estimated_params,
+        "max_output_diff_zeros_vs_noise": round(max_diff, 4),
+        "plausible": True,
+    }
+
+
