@@ -38,6 +38,9 @@ export interface Dictionary {
   chatSend: string;
   chatHint: string;
   errorInvalidFile: string;
+  modelMissingTitle: string;
+  modelMissingBody: string;
+  noScanYet: string;
 }
 
 export const DICTIONARIES: Record<ChatLocale, Dictionary> = {
@@ -76,6 +79,9 @@ export const DICTIONARIES: Record<ChatLocale, Dictionary> = {
     chatSend: 'Ask',
     chatHint: 'Every number comes strictly from stored scan records. Missing data is never guessed.',
     errorInvalidFile: 'Please select a valid JPEG, PNG, or WebP shelf photo under 10 MB.',
+    modelMissingTitle: 'Not measured yet; pipeline demonstration only',
+    modelMissingBody: 'No trained detector is installed in this build yet, so photos are not analysed and no fake detection boxes or counts are shown.',
+    noScanYet: 'Not measured yet; pipeline demonstration only',
   },
   bn: {
     appName: 'শেলফসেন্স (ShelfSense)',
@@ -112,5 +118,8 @@ export const DICTIONARIES: Record<ChatLocale, Dictionary> = {
     chatSend: 'জিজ্ঞাসা করুন',
     chatHint: 'প্রতিটি সংখ্যা সরাসরি ডাটাবেসের সংরক্ষিত স্ক্যান থেকে নেওয়া হয়; অনুমান করে কোনো সংখ্যা বলা হয় না।',
     errorInvalidFile: 'অনুগ্রহ করে ১০ মেগাবাইটের কম আকারের সঠিক JPEG, PNG বা WebP ছবি নির্বাচন করুন।',
+    modelMissingTitle: 'এখনো পরিমাপ করা হয়নি; পাইপলাইন প্রদর্শনী মাত্র (not measured yet; pipeline demonstration only)',
+    modelMissingBody: 'এই সংস্করণে এখনো কোনো প্রশিক্ষিত মডেল যুক্ত করা হয়নি, তাই কোনো ছবি বিশ্লেষণ বা কাল্পনিক বক্স দেখানো হচ্ছে না।',
+    noScanYet: 'এখনো পরিমাপ করা হয়নি (not measured yet; pipeline demonstration only)',
   },
 };

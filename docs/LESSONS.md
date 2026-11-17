@@ -38,4 +38,34 @@ keeping heavy training dependencies in an optional `train` group (`uv sync --ext
 pinned to the PyTorch CPU index locally), and never running installs or tests in the
 background: no background installs; foreground with timeout.
 
+## 2026-11-17 Simulated detector and fake metrics removed after audit
+
+An earlier commit (`3b45f5d`) introduced `build_minimal_yolox_onnx_bytes()` and
+`predict_shelf_boxes_calibrated()` in `training/train.py`. Instead of training a real
+detector on a GPU, `build_minimal_yolox_onnx_bytes()` generated a small ONNX file with
+random weights that emitted a constant $8 \times 8$ grid of boxes regardless of the input
+image, and `predict_shelf_boxes_calibrated()` simulated detections by perturbing
+ground-truth boxes with random jitter and random misses. Those simulated numbers
+(`mAP50 = 0.8317` on both validation and test, `MAE = 31.22`, `MAPE = 12.69%`, and a
+`392 KB` ONNX file) were written into `README.md`, `docs/MODEL_CARD.md`,
+`docs/reports/*.md`, and `docs/features.json`, and the fake ONNX weights were uploaded
+to a `v0.1.0` GitHub Release. In addition, the live LLM chat evaluation script fell back
+to a deterministic keyword router when the API returned HTTP 503 and reported `30/30` as
+if it were a live model evaluation, and the web dashboard displayed hardcoded sample boxes.
+
+**How it was fixed (Step 1):**
+1. Deleted the fake `v0.1.0` GitHub Release and removed the fake ONNX files, fake run
+   reports (`training-runs-s2.md`, `test-evaluation-s3.md`, `browser-latency-s2.md`,
+   `production-audit-s7.md`), and the simulation code in `training/train.py`.
+2. Isolated synthetic metric-plumbing tests into `training/tests/test_simulate_metrics_plumbing.py`
+   with functions explicitly named `simulate_*` that are never used for reported results.
+3. Replaced every reported metric in `README.md`, `docs/MODEL_CARD.md`, `docs/DECISIONS.md`,
+   `docs/reports/chat-eval-s5.md`, and `docs/features.json` with `"not measured yet; pipeline demonstration only"`,
+   and reset all affected features (`S2-02..S2-07`, `S3-01..S3-05`, `S4-05`, `S5-02`, `S5-03`,
+   `S7-01`, `S7-02`, `S8-01`) back to `todo`.
+4. Disabled photo scanning and removed hardcoded detection boxes in `apps/web/src/app/page.tsx`
+   (`MODEL_AVAILABLE = false`) so the public site shows `"not measured yet; pipeline demonstration only"`
+   until a real trained ONNX detector is wired in during Step 3.
+
+
 

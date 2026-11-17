@@ -1,103 +1,34 @@
 'use client';
 
-// Main ShelfSense operations dashboard:
-// - Dark blue-grey default theme with light theme toggle
-// - Bilingual English ('en') / Bangla ('bn') toggle
-// - Owner vs Staff role enforcement (only owner can modify low-stock thresholds)
-// - Client-side image resize + in-browser detection with bounding-box & empty-gap overlay
-// - Store -> Aisle -> Shelf scan history, SVG trend chart, and RFC 4180 CSV export
-// - Database-tool-grounded bilingual Q&A chat
+// ShelfSense operations dashboard.
+// While MODEL_AVAILABLE is false (until Step 3 wires in the trained ONNX detector),
+// the scan button and photo upload are disabled and the interface displays
+// "not measured yet; pipeline demonstration only" with zero fake detection boxes.
+// All real UI features (Store/Aisle/Shelf fields, owner/staff role guard, client resize
+// handler, SVG overlay renderer, scan history table, trend chart, CSV export, and
+// database-tool chat) remain intact and ready for Step 3.
 
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { DICTIONARIES } from '../lib/i18n.ts';
-import { type BoundingBox } from '../lib/gaps.ts';
-import { buildDetectionResult, computeResizedDimensions, type DetectionResult } from '../lib/detector.ts';
+import { computeResizedDimensions, type DetectionResult } from '../lib/detector.ts';
 import { scansToCsv, type ScanRecord } from '../lib/csv.ts';
 import { canModifyThreshold, type UserRole } from '../lib/security.ts';
 import { answerShelfQuestion, formatNumberForLocale, type ChatLocale } from '../lib/chat-tools.ts';
 
-const SAMPLE_BOXES_DENSE: BoundingBox[] = [
-  // Top shelf row: 4 items + 1 empty gap between x=240 and x=365
-  { x1: 30, y1: 35, x2: 75, y2: 115, score: 0.94 },
-  { x1: 85, y1: 36, x2: 130, y2: 115, score: 0.92 },
-  { x1: 140, y1: 34, x2: 185, y2: 114, score: 0.91 },
-  { x1: 195, y1: 35, x2: 240, y2: 115, score: 0.89 },
-  { x1: 365, y1: 35, x2: 410, y2: 115, score: 0.93 },
-  { x1: 420, y1: 36, x2: 465, y2: 115, score: 0.90 },
-  // Middle shelf row: 5 items + 1 empty gap between x=185 and x=310
-  { x1: 30, y1: 150, x2: 75, y2: 230, score: 0.95 },
-  { x1: 85, y1: 152, x2: 130, y2: 230, score: 0.91 },
-  { x1: 140, y1: 150, x2: 185, y2: 230, score: 0.88 },
-  { x1: 310, y1: 151, x2: 355, y2: 230, score: 0.92 },
-  { x1: 365, y1: 150, x2: 410, y2: 230, score: 0.90 },
-  { x1: 420, y1: 151, x2: 465, y2: 230, score: 0.87 },
-];
-
-const INITIAL_SCANS: ScanRecord[] = [
-  {
-    id: 'scan-101',
-    userId: 'user-owner-1',
-    storeName: 'Dhaka Gulshan Superstore',
-    aisleName: 'Aisle 1 - Beverages',
-    shelfName: 'Shelf B2 (Soft Drinks)',
-    scannedAt: '2026-11-15T10:00:00Z',
-    itemCount: 8,
-    gapCount: 3,
-    estimatedMissing: 9,
-    lowStockThreshold: 15,
-    lowStock: true,
-  },
-  {
-    id: 'scan-102',
-    userId: 'user-owner-1',
-    storeName: 'Dhaka Gulshan Superstore',
-    aisleName: 'Aisle 2 - Snacks',
-    shelfName: 'Shelf A1 (Biscuits)',
-    scannedAt: '2026-11-16T09:30:00Z',
-    itemCount: 24,
-    gapCount: 1,
-    estimatedMissing: 2,
-    lowStockThreshold: 18,
-    lowStock: false,
-  },
-  {
-    id: 'scan-103',
-    userId: 'user-owner-1',
-    storeName: 'Dhaka Gulshan Superstore',
-    aisleName: 'Aisle 3 - Staples',
-    shelfName: 'Shelf C1 (Lentils & Rice)',
-    scannedAt: '2026-11-16T11:15:00Z',
-    itemCount: 12,
-    gapCount: 2,
-    estimatedMissing: 5,
-    lowStockThreshold: 15,
-    lowStock: true,
-  },
-  {
-    id: 'scan-090',
-    userId: 'user-owner-1',
-    storeName: 'Dhaka Gulshan Superstore',
-    aisleName: 'Aisle 1 - Beverages',
-    shelfName: 'Shelf B2 (Soft Drinks)',
-    scannedAt: '2026-11-05T10:00:00Z',
-    itemCount: 22,
-    gapCount: 0,
-    estimatedMissing: 0,
-    lowStockThreshold: 15,
-    lowStock: false,
-  },
-];
+// Set to true only in Step 3 when the real trained ONNX detector is loaded.
+const MODEL_AVAILABLE = false;
 
 export default function ShelfSensePage() {
   const [locale, setLocale] = useState<ChatLocale>('en');
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [role, setRole] = useState<UserRole>('owner');
-  const [storeName, setStoreName] = useState('Dhaka Gulshan Superstore');
-  const [aisleName, setAisleName] = useState('Aisle 1 - Beverages');
-  const [shelfName, setShelfName] = useState('Shelf B2 (Soft Drinks)');
+  const [storeName, setStoreName] = useState('');
+  const [aisleName, setAisleName] = useState('');
+  const [shelfName, setShelfName] = useState('');
   const [threshold, setThreshold] = useState(15);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [scans, setScans] = useState<ScanRecord[]>(INITIAL_SCANS);
+  const [detection, setDetection] = useState<DetectionResult | null>(null);
+  const [scans, setScans] = useState<ScanRecord[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [chatHistory, setChatHistory] = useState<
     Array<{ question: string; reply: string; toolUsed: string }>
@@ -110,24 +41,6 @@ export default function ShelfSensePage() {
     role,
     displayName: 'Store Operator',
   });
-
-  const [detection, setDetection] = useState<DetectionResult>(() =>
-    buildDetectionResult(SAMPLE_BOXES_DENSE, 500, 260, 15, 19, 'wasm'),
-  );
-
-  // Re-evaluate lowStock status whenever the threshold changes.
-  const activeDetection = useMemo(
-    () =>
-      buildDetectionResult(
-        detection.boxes,
-        detection.imageWidth,
-        detection.imageHeight,
-        threshold,
-        detection.inferenceMs,
-        detection.executionProvider,
-      ),
-    [detection, threshold],
-  );
 
   function toggleTheme() {
     const next = theme === 'dark' ? 'light' : 'dark';
@@ -145,24 +58,27 @@ export default function ShelfSensePage() {
       setErrorMsg(dict.errorInvalidFile);
       return;
     }
-    // Client-side resize calculation before browser ONNX execution.
-    const dims = computeResizedDimensions(1280, 720, 1280);
-    setDetection(buildDetectionResult(SAMPLE_BOXES_DENSE, dims.width, dims.height, threshold, 21, 'wasm'));
+    if (!MODEL_AVAILABLE) {
+      // Do not fabricate detections when no trained model is loaded.
+      computeResizedDimensions(1280, 720, 1280);
+      setDetection(null);
+    }
   }
 
   function handleSaveScan() {
+    if (!detection) return;
     const newScan: ScanRecord = {
       id: `scan-${Date.now().toString().slice(-5)}`,
       userId: currentUserId,
-      storeName,
-      aisleName,
-      shelfName,
+      storeName: storeName || 'Store 1',
+      aisleName: aisleName || 'Aisle 1',
+      shelfName: shelfName || 'Shelf 1',
       scannedAt: new Date().toISOString(),
-      itemCount: activeDetection.count,
-      gapCount: activeDetection.gaps.length,
-      estimatedMissing: activeDetection.estimatedMissingTotal,
+      itemCount: detection.count,
+      gapCount: detection.gaps.length,
+      estimatedMissing: detection.estimatedMissingTotal,
       lowStockThreshold: threshold,
-      lowStock: activeDetection.lowStock,
+      lowStock: detection.count < threshold,
     };
     setScans((prev) => [newScan, ...prev]);
   }
@@ -226,9 +142,15 @@ export default function ShelfSensePage() {
       </header>
 
       <div className="grid-2">
-        {/* Left column: Shelf selector, upload/capture, and bounding-box + gap overlay */}
         <section className="panel" aria-labelledby="scan-heading">
           <h2 id="scan-heading">{dict.navScan}</h2>
+
+          {!MODEL_AVAILABLE && (
+            <div role="status" className="badge-warn" style={{ display: 'block', marginBottom: '0.85rem' }}>
+              <strong>{dict.modelMissingTitle}.</strong> {dict.modelMissingBody}
+            </div>
+          )}
+
           <div className="field-row">
             <div className="field">
               <label htmlFor="store-input">{dict.storeLabel}</label>
@@ -267,6 +189,7 @@ export default function ShelfSensePage() {
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
                 capture="environment"
+                disabled={!MODEL_AVAILABLE}
                 onChange={handleFileChange}
               />
               <small style={{ color: 'var(--text-muted)', display: 'block', marginTop: '0.25rem' }}>
@@ -298,20 +221,16 @@ export default function ShelfSensePage() {
             </p>
           )}
 
-          {/* Interactive SVG overlay showing detected product boxes (sky blue) and empty shelf gaps (dashed amber) */}
-          <div className="canvas-box">
-            <svg
-              viewBox="0 0 500 260"
-              role="img"
-              aria-label="Shelf detection overlay showing product boxes and empty stock gaps"
-            >
-              <rect x="0" y="0" width="500" height="260" fill="#0b1324" rx="6" />
-              <line x1="15" y1="122" x2="485" y2="122" stroke="#475569" strokeWidth="4" />
-              <line x1="15" y1="238" x2="485" y2="238" stroke="#475569" strokeWidth="4" />
-
-              {activeDetection.boxes.map((box, idx) => (
-                <g key={`box-${idx}`}>
+          {detection && (
+            <div className="canvas-box">
+              <svg
+                viewBox={`0 0 ${detection.imageWidth} ${detection.imageHeight}`}
+                role="img"
+                aria-label="Shelf detection overlay"
+              >
+                {detection.boxes.map((box, idx) => (
                   <rect
+                    key={`box-${idx}`}
                     x={box.x1}
                     y={box.y1}
                     width={box.x2 - box.x1}
@@ -319,14 +238,11 @@ export default function ShelfSensePage() {
                     fill="rgba(56, 189, 248, 0.18)"
                     stroke="#38bdf8"
                     strokeWidth="2"
-                    rx="3"
                   />
-                </g>
-              ))}
-
-              {activeDetection.gaps.map((gap, idx) => (
-                <g key={`gap-${idx}`}>
+                ))}
+                {detection.gaps.map((gap, idx) => (
                   <rect
+                    key={`gap-${idx}`}
                     x={gap.x1}
                     y={gap.y1}
                     width={gap.width}
@@ -335,60 +251,48 @@ export default function ShelfSensePage() {
                     stroke="#f87171"
                     strokeWidth="2"
                     strokeDasharray="5 4"
-                    rx="3"
                   />
-                  <text
-                    x={(gap.x1 + gap.x2) / 2}
-                    y={(gap.y1 + gap.y2) / 2 + 4}
-                    fill="#fca5a5"
-                    fontSize="11"
-                    textAnchor="middle"
-                  >
-                    -{formatNumberForLocale(gap.estimatedMissingItems, locale)}
-                  </text>
-                </g>
-              ))}
-            </svg>
-          </div>
+                ))}
+              </svg>
+            </div>
+          )}
         </section>
 
-        {/* Right column: Measured KPIs and bilingual database-tool chat */}
         <section className="panel" aria-labelledby="results-heading">
           <h2 id="results-heading">{dict.statusTitle}</h2>
           <div className="kpi-grid">
             <div className="kpi-card">
               <div className="kpi-label">{dict.countTitle}</div>
               <div className="kpi-value" data-testid="kpi-count">
-                {formatNumberForLocale(activeDetection.count, locale)}
+                {detection ? formatNumberForLocale(detection.count, locale) : '—'}
               </div>
             </div>
             <div className="kpi-card">
               <div className="kpi-label">{dict.gapsTitle}</div>
               <div className="kpi-value" data-testid="kpi-gaps">
-                {formatNumberForLocale(activeDetection.gaps.length, locale)}
-              </div>
-            </div>
-            <div className="kpi-card">
-              <div className="kpi-label">{dict.missingEstTitle}</div>
-              <div className="kpi-value">
-                {formatNumberForLocale(activeDetection.estimatedMissingTotal, locale)}
-              </div>
-            </div>
-            <div className="kpi-card">
-              <div className="kpi-label">{dict.statusTitle}</div>
-              <div style={{ marginTop: '0.45rem' }}>
-                <span className={activeDetection.lowStock ? 'badge-warn' : 'badge-ok'}>
-                  {activeDetection.lowStock ? dict.statusLowStock : dict.statusHealthy}
-                </span>
+                {detection ? formatNumberForLocale(detection.gaps.length, locale) : '—'}
               </div>
             </div>
           </div>
+          {!detection && (
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{dict.noScanYet}</p>
+          )}
 
           <div className="controls" style={{ marginBottom: '1.25rem' }}>
-            <button type="button" className="btn btn-primary" onClick={handleSaveScan}>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handleSaveScan}
+              disabled={!detection}
+            >
               {dict.saveScanButton}
             </button>
-            <button type="button" className="btn" onClick={handleExportCsv}>
+            <button
+              type="button"
+              className="btn"
+              onClick={handleExportCsv}
+              disabled={scans.length === 0}
+            >
               {dict.exportCsvButton}
             </button>
           </div>
@@ -438,7 +342,6 @@ export default function ShelfSensePage() {
         </section>
       </div>
 
-      {/* Bottom section: Scan history table & stock trend bar chart */}
       <section className="panel" aria-labelledby="history-heading">
         <h2 id="history-heading">{dict.historyHeading}</h2>
         {scans.length === 0 ? (

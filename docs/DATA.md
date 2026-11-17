@@ -13,6 +13,9 @@ Status: verified (2026-11-16, S1-01).
 
 ## Verified datasets (checked 2026-11-16)
 
+Licence notes: SKU-110K is for academic and non-commercial research only; any weights
+trained on it carry that restriction. No model has been trained on either dataset yet.
+
 | Dataset | Scale & Density | Licence (verified 2026-11-16) | Access method | Split unit |
 | --- | --- | --- | --- | --- |
 | **SKU-110K** (*Goldman et al., CVPR 2019*) | 11,762 shelf images (8,219 train / 588 val / 2,936 test cleaned), ~1.73M bounding boxes (~147.4 items/image) | Academic and non-commercial research use only (Trax Retail / CC BY-NC-SA 3.0 on mirrors) | Kaggle CLI (`thedatasith/sku110k-annotations` or `mohamedessam3112002/sku-110k`) and official S3 archive (`http://trax-geometry.s3.amazonaws.com/cvpr_challenge/SKU110K_fixed.tar.gz`) | Store-disjoint official splits (`train_*`, `val_*`, `test_*`), verified with cross-split perceptual dHash |

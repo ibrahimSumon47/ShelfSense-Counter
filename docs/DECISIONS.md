@@ -150,14 +150,14 @@ IoU-aware objectness heads) as the ShelfSense detector architecture.
 
 | Candidate | Licence | Dense-shelf capacity (150–300+ items/photo) | Browser ONNX (`onnxruntime-web`) | Verdict |
 | --- | --- | --- | --- | --- |
-| **YOLOX (Nano / S)** | **Apache-2.0** (permissive, commercial-safe) | 8,400 anchor-free grid predictions at $640 \times 640$ (strides 8, 16, 32); handles 300+ tightly packed items per image with SimOTA label assignment | Standard Conv/SiLU/Concat/MaxPool opset 17 graph; quantizes cleanly to dynamic int8 (`< 4 MB` for Nano, `< 10 MB` for S) and runs under 500 ms on WASM/WebGPU | **Selected** |
+| **YOLOX (Nano / S)** | **Apache-2.0** (permissive, commercial-safe) | Anchor-free dense grid predictions at strides 8, 16, 32 with SimOTA assignment (not yet measured on shelves) | Standard conv graph; export and size to be measured | **Selected (unverified until trained)** |
 | **RT-DETR / D-FINE** | **Apache-2.0** (permissive) | Fixed decoder query count (default 300 queries); shelves with 250–350 items saturate query slots unless retrained with 500+ queries (quadratic attention cost) | Multi-scale deformable attention requires custom or slow fallback ops in `onnxruntime-web` WASM | Rejected for browser latency |
 | **Ultralytics YOLOv8 / v11** | **AGPL-3.0** (copyleft) | 8,400 anchor-free predictions | Clean ONNX export | Rejected: AGPL-3.0 conflicts with our MIT codebase (ADR-006, ADR-007) |
 | **Torchvision Faster R-CNN / RetinaNet** | **BSD-3-Clause** (permissive) | Anchor-based; struggles with extreme aspect ratios and dense overlap on retail shelves without heavy anchor retuning | Two-stage ROIAlign / dynamic control flow complicates static WebGPU execution | Rejected |
 
-**Why.** An Apache-2.0 YOLOX-style anchor-free decoupled detector implemented directly in
-clean PyTorch gives 8,400 dense predictions at $640 \times 640$ (or 3,549 at $416 \times 416$),
-exports to a static opset-17 ONNX graph with zero custom operators, supports int8 weight
-quantization out of the box, and keeps the entire repository MIT/Apache-2.0 clean.
+**Why.** An Apache-2.0 anchor-free detector keeps the repository permissive. Size, speed,
+INT8 accuracy and ONNX export behaviour are **not measured yet**; an earlier draft of this
+ADR quoted file sizes and latencies that were never measured and they were removed
+(see `docs/LESSONS.md`). The official YOLOX code is to be used, not a custom reimplementation.
 
 

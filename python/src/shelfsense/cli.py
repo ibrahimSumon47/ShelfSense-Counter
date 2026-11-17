@@ -39,6 +39,12 @@ def main(argv: list[str] | None = None) -> int:
             print(f"Error: image file not found: {image_path}", file=sys.stderr)
             return 2
 
+        if args.model is None:
+            print(
+                "WARNING: no --model given. Falling back to a non-learned contrast heuristic that only "
+                "works on clean synthetic images. Counts are NOT a measurement of real shelves.",
+                file=sys.stderr,
+            )
         detector = ShelfDetector(
             model_path=args.model,
             score_threshold=args.score_threshold,
