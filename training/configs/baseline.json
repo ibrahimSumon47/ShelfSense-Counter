@@ -1,0 +1,15 @@
+{
+  "run_id": "baseline-yolox-nano-v1",
+  "variant": "yolox-nano",
+  "input_size": 416,
+  "epochs": 20,
+  "batch_size": 16,
+  "learning_rate": 0.01,
+  "weight_decay": 0.0005,
+  "mosaic_prob": 0.5,
+  "mixup_prob": 0.0,
+  "iou_loss_weight": 3.0,
+  "nms_iou_threshold": 0.45,
+  "score_threshold": 0.30,
+  "seed": 42
+}

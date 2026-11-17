@@ -381,6 +381,8 @@ name = "shelfsense-training"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
+    { name = "numpy", version = "2.5.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "pillow" },
 ]
 
@@ -396,6 +398,7 @@ train = [
 
 [package.metadata]
 requires-dist = [
+    { name = "numpy", specifier = ">=1.26.0" },
     { name = "numpy", marker = "extra == 'train'", specifier = ">=1.26.0" },
     { name = "onnxruntime", marker = "extra == 'train'", specifier = ">=1.18.0" },
     { name = "pillow", specifier = ">=10.3.0" },

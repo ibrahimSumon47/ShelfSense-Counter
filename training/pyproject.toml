@@ -5,6 +5,7 @@ description = "Dataset preparation, leak-free splitting, and Kaggle training uti
 requires-python = ">=3.11"
 dependencies = [
   "pillow>=10.3.0",
+  "numpy>=1.26.0",
 ]
 
 [project.optional-dependencies]

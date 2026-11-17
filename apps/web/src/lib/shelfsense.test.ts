@@ -11,6 +11,7 @@ import {
   filterByUser,
   validateImageUpload,
 } from './security.ts';
+import { resolveClerkSessionUser, signCloudinaryUpload } from './cloud.ts';
 import {
   answerShelfQuestion,
   extractNumbersFromText,
@@ -180,6 +181,15 @@ test('S7-03 & S7-04: upload magic-byte validation, rate limiter, roles, and per-
   assert.equal(third.allowed, false);
   assert.equal(third.retryAfterMs, 8000);
   assert.equal(limiter.check('ip-1', 12_000).allowed, true);
+
+  // S4-02 & S4-07: Clerk session role resolver and Cloudinary SHA-1 upload signature.
+  const sig = signCloudinaryUpload({ timestamp: 1700000000, folder: 'shelfsense/thumbnails' }, 'test_secret');
+  assert.equal(sig.length, 40);
+  const staffHeaders = new Headers({ 'x-clerk-user-id': 'user_staff_9', 'x-shelfsense-role': 'staff' });
+  const resolvedStaff = resolveClerkSessionUser(staffHeaders);
+  assert.equal(resolvedStaff.userId, 'user_staff_9');
+  assert.equal(resolvedStaff.role, 'staff');
+  assert.equal(canModifyThreshold(resolvedStaff), false);
 });
 
 test('S5-01..S5-03: 30-question bilingual evaluation (15 English + 15 Bangla) with 100% tool grounding', () => {
