@@ -98,11 +98,52 @@ def load_sku110k_split(
     split_prefix: str,
     max_images: int,
 ) -> list[tuple[Path, AnnotatedImage]]:
-    """Loads up to `max_images` from SKU-110K (`train`, `val`, or `test`) CSV + image directory."""
+    """Loads up to `max_images` from SKU-110K (`train`, `val`, or `test`).
+
+    Supports both the official `annotations_<split>.csv` layout and the Kaggle
+    `SKU110K_fixed/images/<split>/` + `SKU110K_fixed/labels/<split>/` normalized YOLO `.txt` layout.
+    """
     if not sku_root.exists() and Path("/kaggle/input").is_dir():
         sku_root = Path("/kaggle/input")
     if not sku_root.exists() or max_images <= 0:
         return []
+
+    # Check for Kaggle `SKU110K_fixed` YOLO labels + images layout first.
+    yolo_img_dirs = [p for p in sku_root.rglob(f"images/{split_prefix}") if p.is_dir()]
+    yolo_lbl_dirs = [p for p in sku_root.rglob(f"labels/{split_prefix}") if p.is_dir()]
+    if yolo_img_dirs and yolo_lbl_dirs:
+        img_dir = yolo_img_dirs[0]
+        lbl_dir = yolo_lbl_dirs[0]
+        img_files = sorted(p for p in img_dir.glob(f"{split_prefix}_*.jpg"))[:max_images]
+        yolo_results: list[tuple[Path, AnnotatedImage]] = []
+        for img_p in img_files:
+            lbl_p = lbl_dir / f"{img_p.stem}.txt"
+            if not lbl_p.is_file():
+                continue
+            try:
+                with Image.open(img_p) as im:
+                    w, h = im.size
+            except Exception:
+                continue
+            boxes: list[BoundingBox] = []
+            for line in lbl_p.read_text(encoding="utf-8", errors="ignore").splitlines():
+                parts = line.strip().split()
+                if len(parts) < 5:
+                    continue
+                try:
+                    xc, yc, bw, bh = float(parts[1]) * w, float(parts[2]) * h, float(parts[3]) * w, float(parts[4]) * h
+                except ValueError:
+                    continue
+                x1 = max(0.0, min(float(w), xc - bw * 0.5))
+                y1 = max(0.0, min(float(h), yc - bh * 0.5))
+                x2 = max(0.0, min(float(w), xc + bw * 0.5))
+                y2 = max(0.0, min(float(h), yc + bh * 0.5))
+                if x2 - x1 >= 2.0 and y2 - y1 >= 2.0:
+                    boxes.append(BoundingBox(x1=x1, y1=y1, x2=x2, y2=y2, class_id=0))
+            if boxes:
+                yolo_results.append((img_p, AnnotatedImage(image_name=img_p.name, width=w, height=h, boxes=tuple(boxes))))
+        if yolo_results:
+            return yolo_results
 
     csv_candidates = list(sku_root.rglob(f"annotations_{split_prefix}.csv"))
     if not csv_candidates:
@@ -572,7 +613,10 @@ def _export_trained_fcos_to_onnx(model, onnx_path: Path, input_size: int, device
                 feat_list = [features]
             else:
                 feat_list = list(features.values())
-            cls_logits, bbox_reg, ctr_logits = self.head.forward(feat_list)
+            head_out = self.head.forward(feat_list)
+            cls_logits = head_out["cls_logits"]
+            bbox_reg = head_out["bbox_regression"]
+            ctr_logits = head_out["bbox_ctrness"]
             # Decode FPN stride centers and regression offsets into [1, N, 6] `[xc, yc, w, h, score, 1.0]`
             decoded_levels = []
             strides = [8, 16, 32, 64, 128][: len(feat_list)]

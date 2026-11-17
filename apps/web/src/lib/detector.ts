@@ -136,3 +136,42 @@ export function buildDetectionResult(
     executionProvider,
   };
 }
+
+// Converts an RGBA pixel buffer (from canvas getImageData) of size `origWidth x origHeight`
+// into a normalized float32 CHW letterbox tensor `(1, 3, inputSize, inputSize)` matching
+// `python/src/shelfsense/detector.py:letterbox_image` so the browser and Python CLI produce
+// identical inputs and counts on the same photo.
+export function rgbaToLetterboxChw(
+  rgba: Uint8ClampedArray | Uint8Array,
+  origWidth: number,
+  origHeight: number,
+  inputSize = 640,
+  padValue = 114,
+): { tensor: Float32Array; scale: number; padX: number; padY: number } {
+  const scale = Math.min(inputSize / origWidth, inputSize / origHeight);
+  const newW = Math.max(1, Math.round(origWidth * scale));
+  const newH = Math.max(1, Math.round(origHeight * scale));
+  const padX = Math.floor((inputSize - newW) / 2);
+  const padY = Math.floor((inputSize - newH) / 2);
+
+  const plane = inputSize * inputSize;
+  const tensor = new Float32Array(3 * plane);
+  const padNorm = padValue / 255.0;
+  tensor.fill(padNorm);
+
+  for (let y = 0; y < newH; y++) {
+    const srcY = Math.min(origHeight - 1, Math.floor(y / scale));
+    const dstRow = (y + padY) * inputSize;
+    for (let x = 0; x < newW; x++) {
+      const srcX = Math.min(origWidth - 1, Math.floor(x / scale));
+      const srcIdx = (srcY * origWidth + srcX) * 4;
+      const dstIdx = dstRow + (x + padX);
+      tensor[dstIdx] = rgba[srcIdx] / 255.0;
+      tensor[plane + dstIdx] = rgba[srcIdx + 1] / 255.0;
+      tensor[2 * plane + dstIdx] = rgba[srcIdx + 2] / 255.0;
+    }
+  }
+
+  return { tensor, scale, padX, padY };
+}
+

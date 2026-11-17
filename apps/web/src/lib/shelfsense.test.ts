@@ -2,7 +2,13 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { clusterShelfRows, detectShelfGaps, type BoundingBox } from './gaps.ts';
-import { applyNms, buildDetectionResult, computeResizedDimensions, decodeYoloxOutput } from './detector.ts';
+import {
+  applyNms,
+  buildDetectionResult,
+  computeResizedDimensions,
+  decodeYoloxOutput,
+  rgbaToLetterboxChw,
+} from './detector.ts';
 import { escapeCsvCell, scansToCsv, type ScanRecord } from './csv.ts';
 import {
   SlidingWindowRateLimiter,
@@ -144,6 +150,14 @@ test('S4-04 & S4-05: client resize dimensions, YOLOX decode, NMS, and DetectionR
   assert.equal(det.count, 1);
   assert.equal(det.lowStock, true);
   assert.equal(applyNms(boxes).length, 1);
+
+  const rgba = new Uint8Array(4 * 2 * 4);
+  rgba.fill(255);
+  const lb = rgbaToLetterboxChw(rgba, 4, 2, 8, 114);
+  assert.equal(lb.tensor.length, 3 * 8 * 8);
+  assert.equal(lb.scale, 2);
+  assert.equal(lb.padX, 0);
+  assert.equal(lb.padY, 2);
 });
 
 test('S4-10: CSV export sanitizes spreadsheet formulas and formats all rows', () => {
