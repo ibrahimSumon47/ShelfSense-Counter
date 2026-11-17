@@ -9,7 +9,8 @@
   "enable_tpu": "false",
   "enable_internet": "true",
   "dataset_sources": [
-    "humansintheloop/supermarket-shelves-dataset"
+    "humansintheloop/supermarket-shelves-dataset",
+    "thedatasith/sku110k-annotations"
   ],
   "competition_sources": [],
   "kernel_sources": [],

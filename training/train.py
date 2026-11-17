@@ -49,15 +49,26 @@ from shelfsense_training.splits import (
 
 
 def load_cc0_supermarket(cc0_root: Path) -> list[tuple[Path, AnnotatedImage]]:
-    """Finds all 45 CC0 Supermarket Shelves images and parses their `Product` annotations."""
+    """Finds all 45 CC0 Supermarket Shelves images and parses their `Product` annotations.
+
+    Searches `cc0_root` first; if Kaggle mounted the dataset under a different subfolder
+    inside `/kaggle/input`, automatically scans `/kaggle/input` for the annotations.
+    """
+    items = _scan_cc0_folder(cc0_root)
+    if not items and Path("/kaggle/input").is_dir():
+        items = _scan_cc0_folder(Path("/kaggle/input"))
+    return items
+
+
+def _scan_cc0_folder(root: Path) -> list[tuple[Path, AnnotatedImage]]:
     items: list[tuple[Path, AnnotatedImage]] = []
-    if not cc0_root.exists():
+    if not root.exists():
         return items
 
-    ann_files = sorted(p for p in cc0_root.rglob("*.json") if p.name != "meta.json")
+    ann_files = sorted(p for p in root.rglob("*.json") if p.name != "meta.json")
     img_by_name = {
         p.name: p
-        for p in cc0_root.rglob("*")
+        for p in root.rglob("*")
         if p.is_file() and p.suffix.lower() in {".jpg", ".jpeg", ".png"}
     }
     for ann_path in ann_files:
@@ -69,6 +80,11 @@ def load_cc0_supermarket(cc0_root: Path) -> list[tuple[Path, AnnotatedImage]]:
             continue
         cand = ann_path.name[:-5] if ann_path.name.endswith(".json") else ann_path.stem
         img_path = img_by_name.get(cand)
+        if img_path is None:
+            for ext in (".jpg", ".jpeg", ".png"):
+                if cand + ext in img_by_name:
+                    img_path = img_by_name[cand + ext]
+                    break
         if img_path is None:
             continue
         rec = parse_supervisely_annotation(img_path.name, payload)
@@ -83,6 +99,8 @@ def load_sku110k_split(
     max_images: int,
 ) -> list[tuple[Path, AnnotatedImage]]:
     """Loads up to `max_images` from SKU-110K (`train`, `val`, or `test`) CSV + image directory."""
+    if not sku_root.exists() and Path("/kaggle/input").is_dir():
+        sku_root = Path("/kaggle/input")
     if not sku_root.exists() or max_images <= 0:
         return []
 
