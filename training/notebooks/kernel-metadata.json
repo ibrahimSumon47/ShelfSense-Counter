@@ -1,6 +1,6 @@
 {
   "id": "ibrahimhossainsumon/shelfsense-yolox-dense-shelf-training",
-  "title": "ShelfSense YOLOX Dense Shelf Training",
+  "title": "shelfsense-yolox-dense-shelf-training",
   "code_file": "kaggle_train.ipynb",
   "language": "python",
   "kernel_type": "notebook",
@@ -9,8 +9,7 @@
   "enable_tpu": "false",
   "enable_internet": "true",
   "dataset_sources": [
-    "humansintheloop/supermarket-shelves-dataset",
-    "thedatasith/sku110k-annotations"
+    "humansintheloop/supermarket-shelves-dataset"
   ],
   "competition_sources": [],
   "kernel_sources": [],
