@@ -45,6 +45,11 @@ commit and pushing the kernel again.
      intervals, density buckets, the worst images, the sentence that nine CC0 test images give a
      wide interval, and the FP32-versus-INT8 decision from the measured drop;
    - `python training/render_failures.py` for the failure gallery (CC0 test images, CC0 licence);
+   - the count/mAP regression bundle, which needs the SKU-110K test images to reach 20 rows:
+     `python training/make_regression_fixtures.py --predictions <new gz> --evaluation <new eval json>
+     --cc0-test-dir training/data/supermarket_shelves --sku-test-dir <SKU110K_fixed>
+     --out-dir training/fixtures` then upload `training/fixtures/shelfsense-regression-v1.tar.gz`
+     to the release;
    - `gh release create v1.0.0` with the chosen ONNX file(s), `sha256sums.txt` and the fixture
      bundle from `python training/make_regression_fixtures.py`;
    - copy the chosen file into `apps/web/public/models/`, update `manifest.json`

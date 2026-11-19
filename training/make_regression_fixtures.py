@@ -29,6 +29,10 @@ def collect(samples, predictions_payload: dict, limit: int) -> list[dict]:
             {
                 "image": ann.image_name,
                 "source_path": str(path),
+                "width": ann.width,
+                "height": ann.height,
+                # Ground truth travels with the bundle so the test can recompute mAP, not only counts.
+                "ground_truth": image["ground_truth"],
                 "ground_truth_count": len(ann.boxes),
                 "expected_count": count,
                 "tolerance": max(TOLERANCE_MIN_ITEMS, round(count * TOLERANCE_RATIO)),
@@ -39,7 +43,13 @@ def collect(samples, predictions_payload: dict, limit: int) -> list[dict]:
     return rows
 
 
-def write_bundle(rows: list[dict], out_dir: Path, params: dict | None = None, name: str = "shelfsense-regression-v1") -> dict:
+def write_bundle(
+    rows: list[dict],
+    out_dir: Path,
+    params: dict | None = None,
+    map50: float | None = None,
+    name: str = "shelfsense-regression-v1",
+) -> dict:
     """Copies the images next to an expectations file and tars both (release asset, not git)."""
     images_dir = out_dir / f"{name}-images"
     images_dir.mkdir(parents=True, exist_ok=True)
@@ -54,6 +64,7 @@ def write_bundle(rows: list[dict], out_dir: Path, params: dict | None = None, na
         json.dumps(
             {
                 "tolerance_rule": f"+-max({TOLERANCE_MIN_ITEMS}, {int(TOLERANCE_RATIO * 100)}% of expected)",
+                "expected_map50": map50,
                 "decoding": params or {},
                 "images": rows,
             },
@@ -80,6 +91,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--predictions", type=Path, required=True)
     parser.add_argument("--cc0-test-dir", type=Path, required=True)
     parser.add_argument("--sku-test-dir", type=Path, required=True)
+    parser.add_argument("--evaluation", type=Path, default=None, help="eval_onnx.py JSON, for the mAP50 expectation")
     parser.add_argument("--out-dir", type=Path, default=Path("training/fixtures"))
     parser.add_argument("--limit", type=int, default=20)
     args = parser.parse_args(argv)
@@ -99,7 +111,14 @@ def main(argv: list[str] | None = None) -> int:
         sku_test = ds.load_sku110k_split(args.sku_test_dir, "test", args.limit)
         rows += collect(sku_test, payload, limit=args.limit - len(rows))
 
-    summary = write_bundle(rows, args.out_dir, params=payload.get("params"))
+    # The test rebuilds the decoder settings from this block, so the input size travels with them.
+    decoding = dict(payload.get("params") or {})
+    decoding["input_size"] = payload.get("input_size", 640)
+    map50 = None
+    if args.evaluation and args.evaluation.is_file():
+        evaluation = json.loads(args.evaluation.read_text(encoding="utf-8"))
+        map50 = evaluation["models"][0]["primary"]["map50"]
+    summary = write_bundle(rows, args.out_dir, params=decoding, map50=map50)
     print(json.dumps(summary, indent=2))
     return 0
 

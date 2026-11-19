@@ -99,10 +99,8 @@ jobs:
           mkdir -p training/fixtures
           gh release download v1.0.0 --repo "${{ github.repository }}" --pattern 'shelfsense-regression-v1.tar.gz' --dir training/fixtures --clobber
           gh release download v1.0.0 --repo "${{ github.repository }}" --pattern '*-int8.onnx' --dir training/fixtures --clobber
-          tar -xzf training/fixtures/shelfsense-regression-v1.tar.gz -C training/fixtures
-          mv training/fixtures/shelfsense-regression-v1 training/fixtures/shelfsense-regression-v1.tmp
           mkdir -p training/fixtures/shelfsense-regression-v1
-          mv training/fixtures/shelfsense-regression-v1.tmp/* training/fixtures/shelfsense-regression-v1/
+          tar -xzf training/fixtures/shelfsense-regression-v1.tar.gz -C training/fixtures/shelfsense-regression-v1
           mv training/fixtures/*-int8.onnx training/fixtures/shelfsense-regression-v1/model.onnx
       - name: Run the count regression
         if: steps.bundle.outputs.ready == '1'
