@@ -1,6 +1,6 @@
 # Handoff
 
-Last updated: 2026-11-19 23:00 (37/48 features done; FCOS run still training after 9 h 49 min on Kaggle)
+Last updated: 2026-11-20 00:05 (37/48 features done; the Kaggle run finished COMPLETE at 23:57:52, output download in progress)
 
 **Recommended model tag:** `[MODEL: Claude Sonnet 5.5, MID]`
 
@@ -24,6 +24,14 @@ Kernel `ibrahimhossainsumon/shelfsense-fcos-training`, version 1, trains 12 epoc
 SKU-110K + CC0 images and writes `metrics.json`, checkpoints, ONNX files and test predictions to
 `/kaggle/working/outputs`. It clones `main` at start-up, so a failure can be fixed by pushing a
 commit and pushing the kernel again.
+
+## Download in progress
+
+`training/outputs/fcos-v3/outputs/` is being filled by `kaggle kernels output`. The run committed every
+epoch checkpoint, so the transfer is several gigabytes (each checkpoint is about 383 MB); let it
+finish, then read `train.log` and `metrics.json` before doing anything else. If the transfer was
+interrupted, rerun the same command; it skips files that already match. To save space afterwards,
+the `epoch-*.pt` files can be deleted once `best.pt`, the ONNX files and the predictions are copied.
 
 ## Exact next step
 
