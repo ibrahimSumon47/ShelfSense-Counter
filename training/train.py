@@ -494,7 +494,7 @@ def train(config_path: Path, cc0_dir: Path, sku_dir: Path, output_dir: Path, res
 
         # Tune on SKU-110K validation only (200 images), on the FP32 file.
         fp32_session = make_session(onnx_paths[0])
-        cached_val_sku = run_raw_candidates(fp32_session, sku_val, input_size) if sku_val else []
+        cached_val_sku = run_raw_candidates(fp32_session, sku_val, input_size, normalise=False) if sku_val else []
         if sku_val:
             sweep_rows = sweep_thresholds(
                 sku_val,
@@ -526,7 +526,7 @@ def train(config_path: Path, cc0_dir: Path, sku_dir: Path, output_dir: Path, res
             for name, samples in slices:
                 if not samples:
                     continue
-                cached = run_raw_candidates(session, samples, input_size)
+                cached = run_raw_candidates(session, samples, input_size, normalise=False)
                 eval_inputs = to_eval_inputs(
                     samples,
                     cached,

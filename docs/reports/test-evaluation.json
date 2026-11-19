@@ -1,0 +1,275 @@
+{
+  "dataset": "cc0",
+  "split": "test",
+  "num_images": 9,
+  "input_size": 640,
+  "command": "python training/eval_onnx.py --onnx outputs/fcos-v3/outputs/fcos-r50-fpn-v3-fp32.onnx outputs/fcos-v3/outputs/fcos-r50-fpn-v3-int8.onnx --dataset cc0 --split test --input-size 640 --normalise no --center-fix none --score-thresh 0.30 --nms-thresh 0.35 --max-dets 1000 --out ../docs/reports/test-evaluation.json --predictions-dir ../docs/reports/predictions",
+  "models": [
+    {
+      "onnx_file": "fcos-r50-fpn-v3-fp32.onnx",
+      "onnx_size_bytes": 128710729,
+      "onnx_sha256": "f303e0f7cb4dbd612528cd5649eeaba1ae1f91c64c9ea04570cbd9aa07143301",
+      "ms_per_image": 807.4,
+      "results": [
+        {
+          "score_thresh": 0.3,
+          "nms_thresh": 0.35,
+          "max_dets": 1000,
+          "num_images": 9,
+          "map50": 0.7227,
+          "map50_95": 0.3523,
+          "pycocotools_map75": 0.2846,
+          "num_gt": 1950,
+          "num_dt": 2047,
+          "count_mae": 26.56,
+          "count_mape_pct": 20.68,
+          "pred_count_total": 2047,
+          "gt_count_total": 1950
+        }
+      ],
+      "threshold_sweep": [],
+      "bootstrap_95_ci": {
+        "map50": [
+          0.5324,
+          0.8196
+        ],
+        "count_mae": [
+          11.56,
+          42.89
+        ],
+        "count_mape_pct": [
+          8.62,
+          33.46
+        ]
+      },
+      "by_density": {
+        "sparse (<50)": {
+          "num_images": 0,
+          "map50": 0.0,
+          "count_mae": 0.0,
+          "count_mape_pct": 0.0
+        },
+        "medium (50-150)": {
+          "num_images": 4,
+          "map50": 0.6541,
+          "count_mae": 20.5,
+          "count_mape_pct": 33.31
+        },
+        "dense (>150)": {
+          "num_images": 5,
+          "map50": 0.7412,
+          "count_mae": 31.4,
+          "count_mape_pct": 10.58
+        }
+      },
+      "per_image": [
+        {
+          "image_id": "002.jpg",
+          "gt_count": 690,
+          "pred_count": 657,
+          "abs_error": 33
+        },
+        {
+          "image_id": "005.jpg",
+          "gt_count": 251,
+          "pred_count": 335,
+          "abs_error": 84
+        },
+        {
+          "image_id": "006.jpg",
+          "gt_count": 59,
+          "pred_count": 76,
+          "abs_error": 17
+        },
+        {
+          "image_id": "016.jpg",
+          "gt_count": 321,
+          "pred_count": 292,
+          "abs_error": 29
+        },
+        {
+          "image_id": "024.jpg",
+          "gt_count": 52,
+          "pred_count": 77,
+          "abs_error": 25
+        },
+        {
+          "image_id": "025.jpg",
+          "gt_count": 188,
+          "pred_count": 179,
+          "abs_error": 9
+        },
+        {
+          "image_id": "040.jpg",
+          "gt_count": 71,
+          "pred_count": 111,
+          "abs_error": 40
+        },
+        {
+          "image_id": "041.jpg",
+          "gt_count": 245,
+          "pred_count": 247,
+          "abs_error": 2
+        },
+        {
+          "image_id": "045.jpg",
+          "gt_count": 73,
+          "pred_count": 73,
+          "abs_error": 0
+        }
+      ],
+      "predictions_file": {
+        "path": "../docs/reports/predictions/fcos-r50-fpn-v3-fp32-cc0-test.json.gz",
+        "size_bytes": 61663
+      },
+      "primary": {
+        "score_thresh": 0.3,
+        "nms_thresh": 0.35,
+        "max_dets": 1000,
+        "num_images": 9,
+        "map50": 0.7227,
+        "map50_95": 0.3523,
+        "pycocotools_map75": 0.2846,
+        "num_gt": 1950,
+        "num_dt": 2047,
+        "count_mae": 26.56,
+        "count_mape_pct": 20.68,
+        "pred_count_total": 2047,
+        "gt_count_total": 1950
+      }
+    },
+    {
+      "onnx_file": "fcos-r50-fpn-v3-int8.onnx",
+      "onnx_size_bytes": 32818871,
+      "onnx_sha256": "e00176ae386053f9db49b9fb7e521c10ff25d361411fa9cd6dd7c07bca7863fc",
+      "ms_per_image": 1016.2,
+      "results": [
+        {
+          "score_thresh": 0.3,
+          "nms_thresh": 0.35,
+          "max_dets": 1000,
+          "num_images": 9,
+          "map50": 0.7215,
+          "map50_95": 0.3531,
+          "pycocotools_map75": 0.2854,
+          "num_gt": 1950,
+          "num_dt": 2035,
+          "count_mae": 25.67,
+          "count_mape_pct": 19.91,
+          "pred_count_total": 2035,
+          "gt_count_total": 1950
+        }
+      ],
+      "threshold_sweep": [],
+      "bootstrap_95_ci": {
+        "map50": [
+          0.5257,
+          0.8143
+        ],
+        "count_mae": [
+          11.22,
+          40.33
+        ],
+        "count_mape_pct": [
+          8.56,
+          32.32
+        ]
+      },
+      "by_density": {
+        "sparse (<50)": {
+          "num_images": 0,
+          "map50": 0.0,
+          "count_mae": 0.0,
+          "count_mape_pct": 0.0
+        },
+        "medium (50-150)": {
+          "num_images": 4,
+          "map50": 0.6402,
+          "count_mae": 19.75,
+          "count_mape_pct": 32.11
+        },
+        "dense (>150)": {
+          "num_images": 5,
+          "map50": 0.734,
+          "count_mae": 30.4,
+          "count_mape_pct": 10.15
+        }
+      },
+      "per_image": [
+        {
+          "image_id": "002.jpg",
+          "gt_count": 690,
+          "pred_count": 656,
+          "abs_error": 34
+        },
+        {
+          "image_id": "005.jpg",
+          "gt_count": 251,
+          "pred_count": 328,
+          "abs_error": 77
+        },
+        {
+          "image_id": "006.jpg",
+          "gt_count": 59,
+          "pred_count": 74,
+          "abs_error": 15
+        },
+        {
+          "image_id": "016.jpg",
+          "gt_count": 321,
+          "pred_count": 292,
+          "abs_error": 29
+        },
+        {
+          "image_id": "024.jpg",
+          "gt_count": 52,
+          "pred_count": 77,
+          "abs_error": 25
+        },
+        {
+          "image_id": "025.jpg",
+          "gt_count": 188,
+          "pred_count": 178,
+          "abs_error": 10
+        },
+        {
+          "image_id": "040.jpg",
+          "gt_count": 71,
+          "pred_count": 110,
+          "abs_error": 39
+        },
+        {
+          "image_id": "041.jpg",
+          "gt_count": 245,
+          "pred_count": 247,
+          "abs_error": 2
+        },
+        {
+          "image_id": "045.jpg",
+          "gt_count": 73,
+          "pred_count": 73,
+          "abs_error": 0
+        }
+      ],
+      "predictions_file": {
+        "path": "../docs/reports/predictions/fcos-r50-fpn-v3-int8-cc0-test.json.gz",
+        "size_bytes": 61346
+      },
+      "primary": {
+        "score_thresh": 0.3,
+        "nms_thresh": 0.35,
+        "max_dets": 1000,
+        "num_images": 9,
+        "map50": 0.7215,
+        "map50_95": 0.3531,
+        "pycocotools_map75": 0.2854,
+        "num_gt": 1950,
+        "num_dt": 2035,
+        "count_mae": 25.67,
+        "count_mape_pct": 19.91,
+        "pred_count_total": 2035,
+        "gt_count_total": 1950
+      }
+    }
+  ]
+}

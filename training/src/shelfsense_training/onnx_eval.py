@@ -96,16 +96,17 @@ def run_raw_candidates(
     session,
     samples: Sequence[Sample],
     input_size: int,
-    normalise: bool = True,
+    normalise: bool = False,
     center_fix: str = "none",
 ) -> list[tuple[np.ndarray, int, int]]:
     """Runs the ONNX session once per image and keeps the raw candidates, so score and NMS
     thresholds can be swept without re-running the network.
 
-    `normalise` applies the ImageNet mean/std in numpy. The exported wrapper calls the FCOS
-    backbone directly and therefore skips torchvision's transform, which is where the model
-    normalises its input during training; the first exports assumed the caller did it.
-    `center_fix="legacy"` shifts anchor centres back for graphs built with the wrong offset.
+    `normalise` applies the ImageNet mean/std in numpy and defaults to False because current
+    exports bake that normalisation into the graph; passing True against such a graph normalises
+    twice and wrecks the scores. Only the first exports, which assumed the caller normalised,
+    need True. `center_fix="legacy"` shifts anchor centres back for graphs built with the wrong
+    offset and is likewise only for those old files.
     """
     name = session.get_inputs()[0].name
     cached = []
