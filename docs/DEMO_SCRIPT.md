@@ -5,7 +5,7 @@ A short walkthrough for demonstrating **ShelfSense** live on a portfolio call or
 ## 1. Problem & Architecture (30s)
 
 - Retail staff spend hours manually counting items on grocery shelves and spotting out-of-stock voids.
-- **ShelfSense** runs an int8-quantized YOLOX single-class product detector directly **inside the browser** via `onnxruntime-web`. Raw shelf photos never leave the device, and no GPU server hours are required.
+- **ShelfSense** runs an int8-quantized FCOS ResNet-50 FPN single-class product detector directly **inside the browser** via `onnxruntime-web` on WASM. Raw shelf photos never leave the device, and no GPU server hours are required.
 
 ## 2. Live Shelf Scan, Count & Gap Overlay (60s)
 

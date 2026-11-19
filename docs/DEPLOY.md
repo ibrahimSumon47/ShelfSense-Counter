@@ -56,9 +56,9 @@ docker run --rm -p 8000:8000 shelfsense-batch
    ```powershell
    uv run --directory training python -m shelfsense_training.download --dataset all
    ```
-3. Stage and push the YOLOX Kaggle GPU kernel:
+3. Push the FCOS Kaggle GPU kernel (it clones this repository, so push the code first):
    ```powershell
    kaggle kernels push -p training/runs/baseline
-   kaggle kernels status <owner>/shelfsense-yolox-train
+   kaggle kernels status ibrahimhossainsumon/shelfsense-fcos-training
    ```
 4. Upload the exported int8 ONNX weights to a GitHub Release (`gh release create v0.1.0 ...`) and record its SHA-256 checksum (`shelfsense_training.kaggle_job.sha256_file`).

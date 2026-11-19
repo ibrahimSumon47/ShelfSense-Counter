@@ -19,12 +19,12 @@ Status: **done** (verified 2026-11-17: `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `
 
 Status: **done** (verified 2026-11-17 via `kaggle datasets list -s sku110k` and `kaggle config view`, username `ibrahimhossainsumon`).
 
-### Optional Colab Pro fallback (only if your 30-hour weekly Kaggle GPU quota is exhausted)
+### If the weekly Kaggle GPU quota is exhausted
 
-All training logic lives in `training/train.py` with configs in `training/configs/baseline.json` and `training/configs/improved.json`. If Kaggle reports that your weekly GPU quota is exhausted:
-1. Open Google Colab (https://colab.research.google.com) → **File → Upload notebook** → upload `training/notebooks/colab_train.ipynb`.
-2. Select **Runtime → Change runtime type → T4 GPU (or A100)** and run the cells.
-3. Download the generated folder `repo/training/outputs/` from the Colab file browser and place its contents (`baseline/metrics.json`, `improved/metrics.json`, `improved/shelfsense-yolox-s-int8.onnx`, `improved/shelfsense-yolox-s-fp32.onnx`) into `E:\AI Engineering Projects\ShelfSense-Counter\training\outputs\` (gitignored).
+All training logic lives in `training/train.py`, driven by `training/configs/fcos-dense-v3.json`,
+and the Kaggle notebook only clones this repository and calls it. If Kaggle reports that your
+weekly GPU quota is gone, wait for the quota to reset; there is no Colab fallback notebook in the
+repository because it duplicated the same pipeline and drifted out of date.
 
 ---
 
