@@ -1,12 +1,12 @@
 # Handoff
 
-Last updated: 2026-11-19 22:15 (37/48 features done; FCOS run still training after 9 h on Kaggle)
+Last updated: 2026-11-19 23:00 (37/48 features done; FCOS run still training after 9 h 49 min on Kaggle)
 
 **Recommended model tag:** `[MODEL: Claude Sonnet 5.5, MID]`
 
 ## Observed so far
 
-The kernel started at 13:11 and was still `RUNNING` at 22:11, so it has passed the 9-hour mark.
+The kernel started at 13:11 and was still `RUNNING` at 23:00, so it has passed the 9-hour mark.
 Committed Kaggle notebook runs are allowed 12 hours, which puts the hard stop at about 01:11.
 `plan_epochs()` deliberately clamps to the configured `min_epochs` of 12 even when the 3-hour GPU
 budget says fewer (`training/tests/test_train_plan.py` pins that behaviour), and each epoch is
