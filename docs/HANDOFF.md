@@ -1,23 +1,29 @@
 # Handoff
 
-Last updated: 2026-11-19 14:35 (37/48 features done; FCOS 12-epoch run RUNNING on Kaggle)
+Last updated: 2026-11-19 22:15 (37/48 features done; FCOS run still training after 9 h on Kaggle)
 
 **Recommended model tag:** `[MODEL: Claude Sonnet 5.5, MID]`
 
+## Observed so far
+
+The kernel started at 13:11 and was still `RUNNING` at 22:11, so it has passed the 9-hour mark.
+Committed Kaggle notebook runs are allowed 12 hours, which puts the hard stop at about 01:11.
+`plan_epochs()` deliberately clamps to the configured `min_epochs` of 12 even when the 3-hour GPU
+budget says fewer (`training/tests/test_train_plan.py` pins that behaviour), and each epoch is
+taking roughly 35 minutes at 800 px on the free GPU, so 12 epochs alone is about 7 hours plus the
+validation sweep, the export and the single test pass.
+
+A watch loop polling every 4 minutes logs to `/tmp/kwatch2.txt` and, the moment Kaggle reports a
+terminal status, runs `kaggle kernels output ibrahimhossainsumon/shelfsense-fcos-training -p
+training/outputs/fcos-v3` and appends `DOWNLOAD_EXIT=` plus the file list to the same log. Check
+there first; if the loop is gone, run that download command by hand.
+
 ## Where the run stands
 
-Kernel `ibrahimhossainsumon/shelfsense-fcos-training`, version 1, has been RUNNING since 13:11.
-It clones `main` at commit `8a131a5` or later (the notebook clones at start), trains 12 epochs on
-6,036 SKU-110K + CC0 images, and writes `metrics.json`, checkpoints, ONNX files and test
-predictions to `/kaggle/working/outputs`.
-
-A background watch loop was started to poll it every 5 minutes and, on COMPLETE/ERROR, run:
-
-```
-kaggle kernels output ibrahimhossainsumon/shelfsense-fcos-training -p training/outputs/fcos-v3
-```
-
-Check `tail -5 /tmp/kwatch.txt` for the loop's own log.
+Kernel `ibrahimhossainsumon/shelfsense-fcos-training`, version 1, trains 12 epochs on 6,036
+SKU-110K + CC0 images and writes `metrics.json`, checkpoints, ONNX files and test predictions to
+`/kaggle/working/outputs`. It clones `main` at start-up, so a failure can be fixed by pushing a
+commit and pushing the kernel again.
 
 ## Exact next step
 
