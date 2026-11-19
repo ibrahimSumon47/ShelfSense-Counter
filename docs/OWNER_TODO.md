@@ -28,6 +28,28 @@ All training logic lives in `training/train.py` with configs in `training/config
 
 ---
 
+## 2b. Google AI Studio key on this machine (needed to re-run the chat checks, 2026-11-19)
+
+Status: **blocked**. `private/.env.local` does not exist on this machine, and Vercel will not
+return a secret's value: `vercel env pull` writes `[SENSITIVE]` placeholders for all six
+production secrets, including `GOOGLE_GENERATIVE_AI_API_KEY`. The value exists in the Vercel
+project, so nothing needs creating — it only has to be copied to disk once.
+
+1. Open https://aistudio.google.com/apikey in a browser where you are signed in.
+2. Find the existing key for this project, click **Show key**, copy it.
+3. In a terminal on this PC, run (do not paste the key into chat):
+   ```
+   mkdir -p private
+   printf 'GOOGLE_GENERATIVE_AI_API_KEY=%s\n' 'PASTE_KEY_HERE' > private/.env.local
+   ```
+4. Tell the assistant it is done; it will verify with
+   `node --experimental-strip-types scripts/eval-chat-live.mts`.
+
+Until then the 2026-11-17 chat numbers in `docs/reports/chat-eval-s5.md` stand as the only
+measurement, and they are not re-verified in the 2026-11-19 slices.
+
+---
+
 ## 3. Keys for services you already have (needed for S4 and S5)
 
-Status: **done** (verified 2026-11-17: `GOOGLE_GENERATIVE_AI_API_KEY`, `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` present in `private/.env.local`, and `vercel whoami` + `neonctl me` authenticated).
+Status: **done in Vercel, missing on this PC** (verified 2026-11-19: all four keys are present in the Vercel project; `private/.env.local` itself is absent, see item 2b. `vercel whoami` and `neonctl me` are authenticated).
