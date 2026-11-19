@@ -1,9 +1,9 @@
 {
-  "stage": "development-stand-in",
-  "note": "Local development only. The published model is built by training/configs/fcos-dense-v3.json and replaced here after its release; this entry points at the first two-epoch run so the loading path, the overlay and the counts can be exercised before then. That export skipped the in-graph normalisation and decoded anchor centres half a cell off, which is what the preprocessing flags correct. Dynamic INT8 does not run correctly on WebGPU in onnxruntime-web 1.31.1 (1000 capped boxes for a 690-item shelf, versus 481 on WASM), so quantised files set webgpu_capable=false and the loader goes straight to WASM.",
-  "model_file": "/models/shelfsense-dev.onnx",
-  "run_id": "baseline-fcos-r50-fpn-v1",
-  "architecture": "torchvision fcos_resnet50_fpn (BSD-3-Clause, 32064455 parameters)",
+  "stage": "production",
+  "note": "Trained for 12 epochs on 6,036 SKU-110K and CC0 images (run fcos-r50-fpn-v3, best checkpoint from epoch 8). ImageNet mean/std are baked into the graph and anchor centres use the g * stride convention, so the browser preprocessing must not normalise again or shift centres. Dynamic INT8 does not run correctly on WebGPU in onnxruntime-web 1.31.1, so a quantised file sets webgpu_capable=false and the loader goes straight to WASM.",
+  "model_file": "/models/shelfsense-v3-int8.onnx",
+  "run_id": "fcos-r50-fpn-v3",
+  "architecture": "torchvision fcos_resnet50_fpn (BSD-3-Clause, 32177682 parameters)",
   "input_size": 640,
   "params": {
     "inputSize": 640,
@@ -12,15 +12,15 @@
     "maxDets": 1000
   },
   "preprocessing": {
-    "normaliseInGraph": false,
-    "centreOffsetFix": true
+    "normaliseInGraph": true,
+    "centreOffsetFix": false
   },
-  "sha256": "b50511c3874b0107c12d8b3638bfc2660f2d222eef3cc4686afd4fbbbde7bf8a",
+  "sha256": "e00176ae386053f9db49b9fb7e521c10ff25d361411fa9cd6dd7c07bca7863fc",
   "precision": "int8 (dynamic quantisation of the FP32 export)",
   "webgpu_capable": false,
-  "validation_map50": 0.4996,
-  "validation_count_mae": 142.78,
-  "validation_max_dets": 1000,
-  "validation_split": "CC0 Supermarket Shelves validation, 9 images, 1922 items",
-  "evidence": "docs/reports/validation-detection-cap.md"
+  "test_map50": 0.7215,
+  "test_count_mae": 25.67,
+  "test_max_dets": 1000,
+  "test_split": "CC0 Supermarket Shelves test, 9 images, 1950 items, scored once",
+  "evidence": "docs/reports/test-evaluation.md"
 }
