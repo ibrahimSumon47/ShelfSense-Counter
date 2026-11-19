@@ -1,41 +1,54 @@
 # Handoff
 
-Last updated: 2026-11-17 (33/48 features done; Kaggle GPU kernel v3 pushed and polled, currently `QUEUED`).
-
-## Exact next step
+Last updated: 2026-11-19 (36/48 features done; FCOS run pushed to Kaggle, waiting on the GPU)
 
 **Recommended model tag:** `[MODEL: Claude Sonnet 5.5, MID]`
 
-### Option A — Check if the Kaggle GPU run finished
+## Exact next step
 
-Run:
+Poll the kernel `shelfsense-fcos-training`, at most once every 8 minutes, with the encoding set so
+the CLI cannot hit a Windows charmap error:
+
 ```powershell
-kaggle kernels status ibrahimhossainsumon/shelfsense-yolox-dense-shelf-training
+$env:PYTHONUTF8 = "1"
+kaggle kernels status ibrahimhossainsumon/shelfsense-fcos-training
 ```
-If it prints `KernelWorkerStatus.COMPLETE`, download the real weights and `metrics.json` into `training/outputs/` (gitignored):
+
+When it reports `KernelWorkerStatus.COMPLETE`:
+
 ```powershell
-kaggle kernels output ibrahimhossainsumon/shelfsense-yolox-dense-shelf-training -p training/outputs
+$env:PYTHONUTF8 = "1"
+kaggle kernels output ibrahimhossainsumon/shelfsense-fcos-training -p training/outputs/fcos-v3
 ```
 
-### Option B — If Kaggle's free GPU queue remains backed up or weekly quota is exhausted (Colab Pro fallback)
+Then check, in this order, before trusting anything:
 
-All training, `pycocotools` (`maxDets=1000`, `AP50` and `AP50:95`), bootstrap 95% confidence interval, and ONNX export logic is portable in `training/train.py`. To run the exact same pipeline on Colab Pro:
+1. `training/outputs/fcos-v3/train.log` ends with `SUCCESS` (a COMPLETE status alone proves
+   nothing; the notebook raises so a failure shows as ERROR).
+2. `training/outputs/fcos-v3/outputs/metrics.json` exists and has `val_sku110k`, `val_cc0`,
+   `test_sku110k_once`, `test_cc0_once`, `thresholds`, `timings` and `onnx`.
+3. `checkpoints/best.pt`, `<run_id>-fp32.onnx`, `<run_id>-int8.onnx` and
+   `predictions/*.json.gz` are all there.
+4. No `*-error.txt` file is present.
 
-1. Open https://colab.research.google.com → **File → Upload notebook** → upload `training/notebooks/colab_train.ipynb`.
-2. In the top menu click **Runtime → Change runtime type** → select **T4 GPU** or **A100 GPU** → **Save**.
-3. In a new top cell (or the Colab file pane), place your Kaggle token at `/root/.kaggle/access_token` (or `/root/.kaggle/kaggle.json` with `chmod 600`), then click **Runtime → Run all**.
-4. When the cell finishes, it produces `/content/shelfsense_training_outputs.zip` containing:
-   - `baseline/metrics.json` and `baseline/baseline-fcos-r50-fpn-v1-fp32.onnx` (`-int8.onnx`)
-   - `improved/metrics.json` and `improved/improved-fcos-r50-fpn-v2-fp32.onnx` (`-int8.onnx`)
-5. Extract `baseline/` and `improved/` into `E:\AI Engineering Projects\ShelfSense-Counter\training\outputs\` (gitignored).
+If it FAILED, read `train.log` for the first traceback, fix the cause in `training/` (the notebook
+clones `main`, so the fix must be pushed first), push and run again. At most 3 attempts, then
+write the cause here and in `docs/OWNER_TODO.md` and stop attempting GPU runs this week.
 
-### Once `training/outputs/baseline/metrics.json` and `training/outputs/improved/metrics.json` are present locally
+## After a good run
 
-1. **Finish Step 2 (`S2-02..S2-07`, `S3-01..S3-05`):**
-   - Run `verify_onnx_model_plausibility` on the exported `.onnx` model (`> 1M` parameters, $> 4\text{ MB}$, non-constant image-dependent output).
-   - Commit the real training logs, loss curves, and `pycocotools` + bootstrap 95% CI reports in `docs/reports/`.
-   - Upload the real `.onnx` weights to a GitHub Release (`gh release create v0.2.0 ...`) and record the SHA-256 checksum.
-2. **Finish Step 3 (`S4-05`, `S7-01`, `S7-02`):**
-   - Wire the real ONNX model into `apps/web/` (`onnxruntime-web`), flip `MODEL_AVAILABLE = true`, deploy to Vercel Production, verify with Playwright on 3 real shelf photos and 1 non-shelf photo (near-zero detections), and confirm the web UI count matches `shelfsense count photo.jpg --model ...`.
-3. **Finish Step 5 (`S8-01`, `S3-05`):**
-   - Update `README.md` and `docs/MODEL_CARD.md` with the real measured numbers so `node scripts/check-done.mjs` exits `0`.
+1. Re-run `python training/eval_onnx.py` on the new files for the committed validation report,
+   and copy the run's `predictions/*.json.gz` into `docs/reports/predictions/`.
+2. Report the test split once in `docs/reports/test-evaluation.md` (mAP50, mAP50-95, count MAE,
+   MAPE, bootstrap 95 % interval, per-density buckets, per-image worst cases, and the sentence
+   that nine CC0 test images give a wide interval).
+3. `gh release create` the chosen weights (never in git) with SHA-256 checksums, then `S2-07`.
+4. Wire `apps/web/src/lib/detector.ts` to the released model with onnxruntime-web, measure real
+   browser latency, and run the production checks (`S4-05`, `S2-06`, `S7-01`, `S7-02`).
+5. Close with the README pass (`S8-01`) and `node scripts/check-done.mjs` exiting 0.
+
+## Quota
+
+Kaggle GPU: the first kernel version used about 0.3 h; this run is budgeted at 3 h and the plan
+is written into its `metrics.json` (`timings.planned_epochs_reason`). Record hours used in the
+run report. Remaining weekly quota is the only thing limiting a second improvement round.

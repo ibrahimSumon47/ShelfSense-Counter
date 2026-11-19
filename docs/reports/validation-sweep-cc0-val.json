@@ -1,0 +1,320 @@
+{
+  "dataset": "cc0",
+  "split": "val",
+  "num_images": 9,
+  "input_size": 640,
+  "command": "python training/eval_onnx.py --onnx training/outputs/outputs/improved/improved-fcos-r50-fpn-v2-fp32.onnx --dataset cc0 --split val --input-size 640 --normalise yes --center-fix legacy --score-thresh 0.3 --nms-thresh 0.45 --max-dets 1000 --grid 0.2,0.3,0.4,0.5:0.35,0.45,0.55 --out docs/reports/validation-sweep-cc0-val.json",
+  "models": [
+    {
+      "onnx_file": "improved-fcos-r50-fpn-v2-fp32.onnx",
+      "onnx_size_bytes": 128702397,
+      "onnx_sha256": "75687fe93cf2b6d5b391301d56e71039d676f45cd1334a2e06c08029483837a5",
+      "ms_per_image": 633.3,
+      "results": [
+        {
+          "score_thresh": 0.3,
+          "nms_thresh": 0.45,
+          "max_dets": 1000,
+          "num_images": 9,
+          "map50": 0.5259,
+          "map50_95": 0.2802,
+          "pycocotools_map75": 0.2694,
+          "num_gt": 1922,
+          "num_dt": 1985,
+          "count_mae": 34.78,
+          "count_mape_pct": 24.54,
+          "pred_count_total": 1985,
+          "gt_count_total": 1922
+        }
+      ],
+      "threshold_sweep": [
+        {
+          "score_thresh": 0.2,
+          "nms_thresh": 0.35,
+          "max_dets": 1000,
+          "num_images": 9,
+          "map50": 0.5276,
+          "map50_95": 0.28,
+          "pycocotools_map75": 0.2699,
+          "num_gt": 1922,
+          "num_dt": 2272,
+          "count_mae": 57.56,
+          "count_mape_pct": 94.85,
+          "pred_count_total": 2272,
+          "gt_count_total": 1922
+        },
+        {
+          "score_thresh": 0.2,
+          "nms_thresh": 0.45,
+          "max_dets": 1000,
+          "num_images": 9,
+          "map50": 0.5306,
+          "map50_95": 0.2816,
+          "pycocotools_map75": 0.2694,
+          "num_gt": 1922,
+          "num_dt": 2873,
+          "count_mae": 110.56,
+          "count_mape_pct": 146.76,
+          "pred_count_total": 2873,
+          "gt_count_total": 1922
+        },
+        {
+          "score_thresh": 0.2,
+          "nms_thresh": 0.55,
+          "max_dets": 1000,
+          "num_images": 9,
+          "map50": 0.5271,
+          "map50_95": 0.2802,
+          "pycocotools_map75": 0.2688,
+          "num_gt": 1922,
+          "num_dt": 3746,
+          "count_mae": 202.67,
+          "count_mape_pct": 228.52,
+          "pred_count_total": 3746,
+          "gt_count_total": 1922
+        },
+        {
+          "score_thresh": 0.3,
+          "nms_thresh": 0.35,
+          "max_dets": 1000,
+          "num_images": 9,
+          "map50": 0.5222,
+          "map50_95": 0.2788,
+          "pycocotools_map75": 0.2699,
+          "num_gt": 1922,
+          "num_dt": 1699,
+          "count_mae": 34.33,
+          "count_mape_pct": 22.48,
+          "pred_count_total": 1699,
+          "gt_count_total": 1922
+        },
+        {
+          "score_thresh": 0.3,
+          "nms_thresh": 0.45,
+          "max_dets": 1000,
+          "num_images": 9,
+          "map50": 0.5259,
+          "map50_95": 0.2802,
+          "pycocotools_map75": 0.2694,
+          "num_gt": 1922,
+          "num_dt": 1985,
+          "count_mae": 34.78,
+          "count_mape_pct": 24.54,
+          "pred_count_total": 1985,
+          "gt_count_total": 1922
+        },
+        {
+          "score_thresh": 0.3,
+          "nms_thresh": 0.55,
+          "max_dets": 1000,
+          "num_images": 9,
+          "map50": 0.5225,
+          "map50_95": 0.2793,
+          "pycocotools_map75": 0.2688,
+          "num_gt": 1922,
+          "num_dt": 2396,
+          "count_mae": 58.67,
+          "count_mape_pct": 39.16,
+          "pred_count_total": 2396,
+          "gt_count_total": 1922
+        },
+        {
+          "score_thresh": 0.4,
+          "nms_thresh": 0.35,
+          "max_dets": 1000,
+          "num_images": 9,
+          "map50": 0.4924,
+          "map50_95": 0.2694,
+          "pycocotools_map75": 0.2657,
+          "num_gt": 1922,
+          "num_dt": 1291,
+          "count_mae": 71.22,
+          "count_mape_pct": 29.57,
+          "pred_count_total": 1291,
+          "gt_count_total": 1922
+        },
+        {
+          "score_thresh": 0.4,
+          "nms_thresh": 0.45,
+          "max_dets": 1000,
+          "num_images": 9,
+          "map50": 0.499,
+          "map50_95": 0.2698,
+          "pycocotools_map75": 0.2654,
+          "num_gt": 1922,
+          "num_dt": 1344,
+          "count_mae": 65.56,
+          "count_mape_pct": 27.55,
+          "pred_count_total": 1344,
+          "gt_count_total": 1922
+        },
+        {
+          "score_thresh": 0.4,
+          "nms_thresh": 0.55,
+          "max_dets": 1000,
+          "num_images": 9,
+          "map50": 0.4971,
+          "map50_95": 0.2698,
+          "pycocotools_map75": 0.265,
+          "num_gt": 1922,
+          "num_dt": 1432,
+          "count_mae": 55.78,
+          "count_mape_pct": 23.42,
+          "pred_count_total": 1432,
+          "gt_count_total": 1922
+        },
+        {
+          "score_thresh": 0.5,
+          "nms_thresh": 0.35,
+          "max_dets": 1000,
+          "num_images": 9,
+          "map50": 0.425,
+          "map50_95": 0.2424,
+          "pycocotools_map75": 0.2495,
+          "num_gt": 1922,
+          "num_dt": 999,
+          "count_mae": 102.78,
+          "count_mape_pct": 39.78,
+          "pred_count_total": 999,
+          "gt_count_total": 1922
+        },
+        {
+          "score_thresh": 0.5,
+          "nms_thresh": 0.45,
+          "max_dets": 1000,
+          "num_images": 9,
+          "map50": 0.4248,
+          "map50_95": 0.2423,
+          "pycocotools_map75": 0.2495,
+          "num_gt": 1922,
+          "num_dt": 1004,
+          "count_mae": 102.22,
+          "count_mape_pct": 39.57,
+          "pred_count_total": 1004,
+          "gt_count_total": 1922
+        },
+        {
+          "score_thresh": 0.5,
+          "nms_thresh": 0.55,
+          "max_dets": 1000,
+          "num_images": 9,
+          "map50": 0.4246,
+          "map50_95": 0.2422,
+          "pycocotools_map75": 0.2494,
+          "num_gt": 1922,
+          "num_dt": 1011,
+          "count_mae": 101.44,
+          "count_mape_pct": 39.25,
+          "pred_count_total": 1011,
+          "gt_count_total": 1922
+        }
+      ],
+      "bootstrap_95_ci": {
+        "map50": [
+          0.2842,
+          0.7576
+        ],
+        "count_mae": [
+          18.11,
+          53.0
+        ],
+        "count_mape_pct": [
+          9.53,
+          44.17
+        ]
+      },
+      "by_density": {
+        "sparse (<50)": {
+          "num_images": 1,
+          "map50": 0.9422,
+          "count_mae": 23.0,
+          "count_mape_pct": 95.83
+        },
+        "medium (50-150)": {
+          "num_images": 3,
+          "map50": 0.3991,
+          "count_mae": 28.33,
+          "count_mape_pct": 20.05
+        },
+        "dense (>150)": {
+          "num_images": 5,
+          "map50": 0.5683,
+          "count_mae": 41.0,
+          "count_mape_pct": 12.98
+        }
+      },
+      "per_image": [
+        {
+          "image_id": "001.jpg",
+          "gt_count": 264,
+          "pred_count": 270,
+          "abs_error": 6
+        },
+        {
+          "image_id": "011.jpg",
+          "gt_count": 24,
+          "pred_count": 47,
+          "abs_error": 23
+        },
+        {
+          "image_id": "012.jpg",
+          "gt_count": 317,
+          "pred_count": 295,
+          "abs_error": 22
+        },
+        {
+          "image_id": "013.jpg",
+          "gt_count": 150,
+          "pred_count": 157,
+          "abs_error": 7
+        },
+        {
+          "image_id": "014.jpg",
+          "gt_count": 146,
+          "pred_count": 219,
+          "abs_error": 73
+        },
+        {
+          "image_id": "026.jpg",
+          "gt_count": 91,
+          "pred_count": 96,
+          "abs_error": 5
+        },
+        {
+          "image_id": "032.jpg",
+          "gt_count": 305,
+          "pred_count": 232,
+          "abs_error": 73
+        },
+        {
+          "image_id": "034.jpg",
+          "gt_count": 371,
+          "pred_count": 445,
+          "abs_error": 74
+        },
+        {
+          "image_id": "037.jpg",
+          "gt_count": 254,
+          "pred_count": 224,
+          "abs_error": 30
+        }
+      ],
+      "predictions_file": null,
+      "primary": {
+        "score_thresh": 0.3,
+        "nms_thresh": 0.45,
+        "max_dets": 1000,
+        "num_images": 9,
+        "map50": 0.5259,
+        "map50_95": 0.2802,
+        "pycocotools_map75": 0.2694,
+        "num_gt": 1922,
+        "num_dt": 1985,
+        "count_mae": 34.78,
+        "count_mape_pct": 24.54,
+        "pred_count_total": 1985,
+        "gt_count_total": 1922
+      }
+    }
+  ]
+}

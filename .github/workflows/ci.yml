@@ -70,6 +70,21 @@ jobs:
           uv sync --directory python --extra dev
           uv run --directory python pytest -v
 
+  onnx-export:
+    name: ONNX export on CPU
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.3
+      # An export bug costs a whole Kaggle GPU slot, so the real wrapper is built and run
+      # here at 128 px on randomly initialised weights before any kernel is pushed.
+      - name: Build a tiny FCOS and export it to ONNX
+        run: |
+          uv venv --directory training .venv-ci
+          uv pip install --python training/.venv-ci/bin/python numpy pillow onnx onnxruntime pytest \
+            torch torchvision --index-url https://download.pytorch.org/whl/cpu
+          training/.venv-ci/bin/python -m pytest training/tests/test_onnx_export_cpu.py -v
+
   codeql:
     name: CodeQL security analysis
     runs-on: ubuntu-latest

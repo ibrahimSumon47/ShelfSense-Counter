@@ -1,6 +1,6 @@
 {
-  "id": "ibrahimhossainsumon/shelfsense-yolox-dense-shelf-training",
-  "title": "shelfsense-yolox-dense-shelf-training",
+  "id": "ibrahimhossainsumon/shelfsense-fcos-training",
+  "title": "shelfsense-fcos-training",
   "code_file": "kaggle_train.ipynb",
   "language": "python",
   "kernel_type": "notebook",

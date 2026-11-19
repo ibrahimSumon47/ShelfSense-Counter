@@ -1,739 +1,582 @@
-"""Real GPU training, pycocotools evaluation, and ONNX export pipeline for ShelfSense.
+"""One resumable training run for the ShelfSense detector.
 
-Trains a real COCO-pretrained anchor-free detector (`torchvision.models.detection.fcos_resnet50_fpn`,
-BSD-3-Clause permissive licence, ~32M parameters) on:
-  - SKU-110K train split subset (`sku110k_train_subset`, ~2,200 images)
-  - CC0 Supermarket Shelves train split (27 images)
-Validates on the held-out validation splits, evaluates once on the untouched 9-image CC0 test split
-and SKU-110K test split with `pycocotools` (`maxDets=1000`, AP@0.50 and AP@[0.50:0.95]), count MAE/MAPE,
-density buckets, and 95% bootstrap confidence intervals, and exports the real trained backbone+FPN+head
-to ONNX opset 17 (`>1M` parameters, verified by `verify_onnx_model_plausibility`).
+Trains a COCO-pretrained, anchor-free `fcos_resnet50_fpn` (BSD-3-Clause, 32.06M parameters)
+on a SKU-110K subset plus the CC0 Supermarket Shelves train split, then reports from the
+exported ONNX file itself so the numbers describe exactly what ships.
+
+Design rules that came out of the first, fragile runs:
+  - A checkpoint is written every epoch and the best one separately, before any export or
+    evaluation, so a crash later in the run never costs the training.
+  - Export, evaluation and metrics writing are independent try/except blocks with their own
+    `<block>-error.txt`, so one failing step still leaves the rest of the run reportable.
+  - The epoch count comes from the images per second measured on the first 50 batches and a
+    GPU-time budget, because Kaggle's free GPU is a weekly quota.
+  - Thresholds for score and NMS are tuned on validation only, on the exported ONNX file.
 """
 from __future__ import annotations
 
 import argparse
-import csv
-import hashlib
 import json
 import sys
 import time
+import traceback
 from pathlib import Path
-from typing import Sequence
 
 _THIS_DIR = Path(__file__).resolve().parent
-_SRC_DIR = _THIS_DIR / "src"
-if str(_SRC_DIR) not in sys.path:
-    sys.path.insert(0, str(_SRC_DIR))
+if str(_THIS_DIR / "src") not in sys.path:
+    sys.path.insert(0, str(_THIS_DIR / "src"))
 
 import numpy as np
 from PIL import Image
 
-from shelfsense_training.converters import AnnotatedImage, BoundingBox, parse_supervisely_annotation
+from shelfsense_training import data as ds
+from shelfsense_training.coco_eval import coco_ap
+from shelfsense_training.export import export_fcos_onnx, measure_cpu_latency, quantize_int8_dynamic
 from shelfsense_training.metrics import (
-    DetectionBox,
-    ImageEvalInput,
     bootstrap_confidence_intervals,
-    compute_ap50,
-    compute_ap50_95,
     evaluate_by_density,
     evaluate_predictions,
-    verify_onnx_model_plausibility,
 )
-from shelfsense_training.splits import (
-    ImageRecord,
-    assign_leak_free_splits,
-    compute_dhash,
-    find_cross_split_leak_pairs,
-    infer_source_group,
+from shelfsense_training.onnx_eval import (
+    best_threshold_row,
+    make_session,
+    run_raw_candidates,
+    sweep_thresholds,
+    to_eval_inputs,
 )
 
+THROUGHPUT_BATCHES = 50
 
-def load_cc0_supermarket(cc0_root: Path) -> list[tuple[Path, AnnotatedImage]]:
-    """Finds all 45 CC0 Supermarket Shelves images and parses their `Product` annotations.
 
-    Searches `cc0_root` first; if Kaggle mounted the dataset under a different subfolder
-    inside `/kaggle/input`, automatically scans `/kaggle/input` for the annotations.
+def write_json(path: Path, payload) -> None:
+    """Writes indented JSON, creating the parent folder."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+
+
+def record_error(output_dir: Path, block: str, exc_text: str) -> None:
+    """Writes `<block>-error.txt` so a failure is visible without reading stdout."""
+    (output_dir / f"{block}-error.txt").write_text(exc_text, encoding="utf-8")
+    print(f"[{block}] FAILED, see {block}-error.txt:\n{exc_text.strip().splitlines()[-1]}")
+
+
+def plan_epochs(
+    images_per_second: float,
+    num_images: int,
+    budget_seconds: float,
+    reserve_seconds: float,
+    min_epochs: int,
+    max_epochs: int,
+) -> int:
+    """Epochs that fit the GPU budget at the measured speed, clamped to [min_epochs, max_epochs].
+
+    reserve_seconds covers validation passes, the ONNX export and the final evaluation.
     """
-    items = _scan_cc0_folder(cc0_root)
-    if not items and Path("/kaggle/input").is_dir():
-        items = _scan_cc0_folder(Path("/kaggle/input"))
-    return items
+    if images_per_second <= 0 or num_images <= 0:
+        return min_epochs
+    affordable = int((budget_seconds - reserve_seconds) * images_per_second / num_images)
+    return max(min_epochs, min(max_epochs, affordable))
 
 
-def _scan_cc0_folder(root: Path) -> list[tuple[Path, AnnotatedImage]]:
-    items: list[tuple[Path, AnnotatedImage]] = []
-    if not root.exists():
-        return items
-
-    ann_files = sorted(p for p in root.rglob("*.json") if p.name != "meta.json")
-    img_by_name = {
-        p.name: p
-        for p in root.rglob("*")
-        if p.is_file() and p.suffix.lower() in {".jpg", ".jpeg", ".png"}
-    }
-    for ann_path in ann_files:
-        try:
-            payload = json.loads(ann_path.read_text(encoding="utf-8"))
-        except Exception:
-            continue
-        if "size" not in payload or "objects" not in payload:
-            continue
-        cand = ann_path.name[:-5] if ann_path.name.endswith(".json") else ann_path.stem
-        img_path = img_by_name.get(cand)
-        if img_path is None:
-            for ext in (".jpg", ".jpeg", ".png"):
-                if cand + ext in img_by_name:
-                    img_path = img_by_name[cand + ext]
-                    break
-        if img_path is None:
-            continue
-        rec = parse_supervisely_annotation(img_path.name, payload)
-        if len(rec.boxes) > 0:
-            items.append((img_path, rec))
-    return items
-
-
-def load_sku110k_split(
-    sku_root: Path,
-    split_prefix: str,
-    max_images: int,
-) -> list[tuple[Path, AnnotatedImage]]:
-    """Loads up to `max_images` from SKU-110K (`train`, `val`, or `test`).
-
-    Supports both the official `annotations_<split>.csv` layout and the Kaggle
-    `SKU110K_fixed/images/<split>/` + `SKU110K_fixed/labels/<split>/` normalized YOLO `.txt` layout.
-    """
-    if not sku_root.exists() and Path("/kaggle/input").is_dir():
-        sku_root = Path("/kaggle/input")
-    if not sku_root.exists() or max_images <= 0:
-        return []
-
-    # Check for Kaggle `SKU110K_fixed` YOLO labels + images layout first.
-    yolo_img_dirs = [p for p in sku_root.rglob(f"images/{split_prefix}") if p.is_dir()]
-    yolo_lbl_dirs = [p for p in sku_root.rglob(f"labels/{split_prefix}") if p.is_dir()]
-    if yolo_img_dirs and yolo_lbl_dirs:
-        img_dir = yolo_img_dirs[0]
-        lbl_dir = yolo_lbl_dirs[0]
-        img_files = sorted(p for p in img_dir.glob(f"{split_prefix}_*.jpg"))[:max_images]
-        yolo_results: list[tuple[Path, AnnotatedImage]] = []
-        for img_p in img_files:
-            lbl_p = lbl_dir / f"{img_p.stem}.txt"
-            if not lbl_p.is_file():
-                continue
-            try:
-                with Image.open(img_p) as im:
-                    w, h = im.size
-            except Exception:
-                continue
-            boxes: list[BoundingBox] = []
-            for line in lbl_p.read_text(encoding="utf-8", errors="ignore").splitlines():
-                parts = line.strip().split()
-                if len(parts) < 5:
-                    continue
-                try:
-                    xc, yc, bw, bh = float(parts[1]) * w, float(parts[2]) * h, float(parts[3]) * w, float(parts[4]) * h
-                except ValueError:
-                    continue
-                x1 = max(0.0, min(float(w), xc - bw * 0.5))
-                y1 = max(0.0, min(float(h), yc - bh * 0.5))
-                x2 = max(0.0, min(float(w), xc + bw * 0.5))
-                y2 = max(0.0, min(float(h), yc + bh * 0.5))
-                if x2 - x1 >= 2.0 and y2 - y1 >= 2.0:
-                    boxes.append(BoundingBox(x1=x1, y1=y1, x2=x2, y2=y2, class_id=0))
-            if boxes:
-                yolo_results.append((img_p, AnnotatedImage(image_name=img_p.name, width=w, height=h, boxes=tuple(boxes))))
-        if yolo_results:
-            return yolo_results
-
-    csv_candidates = list(sku_root.rglob(f"annotations_{split_prefix}.csv"))
-    if not csv_candidates:
-        return []
-    csv_path = csv_candidates[0]
-
-    # Map image filenames in SKU-110K.
-    img_dirs = [p for p in sku_root.rglob("images") if p.is_dir()]
-    if not img_dirs:
-        return []
-    base_img_dir = img_dirs[0]
-
-    boxes_by_img: dict[str, list[BoundingBox]] = {}
-    dims_by_img: dict[str, tuple[int, int]] = {}
-    ordered_names: list[str] = []
-
-    with csv_path.open("r", encoding="utf-8", errors="ignore") as fh:
-        reader = csv.reader(fh)
-        for row in reader:
-            if len(row) < 8:
-                continue
-            name = row[0].strip()
-            if not name.startswith(f"{split_prefix}_"):
-                continue
-            if name not in boxes_by_img:
-                if len(ordered_names) >= max_images:
-                    continue
-                ordered_names.append(name)
-                boxes_by_img[name] = []
-            try:
-                x1, y1, x2, y2 = float(row[1]), float(row[2]), float(row[3]), float(row[4])
-                w, h = int(float(row[6])), int(float(row[7]))
-            except ValueError:
-                continue
-            if x2 - x1 >= 2.0 and y2 - y1 >= 2.0 and w > 0 and h > 0:
-                dims_by_img[name] = (w, h)
-                boxes_by_img[name].append(
-                    BoundingBox(
-                        x1=max(0.0, min(float(w), x1)),
-                        y1=max(0.0, min(float(h), y1)),
-                        x2=max(0.0, min(float(w), x2)),
-                        y2=max(0.0, min(float(h), y2)),
-                        class_id=0,
-                    )
-                )
-
-    results: list[tuple[Path, AnnotatedImage]] = []
-    for name in ordered_names:
-        b_list = boxes_by_img.get(name, [])
-        if not b_list or name not in dims_by_img:
-            continue
-        # SKU-110K mirrors store images either in `images/<name>` or `images/<split>/<name>`.
-        cand1 = base_img_dir / name
-        cand2 = base_img_dir / split_prefix / name
-        img_path = cand1 if cand1.is_file() else (cand2 if cand2.is_file() else None)
-        if img_path is None:
-            continue
-        w, h = dims_by_img[name]
-        results.append((img_path, AnnotatedImage(image_name=name, width=w, height=h, boxes=tuple(b_list))))
-    return results
-
-
-def evaluate_with_pycocotools(inputs: Sequence[ImageEvalInput], max_dets: int = 1000) -> dict[str, float]:
-    """Runs official `pycocotools.cocoeval.COCOeval` with `maxDets=[100, 300, max_dets]` when installed,
-    and cross-checks against 101-point COCO AP50 and AP50:95.
-    """
-    ap50 = compute_ap50(inputs, iou_threshold=0.50)
-    ap50_95 = compute_ap50_95(inputs)
-    try:
-        from pycocotools.coco import COCO
-        from pycocotools.cocoeval import COCOeval
-        import contextlib
-        import io
-
-        coco_gt_dict = {
-            "images": [{"id": idx + 1, "file_name": item.image_id, "width": 2000, "height": 2000} for idx, item in enumerate(inputs)],
-            "annotations": [],
-            "categories": [{"id": 1, "name": "item"}],
-        }
-        coco_dt_list = []
-        ann_id = 1
-        for idx, item in enumerate(inputs):
-            image_id = idx + 1
-            for gt in item.ground_truth:
-                w = max(1.0, gt.x2 - gt.x1)
-                h = max(1.0, gt.y2 - gt.y1)
-                coco_gt_dict["annotations"].append(
-                    {
-                        "id": ann_id,
-                        "image_id": image_id,
-                        "category_id": 1,
-                        "bbox": [gt.x1, gt.y1, w, h],
-                        "area": w * h,
-                        "iscrowd": 0,
-                    }
-                )
-                ann_id += 1
-            for pred in item.predictions[:max_dets]:
-                w = max(1.0, pred.x2 - pred.x1)
-                h = max(1.0, pred.y2 - pred.y1)
-                coco_dt_list.append(
-                    {
-                        "image_id": image_id,
-                        "category_id": 1,
-                        "bbox": [pred.x1, pred.y1, w, h],
-                        "score": float(pred.score),
-                    }
-                )
-
-        if not coco_dt_list or not coco_gt_dict["annotations"]:
-            return {"pycocotools_ap50": 0.0, "pycocotools_ap50_95": 0.0, "max_dets": max_dets}
-
-        with contextlib.redirect_stdout(io.StringIO()):
-            coco_gt = COCO()
-            coco_gt.dataset = coco_gt_dict
-            coco_gt.createIndex()
-            coco_dt = coco_gt.loadRes(coco_dt_list)
-            coco_eval = COCOeval(coco_gt, coco_dt, iouType="bbox")
-            coco_eval.params.maxDets = [100, 300, max_dets]
-            coco_eval.evaluate()
-            coco_eval.accumulate()
-            coco_eval.summarize()
-
-        return {
-            "pycocotools_ap50_95": round(float(coco_eval.stats[0]), 4),
-            "pycocotools_ap50": round(float(coco_eval.stats[1]), 4),
-            "max_dets": max_dets,
-        }
-    except Exception:
-        return {"pycocotools_ap50": ap50, "pycocotools_ap50_95": ap50_95, "max_dets": max_dets}
-
-
-def run_real_gpu_training(
-    config_path: Path,
-    cc0_dir: Path,
-    sku_dir: Path,
-    output_dir: Path,
-    eval_test_once: bool = False,
-) -> dict:
-    """Trains a real COCO-pretrained detector in PyTorch (trying official YOLOX up to twice first),
-    evaluates with pycocotools (`maxDets=1000`), and exports ONNX.
-    """
-    import subprocess
+def build_model(cfg: dict):
+    """COCO-pretrained FCOS with the classification head swapped for background + item."""
     import torch
     from torchvision.models.detection import FCOS_ResNet50_FPN_Weights, fcos_resnet50_fpn
     from torchvision.models.detection.fcos import FCOSClassificationHead
 
-    yolox_errors: list[str] = []
-    for attempt in (1, 2):
-        try:
-            import yolox  # type: ignore
-            break
-        except ImportError:
-            res = subprocess.run(
-                [sys.executable, "-m", "pip", "install", "--no-build-isolation", "-q", "yolox==0.3.0"],
-                capture_output=True,
-                text=True,
-                timeout=90,
-            )
-            if res.returncode != 0:
-                yolox_errors.append(f"attempt {attempt}: {res.stderr.strip()[-160:]}")
-
-    cfg = json.loads(config_path.read_text(encoding="utf-8"))
-    seed = int(cfg.get("seed", 42))
-    torch.manual_seed(seed)
-    np.random.seed(seed)
-
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    gpu_name = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "CPU"
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    # 1. Load CC0 Supermarket Shelves and partition with leak-free dHash split.
-    cc0_all = load_cc0_supermarket(cc0_dir)
-    if not cc0_all:
-        raise RuntimeError(f"CC0 Supermarket Shelves dataset not found at {cc0_dir}")
-
-    dhash_records: list[ImageRecord] = []
-    cc0_by_name: dict[str, tuple[Path, AnnotatedImage]] = {}
-    for img_path, ann in cc0_all:
-        with Image.open(img_path) as im:
-            dh = compute_dhash(im)
-        cc0_by_name[ann.image_name] = (img_path, ann)
-        dhash_records.append(
-            ImageRecord(
-                image_id=ann.image_name,
-                source_group=infer_source_group("supermarket_shelves", ann.image_name),
-                dhash=dh,
-            )
-        )
-
-    cc0_splits = assign_leak_free_splits(dhash_records, ratios=(0.60, 0.20, 0.20), max_hamming=8)
-    cc0_leaks = find_cross_split_leak_pairs(dhash_records, cc0_splits, max_hamming=8)
-
-    cc0_train = [cc0_by_name[k] for k, sp in sorted(cc0_splits.items()) if sp == "train"]
-    cc0_val = [cc0_by_name[k] for k, sp in sorted(cc0_splits.items()) if sp == "val"]
-    cc0_test = [cc0_by_name[k] for k, sp in sorted(cc0_splits.items()) if sp == "test"]
-
-    # 2. Load SKU-110K subsets when available on Kaggle.
-    sku_train = load_sku110k_split(sku_dir, "train", int(cfg.get("sku110k_train_subset", 2000)))
-    sku_val = load_sku110k_split(sku_dir, "val", int(cfg.get("sku110k_val_subset", 150)))
-    sku_test = load_sku110k_split(sku_dir, "test", int(cfg.get("sku110k_test_subset", 200)))
-
-    train_samples = cc0_train + sku_train
     input_size = int(cfg["input_size"])
-    dets_per_img = int(cfg.get("detections_per_img", 1000))
-
-    # 3. Build COCO-pretrained FCOS-ResNet50-FPN and replace classification head for 2 classes (background + item).
     model = fcos_resnet50_fpn(
         weights=FCOS_ResNet50_FPN_Weights.DEFAULT,
         min_size=input_size,
         max_size=input_size,
-        detections_per_img=dets_per_img,
-        score_thresh=float(cfg.get("score_thresh", 0.22)),
+        detections_per_img=int(cfg.get("detections_per_img", 1000)),
+        topk_candidates=int(cfg.get("topk_candidates", 1500)),
+        score_thresh=float(cfg.get("score_thresh", 0.25)),
         nms_thresh=float(cfg.get("nms_thresh", 0.45)),
     )
-    in_channels = model.backbone.out_channels
-    num_anchors = model.head.classification_head.num_anchors
     model.head.classification_head = FCOSClassificationHead(
-        in_channels=in_channels,
-        num_anchors=num_anchors,
+        in_channels=model.backbone.out_channels,
+        num_anchors=model.head.classification_head.num_anchors,
         num_classes=2,
     )
-    model.to(device)
+    return model
 
+
+def load_batch(samples, indices, input_size: int, device, torch):
+    """Loads a batch of (image tensor in [0, 1], targets) pairs, skipping annotation-free images."""
+    images = []
+    targets = []
+    for idx in indices:
+        path, ann = samples[int(idx)]
+        with Image.open(path) as raw:
+            rgb = raw.convert("RGB").resize((input_size, input_size), Image.Resampling.BILINEAR)
+            orig_w, orig_h = raw.size
+        arr = np.asarray(rgb, dtype=np.float32) / 255.0
+        image_t = torch.from_numpy(np.transpose(arr, (2, 0, 1)).copy()).to(device)
+        sx, sy = input_size / max(1.0, float(orig_w)), input_size / max(1.0, float(orig_h))
+        boxes = [
+            [b.x1 * sx, b.y1 * sy, b.x2 * sx, b.y2 * sy]
+            for b in ann.boxes
+            if (b.x2 - b.x1) * sx >= 2.0 and (b.y2 - b.y1) * sy >= 2.0
+        ]
+        if not boxes:
+            continue
+        images.append(image_t)
+        boxes_t = torch.tensor(boxes, dtype=torch.float32, device=device)
+        targets.append({"boxes": boxes_t, "labels": torch.ones((boxes_t.shape[0],), dtype=torch.int64, device=device)})
+    return images, targets
+
+
+def run_torch_inference(model, samples, input_size: int, device, torch):
+    """Runs the PyTorch model over samples and returns evaluation inputs in original pixels."""
+    model.eval()
+    eval_inputs = []
+    with torch.no_grad():
+        for path, ann in samples:
+            with Image.open(path) as raw:
+                orig_w, orig_h = raw.size
+                rgb = raw.convert("RGB").resize((input_size, input_size), Image.Resampling.BILINEAR)
+            arr = np.asarray(rgb, dtype=np.float32) / 255.0
+            image_t = torch.from_numpy(np.transpose(arr, (2, 0, 1)).copy()).to(device)
+            out = model([image_t])[0]
+            boxes = out["boxes"].detach().cpu().numpy()
+            scores = out["scores"].detach().cpu().numpy()
+            sx, sy = float(orig_w) / input_size, float(orig_h) / input_size
+            preds = tuple(
+                ds_box(b[0] * sx, b[1] * sy, b[2] * sx, b[3] * sy, s) for b, s in zip(boxes, scores)
+            )
+            gts = tuple(ds_box(b.x1, b.y1, b.x2, b.y2, 1.0) for b in ann.boxes)
+            eval_inputs.append(eval_input(name=ann.image_name, gt=gts, preds=preds))
+    return eval_inputs
+
+
+def ds_box(x1, y1, x2, y2, score):
+    """Small wrapper so the imports at the top stay readable."""
+    from shelfsense_training.metrics import DetectionBox
+
+    return DetectionBox(float(x1), float(y1), float(x2), float(y2), float(score))
+
+
+def eval_input(name, gt, preds):
+    """Small wrapper so the imports at the top stay readable."""
+    from shelfsense_training.metrics import ImageEvalInput
+
+    return ImageEvalInput(name, gt, preds)
+
+
+def summary_block(eval_inputs) -> dict:
+    """AP from pycocotools at a 1000-detection cap plus count error, bootstrap interval and buckets."""
+    summary = evaluate_predictions(eval_inputs)
+    coco = coco_ap(eval_inputs, max_dets=1000)
+    return {
+        "num_images": summary.num_images,
+        "map50": coco["map50"],
+        "map50_95": coco["map"],
+        "count_mae": summary.count_mae,
+        "count_mape_pct": summary.count_mape_pct,
+        "gt_count_total": coco["num_gt"],
+        "pred_count_total": coco["num_dt"],
+        "evaluated_once": True,
+        "bootstrap_95_ci": bootstrap_confidence_intervals(eval_inputs, n_resamples=500, seed=42),
+        "by_density": {
+            name: {
+                "num_images": value.num_images,
+                "map50": value.map50,
+                "count_mae": value.count_mae,
+                "count_mape_pct": value.count_mape_pct,
+            }
+            for name, value in evaluate_by_density(eval_inputs).items()
+        },
+        "per_image": [
+            {
+                "image_id": item.image_id,
+                "gt_count": len(item.ground_truth),
+                "pred_count": len(item.predictions),
+                "abs_error": abs(len(item.predictions) - len(item.ground_truth)),
+            }
+            for item in eval_inputs
+        ],
+    }
+
+
+def save_predictions(path: Path, eval_inputs, params: dict, model_file: str) -> dict:
+    """Writes gzipped prediction boxes so anyone can recompute the reported numbers."""
+    import gzip
+
+    payload = {
+        "model_file": model_file,
+        "params": params,
+        "images": [
+            {
+                "image_id": item.image_id,
+                "ground_truth": [[round(b.x1, 3), round(b.y1, 3), round(b.x2, 3), round(b.y2, 3)] for b in item.ground_truth],
+                "predictions": [
+                    [round(b.x1, 3), round(b.y1, 3), round(b.x2, 3), round(b.y2, 3), round(float(b.score), 5)]
+                    for b in item.predictions
+                ],
+            }
+            for item in eval_inputs
+        ],
+    }
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with gzip.GzipFile(filename=str(path), mode="wb", mtime=0) as fh:
+        fh.write(json.dumps(payload, separators=(",", ":")).encode("utf-8"))
+    return {"path": str(path), "size_bytes": path.stat().st_size}
+
+
+def train(config_path: Path, cc0_dir: Path, sku_dir: Path, output_dir: Path, resume: bool, eval_test_once: bool) -> dict:
+    """Runs the whole pipeline and returns the report. Each late step is independently guarded."""
+    import torch
+
+    cfg = json.loads(config_path.read_text(encoding="utf-8"))
+    run_id = cfg["run_id"]
+    input_size = int(cfg["input_size"])
+    output_dir.mkdir(parents=True, exist_ok=True)
+    ckpt_dir = output_dir / "checkpoints"
+    ckpt_dir.mkdir(exist_ok=True)
+
+    seed = int(cfg.get("seed", 42))
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    use_cuda = torch.cuda.is_available()
+    device = torch.device("cuda" if use_cuda else "cpu")
+    gpu_name = torch.cuda.get_device_name(0) if use_cuda else "CPU"
+    if use_cuda:
+        torch.backends.cudnn.benchmark = True
+    print(f"[{run_id}] device={device} gpu={gpu_name}")
+
+    # --- Data -------------------------------------------------------------------------
+    cc0_items = ds.load_cc0_supermarket(cc0_dir)
+    if not cc0_items:
+        raise RuntimeError(f"CC0 Supermarket Shelves not found under {cc0_dir}")
+    cc0_train, cc0_val, cc0_test, cc0_leaks = ds.split_cc0(cc0_items)
+    sku_train = ds.load_sku110k_split(sku_dir, "train", int(cfg["sku110k_train_subset"]))
+    sku_val = ds.load_sku110k_split(sku_dir, "val", int(cfg["sku110k_val_subset"]))
+    sku_test = ds.load_sku110k_split(sku_dir, "test", int(cfg["sku110k_test_subset"]))
+    train_samples = cc0_train + sku_train
+    print(
+        f"[{run_id}] train={len(train_samples)} (cc0={len(cc0_train)} sku110k={len(sku_train)}) "
+        f"val_cc0={len(cc0_val)} val_sku110k={len(sku_val)} test_sku110k={len(sku_test)}",
+        flush=True,
+    )
+    if len(sku_train) < 1000:
+        print(f"[{run_id}] WARNING: only {len(sku_train)} SKU-110K training images were found", flush=True)
+
+    # --- Model, optimiser, AMP --------------------------------------------------------
+    model = build_model(cfg).to(device)
     total_params = sum(p.numel() for p in model.parameters())
-
-    # Negative control 0: measure untrained head mAP50 on validation before training.
-    untrained_val_inputs = _run_detector_inference(model, cc0_val, input_size, device)
-    untrained_val_map50 = compute_ap50(untrained_val_inputs)
-
-    # 4. Fine-tune on train_samples with AdamW + cosine schedule.
     optimizer = torch.optim.AdamW(
         [p for p in model.parameters() if p.requires_grad],
         lr=float(cfg["learning_rate"]),
         weight_decay=float(cfg["weight_decay"]),
     )
-    epochs = int(cfg["epochs"])
+    amp_enabled = bool(cfg.get("amp", True)) and use_cuda
+    scaler = torch.amp.GradScaler("cuda", enabled=amp_enabled)
     batch_size = int(cfg.get("batch_size", 8))
-    rng = np.random.default_rng(seed)
+    validate_every = int(cfg.get("validate_every", 2))
+    budget = float(cfg.get("gpu_budget_seconds", 10800))
+    reserve = round(budget * 0.2)
 
-    loss_curve: list[dict[str, float | int]] = []
-    t_start = time.perf_counter()
-
-    model.train()
-    for epoch in range(1, epochs + 1):
-        indices = rng.permutation(len(train_samples))
-        epoch_losses: list[float] = []
-        for start_idx in range(0, len(indices), batch_size):
-            batch_ids = indices[start_idx : start_idx + batch_size]
-            images_t = []
-            targets_t = []
-            for idx in batch_ids:
-                img_path, ann = train_samples[int(idx)]
-                img_t, boxes_t = _load_resized_sample(img_path, ann, input_size, device)
-                if boxes_t.shape[0] == 0:
-                    continue
-                images_t.append(img_t)
-                targets_t.append(
-                    {
-                        "boxes": boxes_t,
-                        "labels": torch.ones((boxes_t.shape[0],), dtype=torch.int64, device=device),
-                    }
-                )
-            if not images_t:
-                continue
-            optimizer.zero_grad()
-            loss_dict = model(images_t, targets_t)
-            loss = sum(loss_value for loss_value in loss_dict.values())
-            loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=10.0)
-            optimizer.step()
-            epoch_losses.append(float(loss.detach().cpu().item()))
-
-        mean_loss = round(float(np.mean(epoch_losses)) if epoch_losses else 0.0, 4)
-        loss_curve.append({"epoch": epoch, "mean_loss": mean_loss, "num_batches": len(epoch_losses)})
-        print(f"[{cfg['run_id']}] epoch {epoch}/{epochs} | loss={mean_loss}")
-
-    train_duration_sec = round(time.perf_counter() - t_start, 2)
-
-    # 5. Evaluate on CC0 validation and SKU-110K validation.
-    val_cc0_inputs = _run_detector_inference(model, cc0_val, input_size, device)
-    val_cc0_summary = evaluate_predictions(val_cc0_inputs)
-    val_cc0_coco = evaluate_with_pycocotools(val_cc0_inputs, max_dets=dets_per_img)
-
-    val_sku_summary_dict = None
-    if sku_val:
-        val_sku_inputs = _run_detector_inference(model, sku_val, input_size, device)
-        val_sku_sum = evaluate_predictions(val_sku_inputs)
-        val_sku_coco = evaluate_with_pycocotools(val_sku_inputs, max_dets=dets_per_img)
-        val_sku_summary_dict = {
-            "num_images": val_sku_sum.num_images,
-            "map50": val_sku_coco["pycocotools_ap50"],
-            "map50_95": val_sku_coco["pycocotools_ap50_95"],
-            "count_mae": val_sku_sum.count_mae,
-            "count_mape_pct": val_sku_sum.count_mape_pct,
-        }
-
-    # 6. Export real trained dense feature + head network to ONNX opset 17 (with NMS in code).
-    onnx_fp32_path = output_dir / f"{cfg['run_id']}-fp32.onnx"
-    onnx_meta = _export_trained_fcos_to_onnx(model, onnx_fp32_path, input_size=640, device=device)
-
-    report = {
-        "run_id": cfg["run_id"],
-        "framework": cfg["framework"],
-        "license": cfg["license"],
-        "yolox_install_notes": yolox_errors,
+    state = {
+        "run_id": run_id,
+        "config": cfg,
         "gpu_name": gpu_name,
         "total_parameters": total_params,
-        "train_duration_sec": train_duration_sec,
-        "train_images_total": len(train_samples),
-        "cc0_split_counts": {"train": len(cc0_train), "val": len(cc0_val), "test": len(cc0_test)},
-        "sku110k_loaded_counts": {"train": len(sku_train), "val": len(sku_val), "test": len(sku_test)},
-        "cross_split_dhash_leaks": len(cc0_leaks),
-        "negative_control_untrained_val_map50": untrained_val_map50,
-        "loss_curve": loss_curve,
-        "val_cc0": {
-            "num_images": val_cc0_summary.num_images,
-            "map50": val_cc0_coco["pycocotools_ap50"],
-            "map50_95": val_cc0_coco["pycocotools_ap50_95"],
-            "count_mae": val_cc0_summary.count_mae,
-            "count_mape_pct": val_cc0_summary.count_mape_pct,
-        },
-        "val_sku110k": val_sku_summary_dict,
-        "onnx_export": onnx_meta,
+        "amp": amp_enabled,
+        "loss_curve": [],
+        "val_history": [],
+        "images_per_second": None,
+        "planned_epochs": None,
+        "planned_epochs_reason": None,
+        "best": None,
+        "start_epoch": 1,
     }
+    start_epoch = 1
+    last_path = ckpt_dir / "last.pt"
+    if resume and last_path.is_file():
+        checkpoint = torch.load(last_path, map_location=device, weights_only=False)
+        model.load_state_dict(checkpoint["model"])
+        optimizer.load_state_dict(checkpoint["optimizer"])
+        scaler.load_state_dict(checkpoint["scaler"])
+        start_epoch = int(checkpoint["epoch"]) + 1
+        for key in ("loss_curve", "val_history", "images_per_second", "planned_epochs", "planned_epochs_reason", "best"):
+            if key in checkpoint:
+                state[key] = checkpoint[key]
+        print(f"[{run_id}] resumed from {last_path.name} at epoch {start_epoch}", flush=True)
 
-    if eval_test_once:
-        test_cc0_inputs = _run_detector_inference(model, cc0_test, input_size, device)
-        test_cc0_sum = evaluate_predictions(test_cc0_inputs)
-        test_cc0_coco = evaluate_with_pycocotools(test_cc0_inputs, max_dets=dets_per_img)
-        test_cc0_ci = bootstrap_confidence_intervals(test_cc0_inputs, n_resamples=500, seed=seed)
-        test_cc0_density = evaluate_by_density(test_cc0_inputs)
+    planned = int(state["planned_epochs"] or cfg.get("min_epochs", 12))
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=max(1, planned), eta_min=float(cfg["learning_rate"]) * 0.05)
+    rng = np.random.default_rng(seed)
 
-        per_image = []
-        for item in test_cc0_inputs:
-            gt_c = len(item.ground_truth)
-            pr_c = len(item.predictions)
-            err = abs(pr_c - gt_c)
-            per_image.append(
-                {
-                    "image_id": item.image_id,
-                    "gt_count": gt_c,
-                    "pred_count": pr_c,
-                    "abs_error": err,
-                    "pct_error": round((err / max(1, gt_c)) * 100.0, 2),
-                    "ap50": compute_ap50([item]),
-                }
-            )
-
-        test_sku_dict = None
-        if sku_test:
-            test_sku_inputs = _run_detector_inference(model, sku_test, input_size, device)
-            test_sku_sum = evaluate_predictions(test_sku_inputs)
-            test_sku_coco = evaluate_with_pycocotools(test_sku_inputs, max_dets=dets_per_img)
-            test_sku_ci = bootstrap_confidence_intervals(test_sku_inputs, n_resamples=300, seed=seed)
-            test_sku_dict = {
-                "num_images": test_sku_sum.num_images,
-                "map50": test_sku_coco["pycocotools_ap50"],
-                "map50_95": test_sku_coco["pycocotools_ap50_95"],
-                "count_mae": test_sku_sum.count_mae,
-                "count_mape_pct": test_sku_sum.count_mape_pct,
-                "bootstrap_95_ci": test_sku_ci,
-            }
-
-        report["test_cc0_once"] = {
-            "num_images": test_cc0_sum.num_images,
-            "map50": test_cc0_coco["pycocotools_ap50"],
-            "map50_95": test_cc0_coco["pycocotools_ap50_95"],
-            "count_mae": test_cc0_sum.count_mae,
-            "count_mape_pct": test_cc0_sum.count_mape_pct,
-            "bootstrap_95_ci": test_cc0_ci,
-            "by_density": {
-                k: {
-                    "num_images": v.num_images,
-                    "map50": v.map50,
-                    "count_mae": v.count_mae,
-                    "count_mape_pct": v.count_mape_pct,
-                }
-                for k, v in test_cc0_density.items()
-            },
-            "per_image": per_image,
-            "worst_failures": sorted(per_image, key=lambda r: r["pct_error"], reverse=True)[:5],
+    def save_checkpoint(epoch: int, tag: str) -> Path:
+        """Writes model + optimiser + AMP scaler + history so a lost session can resume."""
+        payload = {
+            "model": model.state_dict(),
+            "optimizer": optimizer.state_dict(),
+            "scaler": scaler.state_dict(),
+            "epoch": epoch,
+            "config": cfg,
+            "loss_curve": state["loss_curve"],
+            "val_history": state["val_history"],
+            "images_per_second": state["images_per_second"],
+            "planned_epochs": planned,
+            "planned_epochs_reason": state["planned_epochs_reason"],
+            "best": state["best"],
+            "rng": rng.bit_generator.state,
         }
-        report["test_sku110k_once"] = test_sku_dict
+        target = ckpt_dir / f"{tag}.pt"
+        torch.save(payload, target)
+        return target
 
-    (output_dir / "metrics.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
+    # --- Training ---------------------------------------------------------------------
+    train_started = time.perf_counter()
+    for epoch in range(start_epoch, planned + 1):
+        model.train()
+        order = rng.permutation(len(train_samples))
+        epoch_losses: list[float] = []
+        epoch_started = time.perf_counter()
+        images_done = 0
+        for batch_index, offset in enumerate(range(0, len(order), batch_size)):
+            images, targets = load_batch(train_samples, order[offset : offset + batch_size], input_size, device, torch)
+            if not images:
+                continue
+            with torch.autocast(device_type="cuda", dtype=torch.float16, enabled=amp_enabled):
+                loss_dict = model(images, targets)
+                loss = sum(loss_dict.values())
+            optimizer.zero_grad(set_to_none=True)
+            scaler.scale(loss).backward()
+            scaler.unscale_(optimizer)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=10.0)
+            scaler.step(optimizer)
+            scaler.update()
+            epoch_losses.append(float(loss.detach().item()))
+            images_done += len(images)
+
+            # Measure real training speed once, then fix the epoch count to the GPU budget.
+            if state["planned_epochs"] is None and batch_index + 1 >= THROUGHPUT_BATCHES:
+                elapsed = time.perf_counter() - epoch_started
+                state["images_per_second"] = round(images_done / elapsed, 2)
+                planned = plan_epochs(
+                    state["images_per_second"],
+                    len(train_samples),
+                    budget,
+                    reserve,
+                    int(cfg.get("min_epochs", 12)),
+                    int(cfg.get("max_epochs", 20)),
+                )
+                state["planned_epochs"] = planned
+                state["planned_epochs_reason"] = (
+                    f"{state['images_per_second']} images/s measured on {images_done} images in the first "
+                    f"{THROUGHPUT_BATCHES} batches; ({budget:.0f}s budget - {reserve}s reserve) * "
+                    f"{state['images_per_second']} / {len(train_samples)} images = "
+                    f"{int((budget - reserve) * state['images_per_second'] / max(1, len(train_samples)))} epochs, "
+                    f"clamped to [{cfg.get('min_epochs', 12)}, {cfg.get('max_epochs', 20)}]"
+                )
+                scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+                    optimizer, T_max=max(1, planned), eta_min=float(cfg["learning_rate"]) * 0.05
+                )
+                for _ in range(epoch - 1):
+                    scheduler.step()
+                print(f"[{run_id}] {state['planned_epochs_reason']}", flush=True)
+
+        scheduler.step()
+        epoch_seconds = round(time.perf_counter() - epoch_started, 1)
+        mean_loss = round(float(np.mean(epoch_losses)), 4) if epoch_losses else 0.0
+        state["loss_curve"].append(
+            {"epoch": epoch, "mean_loss": mean_loss, "num_batches": len(epoch_losses), "seconds": epoch_seconds}
+        )
+        print(
+            f"[{run_id}] epoch {epoch}/{planned} loss={mean_loss} batches={len(epoch_losses)} "
+            f"lr={optimizer.param_groups[0]['lr']:.6f} {epoch_seconds}s",
+            flush=True,
+        )
+        # Checkpoint before any validation or export so the weights can never be lost.
+        save_checkpoint(epoch, f"epoch-{epoch:02d}")
+        save_checkpoint(epoch, "last")
+        write_json(output_dir / "run-state.json", state)
+
+        should_validate = epoch % validate_every == 0 or epoch == planned
+        if not should_validate:
+            continue
+        try:
+            val_sku = run_torch_inference(model, sku_val, input_size, device, torch) if sku_val else []
+            val_cc0 = run_torch_inference(model, cc0_val, input_size, device, torch) if cc0_val else []
+            entry = {"epoch": epoch}
+            if val_sku:
+                entry["val_sku110k_map50"] = evaluate_predictions(val_sku).map50
+            if val_cc0:
+                entry["val_cc0_map50"] = evaluate_predictions(val_cc0).map50
+            primary = entry.get("val_sku110k_map50", entry.get("val_cc0_map50", 0.0))
+            entry["primary_map50"] = primary
+            state["val_history"].append(entry)
+            if state["best"] is None or primary > float(state["best"]["primary_map50"]):
+                state["best"] = {"epoch": epoch, "primary_map50": primary, "checkpoint": f"best.pt"}
+                save_checkpoint(epoch, "best")
+                print(f"[{run_id}] new best at epoch {epoch} (map50={primary})", flush=True)
+            write_json(output_dir / "run-state.json", state)
+        except Exception:
+            record_error(output_dir, "validation", traceback.format_exc())
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+
+    train_seconds = round(time.perf_counter() - train_started, 1)
+    if state["best"] is None:
+        # No validation pass ran (very short run); the last checkpoint is the best available.
+        save_checkpoint(planned, "best")
+        state["best"] = {"epoch": planned, "primary_map50": None, "checkpoint": "best.pt"}
+    write_json(output_dir / "run-state.json", state)
+    print(f"[{run_id}] training finished in {train_seconds}s", flush=True)
+
+    report = {
+        "run_id": run_id,
+        "framework": cfg["framework"],
+        "license": cfg["license"],
+        "gpu_name": gpu_name,
+        "total_parameters": total_params,
+        "config": cfg,
+        "amp": amp_enabled,
+        "timings": {
+            "train_seconds": train_seconds,
+            "images_per_second": state["images_per_second"],
+            "planned_epochs": planned,
+            "planned_epochs_reason": state["planned_epochs_reason"],
+            "gpu_budget_seconds": budget,
+            "reserve_seconds": reserve,
+        },
+        "data": {
+            "train_images_total": len(train_samples),
+            "cc0_split_counts": {"train": len(cc0_train), "val": len(cc0_val), "test": len(cc0_test)},
+            "sku110k_loaded_counts": {"train": len(sku_train), "val": len(sku_val), "test": len(sku_test)},
+            "cross_split_dhash_leaks": cc0_leaks,
+        },
+        "loss_curve": state["loss_curve"],
+        "val_history": state["val_history"],
+        "best_checkpoint": state["best"],
+    }
+    write_json(output_dir / "metrics.json", report)
+
+    # --- Export (independent try/except) ---------------------------------------------
+    checkpoint_path = ckpt_dir / "best.pt"
+    export_info = None
+    try:
+        state_dict = torch.load(checkpoint_path, map_location="cpu", weights_only=False)["model"]
+        model.load_state_dict(state_dict)
+        fp32_path = output_dir / f"{run_id}-fp32.onnx"
+        export_info = export_fcos_onnx(model, fp32_path, input_size)
+        export_info["checkpoint"] = checkpoint_path.name
+        export_info["checkpoint_epoch"] = state["best"]["epoch"]
+        export_info["cpu_latency_ms"] = measure_cpu_latency(fp32_path, input_size)
+        int8_path = output_dir / f"{run_id}-int8.onnx"
+        export_info["int8"] = quantize_int8_dynamic(fp32_path, int8_path)
+        if export_info["int8"]:
+            export_info["int8"]["cpu_latency_ms"] = measure_cpu_latency(int8_path, input_size)
+        report["onnx"] = export_info
+        write_json(output_dir / "metrics.json", report)
+        print(f"[{run_id}] exported {fp32_path.name}", flush=True)
+    except Exception:
+        record_error(output_dir, "export", traceback.format_exc())
+
+    # --- Evaluation (independent try/except), from the exported ONNX files ------------
+    try:
+        if not export_info:
+            raise RuntimeError("no ONNX export to evaluate; see export-error.txt")
+        onnx_paths = [output_dir / export_info["path"]]
+        if export_info.get("int8"):
+            onnx_paths.append(output_dir / export_info["int8"]["path"])
+
+        evaluations: dict[str, dict] = {}
+        tuned_thresholds = {
+            "score_thresh": float(cfg["score_thresh"]),
+            "nms_thresh": float(cfg["nms_thresh"]),
+            "max_dets": int(cfg["detections_per_img"]),
+        }
+        sweep_rows: list[dict] = []
+
+        # Tune on SKU-110K validation only (200 images), on the FP32 file.
+        fp32_session = make_session(onnx_paths[0])
+        cached_val_sku = run_raw_candidates(fp32_session, sku_val, input_size) if sku_val else []
+        if sku_val:
+            sweep_rows = sweep_thresholds(
+                sku_val,
+                cached_val_sku,
+                input_size,
+                cfg.get("score_grid", [0.25]),
+                cfg.get("nms_grid", [0.45]),
+                int(cfg["detections_per_img"]),
+            )
+            best = best_threshold_row(sweep_rows)
+            tuned_thresholds = {
+                "score_thresh": best["score_thresh"],
+                "nms_thresh": best["nms_thresh"],
+                "max_dets": best["max_dets"],
+                "tuned_on": f"sku110k val ({len(sku_val)} images)",
+            }
+            print(f"[{run_id}] tuned thresholds {tuned_thresholds}", flush=True)
+
+        report["thresholds"] = tuned_thresholds
+        report["threshold_sweep_sku110k_val"] = sweep_rows
+
+        slices = [("val_sku110k", sku_val), ("val_cc0", cc0_val)]
+        if eval_test_once:
+            slices += [("test_sku110k_once", sku_test), ("test_cc0_once", cc0_test)]
+        for path in onnx_paths:
+            session = make_session(path)
+            key_tag = "int8" if "int8" in path.name else "fp32"
+            evaluations[key_tag] = {"onnx_file": path.name}
+            for name, samples in slices:
+                if not samples:
+                    continue
+                cached = run_raw_candidates(session, samples, input_size)
+                eval_inputs = to_eval_inputs(
+                    samples,
+                    cached,
+                    input_size,
+                    tuned_thresholds["score_thresh"],
+                    tuned_thresholds["nms_thresh"],
+                    tuned_thresholds["max_dets"],
+                )
+                block = summary_block(eval_inputs)
+                if name.startswith("test_"):
+                    block["predictions_file"] = save_predictions(
+                        output_dir / "predictions" / f"{run_id}-{key_tag}-{name}.json.gz",
+                        eval_inputs,
+                        tuned_thresholds,
+                        path.name,
+                    )
+                evaluations[key_tag][name] = block
+                print(f"[{run_id}] {key_tag} {name} map50={block['map50']} mae={block['count_mae']}", flush=True)
+        report["evaluations"] = evaluations
+        # Keep the FP32 slice at the top level too: it is the model the card describes.
+        if "fp32" in evaluations:
+            for name in ("val_sku110k", "val_cc0", "test_sku110k_once", "test_cc0_once"):
+                if name in evaluations["fp32"]:
+                    report[name] = evaluations["fp32"][name]
+        write_json(output_dir / "metrics.json", report)
+    except Exception:
+        record_error(output_dir, "evaluation", traceback.format_exc())
+
+    # --- Metrics writing (independent try/except) ------------------------------------
+    try:
+        report["finished_at_unix"] = int(time.time())
+        write_json(output_dir / "metrics.json", report)
+        print(f"[{run_id}] wrote metrics.json", flush=True)
+    except Exception:
+        record_error(output_dir, "metrics", traceback.format_exc())
+
     return report
 
 
-def _load_resized_sample(img_path: Path, ann: AnnotatedImage, input_size: int, device) -> tuple:
-    """Loads an image, resizes to (input_size, input_size), and scales ground-truth boxes."""
-    import torch
-
-    with Image.open(img_path) as raw:
-        rgb = raw.convert("RGB")
-        orig_w, orig_h = rgb.size
-        resized = rgb.resize((input_size, input_size), Image.Resampling.BILINEAR)
-    arr = np.asarray(resized, dtype=np.float32) / 255.0
-    img_t = torch.from_numpy(np.transpose(arr, (2, 0, 1))).to(device)
-
-    sx = input_size / max(1.0, float(orig_w))
-    sy = input_size / max(1.0, float(orig_h))
-    scaled_boxes = []
-    for b in ann.boxes:
-        x1 = b.x1 * sx
-        y1 = b.y1 * sy
-        x2 = b.x2 * sx
-        y2 = b.y2 * sy
-        if x2 - x1 >= 2.0 and y2 - y1 >= 2.0:
-            scaled_boxes.append([x1, y1, x2, y2])
-    boxes_t = torch.tensor(scaled_boxes, dtype=torch.float32, device=device) if scaled_boxes else torch.zeros((0, 4), dtype=torch.float32, device=device)
-    return img_t, boxes_t
-
-
-def _run_detector_inference(model, samples: Sequence[tuple[Path, AnnotatedImage]], input_size: int, device) -> list[ImageEvalInput]:
-    """Runs `model.eval()` over `samples` and maps predicted boxes back to original pixel coordinates."""
-    import torch
-
-    model.eval()
-    eval_inputs: list[ImageEvalInput] = []
-    with torch.no_grad():
-        for img_path, ann in samples:
-            with Image.open(img_path) as raw:
-                rgb = raw.convert("RGB")
-                orig_w, orig_h = rgb.size
-                resized = rgb.resize((input_size, input_size), Image.Resampling.BILINEAR)
-            arr = np.asarray(resized, dtype=np.float32) / 255.0
-            img_t = torch.from_numpy(np.transpose(arr, (2, 0, 1))).to(device)
-            out = model([img_t])[0]
-            boxes = out["boxes"].detach().cpu().numpy()
-            scores = out["scores"].detach().cpu().numpy()
-
-            sx = float(orig_w) / input_size
-            sy = float(orig_h) / input_size
-            preds = tuple(
-                DetectionBox(
-                    x1=float(b[0] * sx),
-                    y1=float(b[1] * sy),
-                    x2=float(b[2] * sx),
-                    y2=float(b[3] * sy),
-                    score=float(s),
-                )
-                for b, s in zip(boxes, scores)
-            )
-            gts = tuple(DetectionBox(b.x1, b.y1, b.x2, b.y2, 1.0) for b in ann.boxes)
-            eval_inputs.append(ImageEvalInput(ann.image_name, gts, preds))
-    return eval_inputs
-
-
-def _export_trained_fcos_to_onnx(model, onnx_path: Path, input_size: int, device) -> dict:
-    """Exports the trained FCOS backbone+FPN+head (raw anchor decoding before NMS) to ONNX opset 17."""
-    import torch
-    import torch.nn as nn
-
-    class _RawDenseShelfExportWrapper(nn.Module):
-        """Wraps the trained FCOS backbone+FPN+head to output `[1, N, 6]` `[xc, yc, w, h, obj, cls]`."""
-
-        def __init__(self, fcos_model: nn.Module, size: int) -> None:
-            super().__init__()
-            self.backbone = fcos_model.backbone
-            self.head = fcos_model.head
-            self.size = size
-
-        def forward(self, images: torch.Tensor) -> torch.Tensor:
-            features = self.backbone(images)
-            if isinstance(features, torch.Tensor):
-                feat_list = [features]
-            else:
-                feat_list = list(features.values())
-            head_out = self.head.forward(feat_list)
-            cls_logits = head_out["cls_logits"]
-            bbox_reg = head_out["bbox_regression"]
-            ctr_logits = head_out["bbox_ctrness"]
-            # Decode FPN stride centers and regression offsets into [1, N, 6] `[xc, yc, w, h, score, 1.0]`
-            decoded_levels = []
-            strides = [8, 16, 32, 64, 128][: len(feat_list)]
-            idx_offset = 0
-            for feat, stride in zip(feat_list, strides):
-                _, _, fh, fw = feat.shape
-                n_level = fh * fw
-                reg_lvl = bbox_reg[:, idx_offset : idx_offset + n_level, :] * float(stride)
-                cls_lvl = torch.sigmoid(cls_logits[:, idx_offset : idx_offset + n_level, 1:2])
-                ctr_lvl = torch.sigmoid(ctr_logits[:, idx_offset : idx_offset + n_level, :])
-                score_lvl = torch.sqrt(cls_lvl * ctr_lvl)
-
-                gy, gx = torch.meshgrid(
-                    torch.arange(fh, device=images.device, dtype=torch.float32),
-                    torch.arange(fw, device=images.device, dtype=torch.float32),
-                    indexing="ij",
-                )
-                cx = ((gx.reshape(-1) + 0.5) * float(stride)).unsqueeze(0)
-                cy = ((gy.reshape(-1) + 0.5) * float(stride)).unsqueeze(0)
-                x1 = cx - reg_lvl[:, :, 0]
-                y1 = cy - reg_lvl[:, :, 1]
-                x2 = cx + reg_lvl[:, :, 2]
-                y2 = cy + reg_lvl[:, :, 3]
-                xc = ((x1 + x2) * 0.5).unsqueeze(-1)
-                yc = ((y1 + y2) * 0.5).unsqueeze(-1)
-                bw = (x2 - x1).clamp(min=1.0).unsqueeze(-1)
-                bh = (y2 - y1).clamp(min=1.0).unsqueeze(-1)
-                ones = torch.ones_like(score_lvl)
-                decoded_levels.append(torch.cat([xc, yc, bw, bh, score_lvl, ones], dim=-1))
-                idx_offset += n_level
-            return torch.cat(decoded_levels, dim=1)
-
-    wrapper = _RawDenseShelfExportWrapper(model.eval(), input_size).to("cpu").eval()
-    dummy = torch.zeros((1, 3, input_size, input_size), dtype=torch.float32)
-    try:
-        torch.onnx.export(
-            wrapper,
-            dummy,
-            str(onnx_path),
-            input_names=["images"],
-            output_names=["output"],
-            opset_version=17,
-            do_constant_folding=True,
-            dynamo=False,
-        )
-    except TypeError:
-        torch.onnx.export(
-            wrapper,
-            dummy,
-            str(onnx_path),
-            input_names=["images"],
-            output_names=["output"],
-            opset_version=17,
-            do_constant_folding=True,
-        )
-
-    plausibility = verify_onnx_model_plausibility(str(onnx_path))
-
-    # Measure dynamic INT8 quantization size & latency via onnxruntime.quantization when available.
-    int8_path = onnx_path.with_name(onnx_path.name.replace("-fp32.onnx", "-int8.onnx"))
-    int8_size = None
-    int8_sha256 = None
-    int8_latency_ms = None
-    try:
-        from onnxruntime.quantization import QuantType, quantize_dynamic
-
-        quantize_dynamic(
-            model_input=str(onnx_path),
-            model_output=str(int8_path),
-            weight_type=QuantType.QUInt8,
-        )
-        if int8_path.is_file():
-            int8_size = int8_path.stat().st_size
-            int8_sha256 = hashlib.sha256(int8_path.read_bytes()).hexdigest()
-    except Exception as exc:
-        print(f"Dynamic INT8 quantization skipped or unsupported on this graph: {exc}")
-    import onnxruntime as ort
-
-    sess = ort.InferenceSession(str(onnx_path), providers=["CPUExecutionProvider"])
-    rng = np.random.default_rng(42)
-    real_input = rng.uniform(0.0, 1.0, size=(1, 3, input_size, input_size)).astype(np.float32)
-    # Warmup
-    sess.run(None, {"images": real_input})
-    t0 = time.perf_counter()
-    for _ in range(3):
-        sess.run(None, {"images": real_input})
-    cpu_latency_ms = round(((time.perf_counter() - t0) / 3.0) * 1000.0, 2)
-
-    sha256_hex = hashlib.sha256(onnx_path.read_bytes()).hexdigest()
-    return {
-        "fp32_path": onnx_path.name,
-        "fp32_size_bytes": plausibility["size_bytes"],
-        "fp32_sha256": sha256_hex,
-        "cpu_latency_ms": cpu_latency_ms,
-        "int8_path": int8_path.name if int8_size else None,
-        "int8_size_bytes": int8_size,
-        "int8_sha256": int8_sha256,
-        "plausibility": plausibility,
-    }
-
-
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Real GPU training and pycocotools evaluation for ShelfSense.")
-    parser.add_argument("--config", type=Path, required=True, help="Path to JSON training config.")
-    parser.add_argument("--cc0-dir", type=Path, required=True, help="Path to CC0 Supermarket Shelves dataset.")
-    parser.add_argument("--sku-dir", type=Path, default=Path("/kaggle/input/sku110k-annotations"), help="Path to SKU-110K dataset.")
-    parser.add_argument("--output-dir", type=Path, required=True, help="Directory for weights and metrics.json.")
-    parser.add_argument("--eval-test-once", action="store_true", help="Evaluate on the held-out test splits once.")
+    parser = argparse.ArgumentParser(description="Resumable FCOS training run for ShelfSense.")
+    parser.add_argument("--config", type=Path, required=True)
+    parser.add_argument("--cc0-dir", type=Path, required=True)
+    parser.add_argument("--sku-dir", type=Path, required=True)
+    parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument("--resume", action="store_true")
+    parser.add_argument("--eval-test-once", action="store_true")
     args = parser.parse_args(argv)
 
-    run_real_gpu_training(
-        config_path=args.config,
-        cc0_dir=args.cc0_dir,
-        sku_dir=args.sku_dir,
-        output_dir=args.output_dir,
-        eval_test_once=args.eval_test_once,
-    )
+    train(args.config, args.cc0_dir, args.sku_dir, args.output_dir, args.resume, args.eval_test_once)
     return 0
 
 

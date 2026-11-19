@@ -140,7 +140,7 @@ cross-split check before training.
 
 ---
 
-## ADR-010 Detector architecture and licence selection (2026-11-16, S2-01)
+## ADR-010 Detector architecture and licence selection (2026-11-16, S2-01, superseded by ADR-011)
 
 **Decision.** Select **YOLOX-S / YOLOX-Nano** (Apache-2.0 licence, Megvii / pure PyTorch
 anchor-free FPN+PAN architecture with decoupled classification, box regression, and
@@ -159,5 +159,36 @@ IoU-aware objectness heads) as the ShelfSense detector architecture.
 INT8 accuracy and ONNX export behaviour are **not measured yet**; an earlier draft of this
 ADR quoted file sizes and latencies that were never measured and they were removed
 (see `docs/LESSONS.md`). The official YOLOX code is to be used, not a custom reimplementation.
+
+**Outcome:** the official YOLOX install failed twice inside the Kaggle image (its pinned
+`onnxruntime==1.8.0` has no wheel for that Python version), so this ADR was replaced by
+ADR-011. No YOLOX weight or number was ever reported.
+
+---
+
+## ADR-011 Detector: torchvision FCOS ResNet-50 FPN (2026-11-19, replaces ADR-010)
+
+**Decision.** Use `torchvision.models.detection.fcos_resnet50_fpn` (BSD-3-Clause, 32.06M
+parameters) fine-tuned for one class, exported to ONNX opset 17 and quantised to INT8 for the
+browser.
+
+**Why.**
+
+- Installable and reproducible: it ships with torchvision, which is already in the Kaggle image,
+  so the training run never depends on a third-party build step that can fail (YOLOX did, twice).
+- Licence: BSD-3-Clause, permissive, no copyleft on the web app (ADR-006, ADR-007).
+- Anchor-free with per-location predictions at strides 8-128, which suits dense shelves; the
+  detection cap and the pre-NMS top-k are configuration, not architecture, so the 150-700 item
+  per-photo case only needs `detections_per_img=1000` and `topk_candidates=1500`.
+- It exports to plain convolutions, which both `onnxruntime-web` WebGPU and WASM execute.
+
+**Measured consequences** (validation, `docs/reports/validation-detection-cap.md`): mAP50 0.5306
+FP32 and 0.5309 INT8 at a 1000-detection cap, 128.7 MB FP32 and 32.8 MB INT8, ~0.6-0.9 s per
+640 px image on this desktop CPU in onnxruntime.
+
+**Export rules learned the hard way.** The graph must normalise with the ImageNet mean/std
+(torchvision's transform does it during training) and must decode anchor centres at `g * stride`
+(torchvision's `AnchorGenerator` convention, with distances scaled by the full stride). The first
+exports got both wrong and lost 0.15 mAP50.
 
 

@@ -14,7 +14,9 @@ Status: verified (2026-11-16, S1-01).
 ## Verified datasets (checked 2026-11-16)
 
 Licence notes: SKU-110K is for academic and non-commercial research only; any weights
-trained on it carry that restriction. No model has been trained on either dataset yet.
+trained on it carry that restriction. The detector has been fine-tuned on both sets
+(torchvision FCOS ResNet-50 FPN); its validation numbers and commands are in
+[reports/validation-detection-cap.md](reports/validation-detection-cap.md).
 
 | Dataset | Scale & Density | Licence (verified 2026-11-16) | Access method | Split unit |
 | --- | --- | --- | --- | --- |
@@ -43,6 +45,11 @@ All dataset annotations are converted into a unified single-class detector forma
 ---
 
 ## Leak-free split design
+
+As used by the current training config (`training/configs/fcos-dense-v3.json`):
+6,000 SKU-110K `train` images (sorted by file name, deterministic), 200 SKU-110K `val`
+images for threshold tuning, 200 SKU-110K `test` images and the 9 CC0 test images for the
+single final evaluation, plus the 27 CC0 training images.
 
 1. **Source and store isolation:**
    - In SKU-110K, the authors partitioned images by store so that shelves from the same physical store do not cross `train`, `val`, and `test`. We preserve those store-disjoint partitions as the primary split.

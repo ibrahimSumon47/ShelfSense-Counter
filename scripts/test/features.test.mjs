@@ -52,7 +52,12 @@ test('all done means nothing open', () => {
 
 test('metric features reject simulate_* functions or missing command/run_id in reports', () => {
   writeFileSync(join(root, 'bad-sim.md'), 'Command: python train.py\nrun_id: r1\nUses simulate_predictions for mAP.');
-  writeFileSync(join(root, 'good-real.md'), 'Command: python training/train.py\nRun ID: improved-fcos-r50-fpn-v2\nmAP50: 0.61');
+  writeFileSync(
+    join(root, 'good-real.md'),
+    'Command: python training/eval_onnx.py\nRun ID: improved-fcos-r50-fpn-v2\n' +
+      'Kaggle kernel ibrahimhossainsumon/shelfsense-fcos-training, version 4\n' +
+      'Predictions: docs/reports/predictions/improved-fcos-r50-fpn-v2-fp32-cc0-val.json.gz\nmAP50: 0.61',
+  );
 
   const simEntry = {
     ...base,
@@ -70,6 +75,19 @@ test('metric features reject simulate_* functions or missing command/run_id in r
     evidence: ['report:good-real.md'],
   };
   assert.deepEqual(featureProblems(goodEntry, root), []);
+
+  // Model metrics need a kernel version and a committed prediction file, not just prose.
+  writeFileSync(join(root, 'no-kernel.md'), 'Command: python training/eval_onnx.py\nRun ID: r1\nPredictions: docs/reports/predictions/a-cc0-val.json.gz');
+  const noKernel = featureProblems({ ...base, id: 'S3-01', status: 'done', evidence: ['report:no-kernel.md'] }, root);
+  assert.ok(noKernel.some((x) => x.includes('kernel version')));
+
+  writeFileSync(join(root, 'no-predictions.md'), 'Command: python training/eval_onnx.py\nRun ID: r1\nKaggle kernel shelfsense-fcos-training, version 4');
+  const noPreds = featureProblems({ ...base, id: 'S3-01', status: 'done', evidence: ['report:no-predictions.md'] }, root);
+  assert.ok(noPreds.some((x) => x.includes('prediction file')));
+
+  // The chat evaluation is not a detector measurement, so it only needs a command and an id.
+  writeFileSync(join(root, 'chat.md'), 'Command: node scripts/eval-chat-live.mts\nModel: free LLM, 30 questions');
+  assert.deepEqual(featureProblems({ ...base, id: 'S5-03', status: 'done', evidence: ['report:chat.md'] }, root), []);
 
   // Guard: training/train.py must never define or call any function starting with simulate_.
   const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');

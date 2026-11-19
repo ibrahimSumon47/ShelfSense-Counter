@@ -17,6 +17,12 @@ export const METRIC_FEATURE_IDS = new Set([
   'S5-03',
 ]);
 
+// Features whose numbers must come from model predictions, so their report has to name the
+// exact command, the Kaggle kernel version that produced the weights, and a committed
+// prediction file anyone can rescore. S5-03 (chat) is a live-LLM evaluation, not a detector
+// measurement, so it only needs a command and an identifier.
+export const MODEL_METRIC_FEATURE_IDS = new Set(['S2-03', 'S2-04', 'S2-05', 'S2-06', 'S3-01', 'S3-02']);
+
 // Verifies that a metric report file contains a command, a run_id, and does not
 // come from any `simulate_*` function or unmeasured placeholder.
 export function metricReportProblems(id, reportPath, text) {
@@ -32,6 +38,14 @@ export function metricReportProblems(id, reportPath, text) {
   }
   if (!/\b(run_id|Run ID|Model|model)\b/.test(text)) {
     problems.push(`${id}: report ${reportPath} is missing the run_id or model identifier`);
+  }
+  if (MODEL_METRIC_FEATURE_IDS.has(id)) {
+    if (!/\bkernel\b[\s\S]{0,80}?\bversion\b|\bkernel version\b/i.test(text)) {
+      problems.push(`${id}: report ${reportPath} must name the Kaggle kernel version that produced the weights`);
+    }
+    if (!/predictions\/[\w./-]+\.json(\.gz)?/i.test(text)) {
+      problems.push(`${id}: report ${reportPath} must point at a committed prediction file (predictions/*.json(.gz))`);
+    }
   }
   return problems;
 }
