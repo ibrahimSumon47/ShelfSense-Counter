@@ -1,54 +1,62 @@
 # Handoff
 
-Last updated: 2026-11-19 (36/48 features done; FCOS run pushed to Kaggle, waiting on the GPU)
+Last updated: 2026-11-19 14:35 (37/48 features done; FCOS 12-epoch run RUNNING on Kaggle)
 
 **Recommended model tag:** `[MODEL: Claude Sonnet 5.5, MID]`
 
-## Exact next step
+## Where the run stands
 
-Poll the kernel `shelfsense-fcos-training`, at most once every 8 minutes, with the encoding set so
-the CLI cannot hit a Windows charmap error:
+Kernel `ibrahimhossainsumon/shelfsense-fcos-training`, version 1, has been RUNNING since 13:11.
+It clones `main` at commit `8a131a5` or later (the notebook clones at start), trains 12 epochs on
+6,036 SKU-110K + CC0 images, and writes `metrics.json`, checkpoints, ONNX files and test
+predictions to `/kaggle/working/outputs`.
 
-```powershell
-$env:PYTHONUTF8 = "1"
-kaggle kernels status ibrahimhossainsumon/shelfsense-fcos-training
+A background watch loop was started to poll it every 5 minutes and, on COMPLETE/ERROR, run:
+
 ```
-
-When it reports `KernelWorkerStatus.COMPLETE`:
-
-```powershell
-$env:PYTHONUTF8 = "1"
 kaggle kernels output ibrahimhossainsumon/shelfsense-fcos-training -p training/outputs/fcos-v3
 ```
 
-Then check, in this order, before trusting anything:
+Check `tail -5 /tmp/kwatch.txt` for the loop's own log.
 
-1. `training/outputs/fcos-v3/train.log` ends with `SUCCESS` (a COMPLETE status alone proves
-   nothing; the notebook raises so a failure shows as ERROR).
-2. `training/outputs/fcos-v3/outputs/metrics.json` exists and has `val_sku110k`, `val_cc0`,
-   `test_sku110k_once`, `test_cc0_once`, `thresholds`, `timings` and `onnx`.
-3. `checkpoints/best.pt`, `<run_id>-fp32.onnx`, `<run_id>-int8.onnx` and
-   `predictions/*.json.gz` are all there.
-4. No `*-error.txt` file is present.
+## Exact next step
 
-If it FAILED, read `train.log` for the first traceback, fix the cause in `training/` (the notebook
-clones `main`, so the fix must be pushed first), push and run again. At most 3 attempts, then
-write the cause here and in `docs/OWNER_TODO.md` and stop attempting GPU runs this week.
+1. Verify the download: `training/outputs/fcos-v3/train.log` must end with `SUCCESS`, and
+   `training/outputs/fcos-v3/outputs/` must hold `metrics.json`, `checkpoints/best.pt`,
+   `*-fp32.onnx`, `*-int8.onnx`, `predictions/*.json.gz`, with no `*-error.txt`. A COMPLETE
+   status alone proves nothing.
+2. If it FAILED: read `train.log` for the first traceback, fix `training/`, push to `main` (the
+   notebook clones the repo), push the kernel again. At most 3 attempts, then record the cause
+   here and in `docs/OWNER_TODO.md`.
+3. With a good run, in one slice:
+   - copy the test prediction files into `docs/reports/predictions/`;
+   - `python training/eval_onnx.py --onnx training/outputs/fcos-v3/outputs/*-int8.onnx <and fp32>
+     --dataset cc0 --split test --input-size 640 --normalise no --center-fix none
+     --score-thresh <tuned> --nms-thresh <tuned> --max-dets 1000 --out docs/reports/test-evaluation.json
+     --predictions-dir docs/reports/predictions` (the new export normalises in the graph, so
+     `--normalise no`);
+   - write `docs/reports/test-evaluation.md` with mAP50, mAP50-95, count MAE/MAPE, bootstrap 95 %
+     intervals, density buckets, the worst images, the sentence that nine CC0 test images give a
+     wide interval, and the FP32-versus-INT8 decision from the measured drop;
+   - `python training/render_failures.py` for the failure gallery (CC0 test images, CC0 licence);
+   - `gh release create v1.0.0` with the chosen ONNX file(s), `sha256sums.txt` and the fixture
+     bundle from `python training/make_regression_fixtures.py`;
+   - copy the chosen file into `apps/web/public/models/`, update `manifest.json`
+     (`webgpu_capable` true only if the file is not dynamically quantised), deploy with
+     `vercel --prod` from `apps/web`;
+   - re-measure the browser on the live URL with three test-split photos and one non-shelf photo,
+     run axe-core and Lighthouse, and record everything in `docs/reports/`.
+4. Close: README, MODEL_CARD, DATA, DECISIONS, PROJECT_STATE, features.json, then
+   `node scripts/check-done.mjs` must exit 0.
 
-## After a good run
+## Blocked elsewhere
 
-1. Re-run `python training/eval_onnx.py` on the new files for the committed validation report,
-   and copy the run's `predictions/*.json.gz` into `docs/reports/predictions/`.
-2. Report the test split once in `docs/reports/test-evaluation.md` (mAP50, mAP50-95, count MAE,
-   MAPE, bootstrap 95 % interval, per-density buckets, per-image worst cases, and the sentence
-   that nine CC0 test images give a wide interval).
-3. `gh release create` the chosen weights (never in git) with SHA-256 checksums, then `S2-07`.
-4. Wire `apps/web/src/lib/detector.ts` to the released model with onnxruntime-web, measure real
-   browser latency, and run the production checks (`S4-05`, `S2-06`, `S7-01`, `S7-02`).
-5. Close with the README pass (`S8-01`) and `node scripts/check-done.mjs` exiting 0.
+`GOOGLE_GENERATIVE_AI_API_KEY` is in the Vercel project but cannot be read back, and
+`private/.env.local` is missing on this PC, so the live-LLM chat checks cannot be re-run here.
+Exact owner steps are item 2b in `docs/OWNER_TODO.md`.
 
 ## Quota
 
-Kaggle GPU: the first kernel version used about 0.3 h; this run is budgeted at 3 h and the plan
-is written into its `metrics.json` (`timings.planned_epochs_reason`). Record hours used in the
-run report. Remaining weekly quota is the only thing limiting a second improvement round.
+The first kernel used about 0.3 h of the weekly GPU quota; this run is budgeted at 3 h and writes
+its own plan into `timings.planned_epochs_reason` in `metrics.json`. Record the hours in the run
+report. One improvement round is allowed only if the quota clearly remains.
