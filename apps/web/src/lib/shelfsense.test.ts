@@ -6,8 +6,12 @@ import {
   applyNms,
   buildDetectionResult,
   computeResizedDimensions,
-  decodeYoloxOutput,
-  rgbaToLetterboxChw,
+  DEFAULT_DETECTOR_PARAMS,
+  MODERN_PREPROCESSING,
+  decodeFcosCandidates,
+  fcosLevels,
+  legacyCentreFixedCandidates,
+  rgbaToChw,
 } from './detector.ts';
 import { escapeCsvCell, scansToCsv, type ScanRecord } from './csv.ts';
 import {
@@ -132,32 +136,72 @@ test('S4-06: clusterShelfRows and detectShelfGaps find horizontal voids accurate
   assert.equal(gaps[0].estimatedMissingItems, 3);
 });
 
-test('S4-04 & S4-05: client resize dimensions, YOLOX decode, NMS, and DetectionResult', () => {
+test('S4-04 & S4-05: client resize dimensions, FCOS decode, NMS, and DetectionResult', () => {
   const resized = computeResizedDimensions(4000, 3000, 1280);
   assert.equal(resized.width, 1280);
   assert.equal(resized.height, 960);
 
+  // FCOS candidates are [xc, yc, w, h, score, 1] in 640-px input pixels.
   const raw = new Float32Array([
     320, 320, 80, 80, 0.95, 1.0,
     322, 322, 80, 80, 0.55, 1.0, // overlapping duplicate suppressed by NMS
+    100, 100, 40, 40, 0.1, 1.0, // below the score threshold
   ]);
-  const boxes = decodeYoloxOutput(raw, 2, 6, 800, 400, 0.8, 0, 160);
+  const params = { ...DEFAULT_DETECTOR_PARAMS, scoreThreshold: 0.3, nmsThreshold: 0.35 };
+  const boxes = decodeFcosCandidates(raw, 3, 640, 1280, 960, params);
   assert.equal(boxes.length, 1);
-  assert.equal(boxes[0].x1, 350);
-  assert.equal(boxes[0].y1, 150);
+  // Centre 320 of 640 maps to 640 of 1280; half-width 40 maps to 80.
+  assert.deepEqual([boxes[0].x1, boxes[0].y1, boxes[0].x2, boxes[0].y2], [560, 420, 720, 540]);
 
-  const det = buildDetectionResult(boxes, 800, 400, 5, 18, 'wasm');
+  const capped = decodeFcosCandidates(
+    new Float32Array(Array.from({ length: 12 }, (_, i) => (i % 6 === 4 ? 0.9 : i % 6 === 2 || i % 6 === 3 ? 2 : 40 * (i % 6) + 100))),
+    2,
+    640,
+    640,
+    640,
+    { ...params, maxDets: 1 },
+  );
+  assert.equal(capped.length, 1);
+
+  const det = buildDetectionResult(boxes, 1280, 960, 5, 18, 'wasm');
   assert.equal(det.count, 1);
   assert.equal(det.lowStock, true);
   assert.equal(applyNms(boxes).length, 1);
+  assert.equal(det.executionProvider, 'wasm');
 
-  const rgba = new Uint8Array(4 * 2 * 4);
-  rgba.fill(255);
-  const lb = rgbaToLetterboxChw(rgba, 4, 2, 8, 114);
-  assert.equal(lb.tensor.length, 3 * 8 * 8);
-  assert.equal(lb.scale, 2);
-  assert.equal(lb.padX, 0);
-  assert.equal(lb.padY, 2);
+  // A 2x2 RGBA buffer becomes a 3x2x2 CHW tensor in the 0-1 range.
+  const rgba = new Uint8Array([255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255, 255, 255, 255, 255]);
+  const chw = rgbaToChw(rgba, 2);
+  assert.equal(chw.length, 12);
+  assert.deepEqual([...chw.slice(0, 4)], [1, 0, 0, 1]);
+  assert.deepEqual([...chw.slice(4, 8)], [0, 1, 0, 1]);
+  assert.deepEqual([...chw.slice(8, 12)], [0, 0, 1, 1]);
+});
+
+test('S2-05: preprocessing flags describe the ONNX file, not the app', () => {
+  // Strides 8..128 on a 640 px square: 6400 + 1600 + 400 + 100 + 25 candidate slots.
+  const levels = fcosLevels(640);
+  assert.deepEqual(levels.map((l) => l.stride), [8, 16, 32, 64, 128]);
+  assert.deepEqual(levels.map((l) => l.count), [6400, 1600, 400, 100, 25]);
+
+  const raw = new Float32Array(levels.reduce((sum, l) => sum + l.count, 0) * 6);
+  for (let i = 0; i < raw.length; i += 6) raw[i] = 100;
+  raw[1] = 100;
+  const fixed = legacyCentreFixedCandidates(raw, raw.length / 6, 640);
+  assert.equal(fixed[0], 96); // level 0, stride 8, shifted by 4
+  assert.equal(fixed[1], 96);
+  assert.equal(fixed[6400 * 6], 92); // level 1, stride 16, shifted by 8
+  assert.equal(fixed[(6400 + 1600 + 400 + 100) * 6], 36); // level 4, stride 128, shifted by 64
+
+  // Files with normalisation in the graph keep pixels in 0-1; older files get mean/std applied.
+  const rgba = new Uint8Array([255, 255, 255, 255]);
+  const modern = rgbaToChw(rgba, 1, MODERN_PREPROCESSING);
+  assert.deepEqual([...modern], [1, 1, 1]);
+  const legacy = rgbaToChw(rgba, 1, { normaliseInGraph: false, centreOffsetFix: true });
+  // White becomes (1 - mean) / std per channel: about 2.25, 2.43, 2.64.
+  assert.ok(Math.abs(legacy[0] - 2.2489) < 0.01);
+  assert.ok(Math.abs(legacy[1] - 2.4286) < 0.01);
+  assert.ok(Math.abs(legacy[2] - 2.64) < 0.01);
 });
 
 test('S4-10: CSV export sanitizes spreadsheet formulas and formats all rows', () => {

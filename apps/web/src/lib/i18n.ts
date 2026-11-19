@@ -38,6 +38,10 @@ export interface Dictionary {
   chatSend: string;
   chatHint: string;
   errorInvalidFile: string;
+  analysingTitle: string;
+  analysingBody: string;
+  errorModelLoad: string;
+  overlayLabel: string;
   modelMissingTitle: string;
   modelMissingBody: string;
   noScanYet: string;
@@ -79,9 +83,14 @@ export const DICTIONARIES: Record<ChatLocale, Dictionary> = {
     chatSend: 'Ask',
     chatHint: 'Every number comes strictly from stored scan records. Missing data is never guessed.',
     errorInvalidFile: 'Please select a valid JPEG, PNG, or WebP shelf photo under 10 MB.',
-    modelMissingTitle: 'Not measured yet; pipeline demonstration only',
-    modelMissingBody: 'No trained detector is installed in this build yet, so photos are not analysed and no fake detection boxes or counts are shown.',
-    noScanYet: 'Not measured yet; pipeline demonstration only',
+    analysingTitle: 'Analysing the photo',
+    analysingBody: 'Detecting products in this browser. Nothing is uploaded while this runs.',
+    errorModelLoad: 'The detector could not be loaded in this browser, so this photo was not analysed.',
+    overlayLabel: 'Detected products on this shelf photo',
+    modelMissingTitle: 'Detector not published in this build',
+    modelMissingBody:
+      'Photo analysis needs the detector file that ships with a release; this deployment has none, so nothing is analysed and no boxes are shown.',
+    noScanYet: 'No photo analysed yet.',
   },
   bn: {
     appName: 'শেলফসেন্স (ShelfSense)',
@@ -118,8 +127,12 @@ export const DICTIONARIES: Record<ChatLocale, Dictionary> = {
     chatSend: 'জিজ্ঞাসা করুন',
     chatHint: 'প্রতিটি সংখ্যা সরাসরি ডাটাবেসের সংরক্ষিত স্ক্যান থেকে নেওয়া হয়; অনুমান করে কোনো সংখ্যা বলা হয় না।',
     errorInvalidFile: 'অনুগ্রহ করে ১০ মেগাবাইটের কম আকারের সঠিক JPEG, PNG বা WebP ছবি নির্বাচন করুন।',
-    modelMissingTitle: 'এখনো পরিমাপ করা হয়নি; পাইপলাইন প্রদর্শনী মাত্র (not measured yet; pipeline demonstration only)',
-    modelMissingBody: 'এই সংস্করণে এখনো কোনো প্রশিক্ষিত মডেল যুক্ত করা হয়নি, তাই কোনো ছবি বিশ্লেষণ বা কাল্পনিক বক্স দেখানো হচ্ছে না।',
-    noScanYet: 'এখনো পরিমাপ করা হয়নি (not measured yet; pipeline demonstration only)',
+    analysingTitle: 'ছবিটি বিশ্লেষণ করা হচ্ছে',
+    analysingBody: 'পণ্য শনাক্ত হচ্ছে আপনার ব্রাউজারেই। এই সময়ে কোনো ছবি আপলোড হয় না।',
+    errorModelLoad: 'এই ব্রাউজারে ডিটেক্টর চালু করা যায়নি, তাই ছবিটি বিশ্লেষণ করা হয়নি।',
+    overlayLabel: 'এই শেলফ ছবিতে শনাক্ত করা পণ্য',
+    modelMissingTitle: 'এই সংস্করণে ডিটেক্টর যুক্ত নেই',
+    modelMissingBody: 'ছবি বিশ্লেষণের জন্য রিলিজের সাথে আসা ডিটেক্টর ফাইল দরকার; এখানে সেটি নেই, তাই কোনোকিছু বিশ্লেষণ বা বক্স দেখানো হচ্ছে না।',
+    noScanYet: 'এখনো কোনো ছবি বিশ্লেষণ করা হয়নি।',
   },
 };

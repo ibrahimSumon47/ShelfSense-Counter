@@ -1,22 +1,51 @@
 'use client';
 
 // ShelfSense operations dashboard.
-// While MODEL_AVAILABLE is false (until Step 3 wires in the trained ONNX detector),
-// the scan button and photo upload are disabled and the interface displays
-// "not measured yet; pipeline demonstration only" with zero fake detection boxes.
-// All real UI features (Store/Aisle/Shelf fields, owner/staff role guard, client resize
-// handler, SVG overlay renderer, scan history table, trend chart, CSV export, and
-// database-tool chat) remain intact and ready for Step 3.
+// Inference runs in this browser with onnxruntime-web (WebGPU when the browser has it, WASM
+// otherwise). The model file is published next to the app, and `/models/manifest.json` says
+// which file to load and which score/NMS thresholds were tuned on validation.
+// If no model is published the photo controls stay disabled and the page says so, rather
+// than showing invented boxes.
 
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { DICTIONARIES } from '../lib/i18n.ts';
-import { computeResizedDimensions, type DetectionResult } from '../lib/detector.ts';
+import {
+  DEFAULT_DETECTOR_PARAMS,
+  buildDetectionResult,
+  computeResizedDimensions,
+  loadOnnxDetector,
+  runFcosDetection,
+  type DetectionResult,
+  type DetectorParams,
+  type FcosPreprocessing,
+  MODERN_PREPROCESSING,
+} from '../lib/detector.ts';
 import { scansToCsv, type ScanRecord } from '../lib/csv.ts';
 import { canModifyThreshold, type UserRole } from '../lib/security.ts';
 import { answerShelfQuestion, formatNumberForLocale, type ChatLocale } from '../lib/chat-tools.ts';
 
-// Set to true only in Step 3 when the real trained ONNX detector is loaded.
-const MODEL_AVAILABLE = false;
+// Describes the published detector; written by the training slice, read at runtime.
+interface ModelManifest {
+  model_file: string;
+  run_id: string;
+  input_size: number;
+  params: DetectorParams;
+  sha256: string;
+  validation_map50: number;
+  validation_max_dets: number;
+  preprocessing?: FcosPreprocessing;
+  webgpu_capable?: boolean;
+}
+
+// Loads an object URL into an image element so its pixels can be drawn to a canvas.
+function loadImageElement(url: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error('image could not be decoded'));
+    image.src = url;
+  });
+}
 
 export default function ShelfSensePage() {
   const [locale, setLocale] = useState<ChatLocale>('en');
@@ -33,8 +62,90 @@ export default function ShelfSensePage() {
   const [chatHistory, setChatHistory] = useState<
     Array<{ question: string; reply: string; toolUsed: string }>
   >([]);
+  const [modelManifest, setModelManifest] = useState<ModelManifest | null>(null);
+  const [modelChecked, setModelChecked] = useState(false);
+  const [analysisState, setAnalysisState] = useState<'idle' | 'analysing' | 'done' | 'error'>('idle');
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const sessionRef = useRef<{ session: Awaited<ReturnType<typeof loadOnnxDetector>>['session']; provider: 'webgpu' | 'wasm' } | null>(
+    null,
+  );
 
   const dict = DICTIONARIES[locale];
+  const MODEL_AVAILABLE = Boolean(modelManifest);
+
+  // Ask the deployment whether a model file was published with it.
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/models/manifest.json', { cache: 'no-store' })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((manifest: ModelManifest | null) => {
+        if (cancelled) return;
+        setModelManifest(manifest);
+        setModelChecked(true);
+      })
+      .catch(() => {
+        if (!cancelled) setModelChecked(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Creates the ONNX session once per page visit and reuses it for every photo.
+  const getSession = useCallback(async () => {
+    if (sessionRef.current) return sessionRef.current;
+    if (!modelManifest) throw new Error('no model manifest published');
+    const created = await loadOnnxDetector(modelManifest.model_file, modelManifest.webgpu_capable !== false);
+    sessionRef.current = created;
+    return created;
+  }, [modelManifest]);
+
+  // Draws the photo stretched to a square on a canvas and runs the detector on those pixels.
+  const analysePhoto = useCallback(
+    async (file: File) => {
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+      setAnalysisState('analysing');
+      setDetection(null);
+      try {
+        const image = await loadImageElement(url);
+        const params = modelManifest?.params ?? DEFAULT_DETECTOR_PARAMS;
+        const preprocessing = modelManifest?.preprocessing ?? MODERN_PREPROCESSING;
+        const canvas = document.createElement('canvas');
+        canvas.width = params.inputSize;
+        canvas.height = params.inputSize;
+        const context = canvas.getContext('2d');
+        if (!context) throw new Error('canvas is unavailable');
+        context.drawImage(image, 0, 0, params.inputSize, params.inputSize);
+        const rgba = context.getImageData(0, 0, params.inputSize, params.inputSize).data;
+        const ready = await getSession();
+        const outcome = await runFcosDetection(
+          ready.session as Parameters<typeof runFcosDetection>[0],
+          ready.provider,
+          rgba,
+          image.naturalWidth,
+          image.naturalHeight,
+          params,
+          preprocessing,
+        );
+        setDetection(
+          buildDetectionResult(
+            outcome.boxes,
+            image.naturalWidth,
+            image.naturalHeight,
+            threshold,
+            outcome.inferenceMs,
+            outcome.executionProvider,
+          ),
+        );
+        setAnalysisState('done');
+      } catch {
+        setAnalysisState('error');
+        setErrorMsg(dict.errorModelLoad);
+      }
+    },
+    [dict.errorModelLoad, getSession, modelManifest, threshold],
+  );
   const currentUserId = 'user-owner-1';
   const ownerEditable = canModifyThreshold({
     userId: currentUserId,
@@ -59,10 +170,12 @@ export default function ShelfSensePage() {
       return;
     }
     if (!MODEL_AVAILABLE) {
-      // Do not fabricate detections when no trained model is loaded.
+      // Do not fabricate detections when no trained model is published.
       computeResizedDimensions(1280, 720, 1280);
       setDetection(null);
+      return;
     }
+    void analysePhoto(file);
   }
 
   function handleSaveScan() {
@@ -145,9 +258,15 @@ export default function ShelfSensePage() {
         <section className="panel" aria-labelledby="scan-heading">
           <h2 id="scan-heading">{dict.navScan}</h2>
 
-          {!MODEL_AVAILABLE && (
+          {modelChecked && !MODEL_AVAILABLE && (
             <div role="status" className="badge-warn" style={{ display: 'block', marginBottom: '0.85rem' }}>
               <strong>{dict.modelMissingTitle}.</strong> {dict.modelMissingBody}
+            </div>
+          )}
+
+          {analysisState === 'analysing' && (
+            <div role="status" className="badge-ok" style={{ display: 'block', marginBottom: '0.85rem' }}>
+              <strong>{dict.analysingTitle}…</strong> {dict.analysingBody}
             </div>
           )}
 
@@ -221,12 +340,19 @@ export default function ShelfSensePage() {
             </p>
           )}
 
+          {previewUrl && (
+            <div className="canvas-box" style={{ position: 'relative' }}>
+              {/* The photo itself stays in this tab; only the boxes are drawn over it. */}
+              <img src={previewUrl} alt={dict.overlayLabel} style={{ width: '100%', display: 'block' }} />
+            </div>
+          )}
+
           {detection && (
             <div className="canvas-box">
               <svg
                 viewBox={`0 0 ${detection.imageWidth} ${detection.imageHeight}`}
                 role="img"
-                aria-label="Shelf detection overlay"
+                aria-label={dict.overlayLabel}
               >
                 {detection.boxes.map((box, idx) => (
                   <rect
@@ -276,6 +402,11 @@ export default function ShelfSensePage() {
           </div>
           {!detection && (
             <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{dict.noScanYet}</p>
+          )}
+          {detection && (
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }} data-testid="inference-info">
+              {detection.count} products in {detection.inferenceMs} ms on {detection.executionProvider.toUpperCase()}
+            </p>
           )}
 
           <div className="controls" style={{ marginBottom: '1.25rem' }}>

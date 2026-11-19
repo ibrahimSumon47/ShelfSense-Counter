@@ -1,6 +1,13 @@
-"""ONNX Runtime shelf product detector, letterbox preprocessor, and count + gap analyzer."""
+"""ONNX Runtime shelf product detector, preprocessing, and count + gap analyzer.
+
+The detector is a torchvision FCOS ResNet-50 FPN exported with its normalisation and anchor
+decoding inside the graph. It returns dense candidates `[1, N, 6] = [xc, yc, w, h, score, 1]`
+in input pixels; thresholding, NMS and the cap happen here in the same order as
+`training/eval_onnx.py`, so the CLI and the browser count a photo the same way.
+"""
 from __future__ import annotations
 
+import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Sequence
@@ -46,27 +53,16 @@ class ScanAnalysis:
         }
 
 
-def letterbox_image(
-    image: Image.Image,
-    input_size: int = 640,
-    pad_value: int = 114,
-) -> tuple[np.ndarray, float, tuple[int, int]]:
-    """Resizes an RGB image with aspect-preserving letterbox padding to (1, 3, H, W) float32."""
-    rgb = image.convert("RGB")
-    orig_w, orig_h = rgb.size
-    scale = min(input_size / orig_w, input_size / orig_h)
-    new_w = max(1, int(round(orig_w * scale)))
-    new_h = max(1, int(round(orig_h * scale)))
+def square_image(image: Image.Image, input_size: int = 640) -> np.ndarray:
+    """Stretches an RGB image to (1, 3, S, S) float32 in the 0-1 range, as training did.
 
-    resized = rgb.resize((new_w, new_h), Image.Resampling.BILINEAR)
-    canvas = Image.new("RGB", (input_size, input_size), color=(pad_value, pad_value, pad_value))
-    pad_x = (input_size - new_w) // 2
-    pad_y = (input_size - new_h) // 2
-    canvas.paste(resized, (pad_x, pad_y))
-
-    arr = np.asarray(canvas, dtype=np.float32) / 255.0
+    Training resized every photo to a square without preserving aspect ratio, so inference
+    must do the same: a letterboxed input would shift the geometry the detector learned.
+    """
+    rgb = image.convert("RGB").resize((input_size, input_size), Image.Resampling.BILINEAR)
+    arr = np.asarray(rgb, dtype=np.float32) / 255.0
     chw = np.transpose(arr, (2, 0, 1))[np.newaxis, ...]
-    return np.ascontiguousarray(chw), scale, (pad_x, pad_y)
+    return np.ascontiguousarray(chw)
 
 
 def box_iou(a: Box, b: Box) -> float:
@@ -98,39 +94,32 @@ def decode_predictions(
     raw_output: np.ndarray,
     orig_width: int,
     orig_height: int,
-    scale: float,
-    pad: tuple[int, int],
+    input_size: int = 640,
     score_threshold: float = 0.25,
     iou_threshold: float = 0.45,
+    max_dets: int = 1000,
 ) -> list[Box]:
-    """Decodes model output tensor `(1, N, 5+)` `[xc, yc, w, h, obj_conf, (cls_conf...)]` into original image coordinates."""
-    preds = np.squeeze(raw_output)
-    if preds.ndim == 1:
-        preds = preds[np.newaxis, :]
-    # Support transposed (5, N) output shapes as well as (N, 5+).
-    if preds.shape[0] in (5, 6) and preds.shape[1] > 10:
-        preds = preds.T
-
-    pad_x, pad_y = pad
+    """Decodes FCOS candidates `(1, N, 6)` `[xc, yc, w, h, score, 1]` into original pixels."""
+    preds = np.asarray(raw_output, dtype=np.float32)
+    preds = preds.reshape(-1, preds.shape[-1])
     candidates: list[Box] = []
+    sx = float(orig_width) / float(input_size)
+    sy = float(orig_height) / float(input_size)
 
     for row in preds:
         if row.shape[0] < 5:
             continue
-        xc, yc, w, h, obj_conf = float(row[0]), float(row[1]), float(row[2]), float(row[3]), float(row[4])
-        cls_conf = float(row[5]) if row.shape[0] > 5 else 1.0
-        score = obj_conf * cls_conf
+        xc, yc, w, h, score = (float(row[0]), float(row[1]), float(row[2]), float(row[3]), float(row[4]))
         if score < score_threshold or w <= 1.0 or h <= 1.0:
             continue
-
-        x1 = max(0.0, min(float(orig_width), (xc - w / 2.0 - pad_x) / scale))
-        y1 = max(0.0, min(float(orig_height), (yc - h / 2.0 - pad_y) / scale))
-        x2 = max(0.0, min(float(orig_width), (xc + w / 2.0 - pad_x) / scale))
-        y2 = max(0.0, min(float(orig_height), (yc + h / 2.0 - pad_y) / scale))
+        x1 = max(0.0, min(float(orig_width), (xc - w / 2.0) * sx))
+        y1 = max(0.0, min(float(orig_height), (yc - h / 2.0) * sy))
+        x2 = max(0.0, min(float(orig_width), (xc + w / 2.0) * sx))
+        y2 = max(0.0, min(float(orig_height), (yc + h / 2.0) * sy))
         if x2 - x1 >= 2.0 and y2 - y1 >= 2.0:
             candidates.append(Box(x1=x1, y1=y1, x2=x2, y2=y2, score=score))
 
-    return apply_nms(candidates, iou_threshold=iou_threshold)
+    return apply_nms(candidates, iou_threshold=iou_threshold)[:max_dets]
 
 
 class ShelfDetector:
@@ -142,6 +131,7 @@ class ShelfDetector:
         input_size: int = 640,
         score_threshold: float = 0.25,
         iou_threshold: float = 0.45,
+        allow_heuristic: bool | None = None,
     ) -> None:
         self.input_size = input_size
         self.score_threshold = score_threshold
@@ -151,11 +141,15 @@ class ShelfDetector:
             import onnxruntime as ort
 
             self.session = ort.InferenceSession(str(model_path), providers=["CPUExecutionProvider"])
+        # Without a model the CLI/API fall back to a contrast heuristic that only works on clean
+        # synthetic images and prints a warning. The browser never uses it, and no reported
+        # number in this repository comes from it.
+        self.allow_heuristic = (self.session is None) if allow_heuristic is None else allow_heuristic
 
     def detect_boxes(self, image: Image.Image) -> list[Box]:
         """Detects product boxes in a PIL image."""
         orig_w, orig_h = image.size
-        tensor, scale, pad = letterbox_image(image, input_size=self.input_size)
+        tensor = square_image(image, input_size=self.input_size)
 
         if self.session is not None:
             input_name = self.session.get_inputs()[0].name
@@ -164,14 +158,22 @@ class ShelfDetector:
                 outputs[0],
                 orig_width=orig_w,
                 orig_height=orig_h,
-                scale=scale,
-                pad=pad,
+                input_size=self.input_size,
                 score_threshold=self.score_threshold,
                 iou_threshold=self.iou_threshold,
             )
 
-        # Deterministic connected-contrast fallback when running offline tests without an ONNX weight file.
-        return _detect_contrast_components(image)
+        if self.allow_heuristic:
+            print(
+                "warning: no ONNX model loaded, using the contrast heuristic, which only works on "
+                "clean synthetic images. Counts from it are not model predictions.",
+                file=sys.stderr,
+            )
+            return _detect_contrast_components(image)
+        raise RuntimeError(
+            "No ONNX detector is loaded. Pass --model path/to/shelfsense.onnx; "
+            "the counted boxes must come from a real model."
+        )
 
     def analyze(
         self,

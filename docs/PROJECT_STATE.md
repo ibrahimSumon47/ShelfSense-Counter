@@ -40,11 +40,30 @@ Together they cost about 0.15 mAP50 on validation.
   buckets, and writes gzipped prediction files.
 - CI exports a tiny randomly initialised FCOS to ONNX on CPU at 128 px before any GPU run.
 
+## In-browser detection (development stand-in)
+
+`apps/web` loads `/models/<file>` named by `apps/web/public/models/manifest.json` with
+`onnxruntime-web` 1.31.1, decodes FCOS candidates in `detector.ts` and draws the boxes over the
+photo. Measured on the first two-epoch INT8 file (`docs/reports/browser-detection.md`):
+
+| Photo | Ground truth | Python | Browser | Inference |
+| --- | --- | --- | --- | --- |
+| 002.jpg | 690 | 482 | 481 | 2982 ms |
+| 005.jpg | 251 | 388 | 387 | 3466 ms |
+| 006.jpg | 59 | 161 | 170 | 2985 ms |
+| non-shelf.jpg | 0 | 12 | 12 | 2727 ms |
+
+Two runtime defects were found and are fixed: `onnxruntime-web` 1.20 executed the INT8 graph
+wrongly (12 boxes where Python found 482; 1.31.1 gives 481), and WebGPU returns the detection cap
+(1000 boxes) for quantised weights, so INT8 files declare `webgpu_capable: false` and run on WASM.
+FP32 on WebGPU is correct (504 for the same photo, 4845 ms).
+
 ## What is still open
 
 - The 6000-image, 12-epoch run (`shelfsense-fcos-training`) is pushed and queued. Its
   validation numbers replace the two-epoch table above; the test split is then evaluated once
   and the weights published.
-- Web app inference (`S4-05`), browser latency (`S2-06`), the GitHub release (`S2-07`), the
-  test report (`S3-01`, `S3-02`), production Playwright/axe/Lighthouse (`S7-01`, `S7-02`) and
-  the closing README pass (`S8-01`).
+- Publish the released weights into `apps/web/public/models/`, deploy, and repeat the browser
+  measurement on production (`S4-05`, `S2-06`).
+- The GitHub release (`S2-07`), the test report (`S3-01`, `S3-02`), production
+  Playwright/axe/Lighthouse (`S7-01`, `S7-02`) and the closing README pass (`S8-01`).

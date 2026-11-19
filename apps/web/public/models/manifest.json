@@ -1,0 +1,26 @@
+{
+  "stage": "development-stand-in",
+  "note": "Local development only. The published model is built by training/configs/fcos-dense-v3.json and replaced here after its release; this entry points at the first two-epoch run so the loading path, the overlay and the counts can be exercised before then. That export skipped the in-graph normalisation and decoded anchor centres half a cell off, which is what the preprocessing flags correct. Dynamic INT8 does not run correctly on WebGPU in onnxruntime-web 1.31.1 (1000 capped boxes for a 690-item shelf, versus 481 on WASM), so quantised files set webgpu_capable=false and the loader goes straight to WASM.",
+  "model_file": "/models/shelfsense-dev.onnx",
+  "run_id": "baseline-fcos-r50-fpn-v1",
+  "architecture": "torchvision fcos_resnet50_fpn (BSD-3-Clause, 32064455 parameters)",
+  "input_size": 640,
+  "params": {
+    "inputSize": 640,
+    "scoreThreshold": 0.3,
+    "nmsThreshold": 0.35,
+    "maxDets": 1000
+  },
+  "preprocessing": {
+    "normaliseInGraph": false,
+    "centreOffsetFix": true
+  },
+  "sha256": "b50511c3874b0107c12d8b3638bfc2660f2d222eef3cc4686afd4fbbbde7bf8a",
+  "precision": "int8 (dynamic quantisation of the FP32 export)",
+  "webgpu_capable": false,
+  "validation_map50": 0.4996,
+  "validation_count_mae": 142.78,
+  "validation_max_dets": 1000,
+  "validation_split": "CC0 Supermarket Shelves validation, 9 images, 1922 items",
+  "evidence": "docs/reports/validation-detection-cap.md"
+}

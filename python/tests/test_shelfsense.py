@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 from shelfsense.api import _read_validated_image, create_app
 from shelfsense.cli import main as cli_main
-from shelfsense.detector import ShelfDetector, decode_predictions, letterbox_image
+from shelfsense.detector import ShelfDetector, decode_predictions, square_image
 from shelfsense.gaps import Box, cluster_shelf_rows, detect_shelf_gaps
 from fastapi import HTTPException, UploadFile
 from PIL import Image, ImageDraw
@@ -50,23 +50,25 @@ def test_cluster_rows_and_detect_empty_gaps() -> None:
     assert g.estimated_missing_items == 3
 
 
-def test_letterbox_and_decode_predictions() -> None:
-    """Letterbox pads to (1, 3, S, S) and decode_predictions maps boxes back to original pixels."""
+def test_square_preprocessing_and_decode_predictions() -> None:
+    """Stretched square input, and FCOS candidates mapped back to the original photo's pixels."""
     img = Image.new("RGB", (800, 400), color=(100, 100, 100))
-    tensor, scale, pad = letterbox_image(img, input_size=640)
+    tensor = square_image(img, input_size=640)
     assert tensor.shape == (1, 3, 640, 640)
-    assert scale == 0.8
-    assert pad == (0, 160)
+    assert 0.0 <= float(tensor.min()) and float(tensor.max()) <= 1.0
 
-    # Simulate a predicted box centered in the padded 640x640 input: xc=320, yc=320, w=80, h=80, conf=0.9
+    # One candidate: centre (320, 320), 80x80, score 0.9, in a 640 px square input.
     raw = np.array([[[320.0, 320.0, 80.0, 80.0, 0.9, 1.0]]], dtype=np.float32)
-    decoded = decode_predictions(raw, orig_width=800, orig_height=400, scale=scale, pad=pad)
+    decoded = decode_predictions(raw, orig_width=800, orig_height=400, input_size=640)
     assert len(decoded) == 1
     b = decoded[0]
-    assert round(b.x1, 1) == 350.0
-    assert round(b.y1, 1) == 150.0
+    assert round(b.x1, 1) == 350.0  # 800/640 = 1.25 on x
+    assert round(b.y1, 1) == 175.0  # 400/640 = 0.625 on y
     assert round(b.width, 1) == 100.0
-    assert round(b.height, 1) == 100.0
+    assert round(b.height, 1) == 50.0
+
+    below = decode_predictions(raw, orig_width=800, orig_height=400, score_threshold=0.95)
+    assert below == []
 
 
 def test_cli_count_command_outputs_json_and_text(tmp_path: Path, capsys) -> None:

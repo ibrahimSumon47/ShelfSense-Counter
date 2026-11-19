@@ -91,3 +91,6 @@ htmlcov/
 Thumbs.db
 desktop.ini
 *.log
+
+# Sample photos for local browser checks (dataset images, never committed)
+apps/web/public/samples/
