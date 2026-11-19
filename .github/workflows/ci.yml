@@ -70,6 +70,46 @@ jobs:
           uv sync --directory python --extra dev
           uv run --directory python pytest -v
 
+  count-regression:
+    name: Count regression on 20 fixed images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.3
+      # The bundle holds 20 test-split photos and the counts the published model produced,
+      # so a broken decoder or a swapped model fails CI instead of moving a README number.
+      - name: Is the fixture bundle published yet?
+        id: bundle
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view v1.0.0 --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            echo "ready=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=0" >> "$GITHUB_OUTPUT"
+            echo "No v1.0.0 release yet, so the count regression has nothing to run against."
+          fi
+      - name: Download the bundle and the model
+        if: steps.bundle.outputs.ready == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p training/fixtures
+          gh release download v1.0.0 --repo "${{ github.repository }}" --pattern 'shelfsense-regression-v1.tar.gz' --dir training/fixtures --clobber
+          gh release download v1.0.0 --repo "${{ github.repository }}" --pattern '*-int8.onnx' --dir training/fixtures --clobber
+          tar -xzf training/fixtures/shelfsense-regression-v1.tar.gz -C training/fixtures
+          mv training/fixtures/shelfsense-regression-v1 training/fixtures/shelfsense-regression-v1.tmp
+          mkdir -p training/fixtures/shelfsense-regression-v1
+          mv training/fixtures/shelfsense-regression-v1.tmp/* training/fixtures/shelfsense-regression-v1/
+          mv training/fixtures/*-int8.onnx training/fixtures/shelfsense-regression-v1/model.onnx
+      - name: Run the count regression
+        if: steps.bundle.outputs.ready == '1'
+        run: |
+          uv sync --directory training --extra train --extra dev
+          uv run --directory training pytest tests/test_regression_counts.py -v
+
   onnx-export:
     name: ONNX export on CPU
     runs-on: ubuntu-latest

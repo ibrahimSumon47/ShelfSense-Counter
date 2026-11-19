@@ -94,3 +94,6 @@ desktop.ini
 
 # Sample photos for local browser checks (dataset images, never committed)
 apps/web/public/samples/
+
+# Regression fixture bundle downloaded from the GitHub release (datasets never in git)
+training/fixtures/
