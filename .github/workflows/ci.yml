@@ -102,8 +102,18 @@ jobs:
           mkdir -p training/fixtures/shelfsense-regression-v1
           tar -xzf training/fixtures/shelfsense-regression-v1.tar.gz -C training/fixtures/shelfsense-regression-v1
           mv training/fixtures/*-int8.onnx training/fixtures/shelfsense-regression-v1/model.onnx
+      - name: The bundle must be complete once the release exists
+        if: steps.bundle.outputs.ready == '1'
+        run: |
+          test -f training/fixtures/shelfsense-regression-v1/expected.json
+          test -f training/fixtures/shelfsense-regression-v1/model.onnx
+          count=$(ls training/fixtures/shelfsense-regression-v1/images | wc -l)
+          echo "bundle images: $count"
+          test "$count" -ge 20
       - name: Run the count regression
         if: steps.bundle.outputs.ready == '1'
+        env:
+          SHELFSENSE_REQUIRE_REGRESSION: "1"
         run: |
           uv sync --directory training --extra train --extra dev
           uv run --directory training pytest tests/test_regression_counts.py -v

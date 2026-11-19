@@ -14,6 +14,7 @@ Skipped when the bundle has not been downloaded, so the suite still runs on a fr
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 import pytest
@@ -30,12 +31,25 @@ def _bundle() -> dict:
     return json.loads(EXPECTED_PATH.read_text(encoding="utf-8"))
 
 
-@pytest.mark.skipif(
-    not (MODEL_PATH.is_file() and EXPECTED_PATH.is_file()),
-    reason="regression bundle not downloaded (release asset shelfsense-regression-v1.tar.gz)",
-)
+def _bundle_present() -> bool:
+    """True when both the expectations file and the model have been downloaded."""
+    return MODEL_PATH.is_file() and EXPECTED_PATH.is_file()
+
+
 def test_fixed_image_counts_and_map_stay_within_tolerance() -> None:
-    """Both the per-image counts and mAP50 must stay inside the published tolerances."""
+    """Both the per-image counts and mAP50 must stay inside the published tolerances.
+
+    A fresh clone has no bundle, so the test skips. CI sets `SHELFSENSE_REQUIRE_REGRESSION=1`
+    before the release exists check, and then a missing bundle is a failure instead of a skip:
+    a green job that quietly tested nothing is worse than a red one.
+    """
+    if not _bundle_present():
+        if os.environ.get("SHELFSENSE_REQUIRE_REGRESSION") == "1":
+            pytest.fail(
+                f"the v1.0.0 release exists, so {FIXTURE_DIR} must hold expected.json and model.onnx; "
+                "check the download step and the release asset names"
+            )
+        pytest.skip("regression bundle not downloaded (release asset shelfsense-regression-v1.tar.gz)")
     from PIL import Image
 
     from shelfsense_training.coco_eval import coco_ap
