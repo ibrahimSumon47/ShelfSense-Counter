@@ -80,9 +80,11 @@ jobs:
       # here at 128 px on randomly initialised weights before any kernel is pushed.
       - name: Build a tiny FCOS and export it to ONNX
         run: |
-          uv venv --directory training .venv-ci
-          uv pip install --python training/.venv-ci/bin/python numpy pillow onnx onnxruntime pytest \
-            torch torchvision --index-url https://download.pytorch.org/whl/cpu
+          uv venv --directory training --python 3.12 .venv-ci
+          # The CPU wheel index only carries torch, so the other packages come from PyPI first.
+          uv pip install --python training/.venv-ci/bin/python numpy pillow onnx onnxruntime pytest
+          uv pip install --python training/.venv-ci/bin/python torch torchvision \
+            --index-url https://download.pytorch.org/whl/cpu
           training/.venv-ci/bin/python -m pytest training/tests/test_onnx_export_cpu.py -v
 
   codeql:
