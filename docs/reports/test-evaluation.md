@@ -19,8 +19,9 @@ python eval_onnx.py \
   `ibrahimhossainsumon/shelfsense-fcos-training` version 1, finished 2026-11-19 23:57.
 - Checkpoint: `best.pt`, epoch 8 of 12 (SKU-110K validation mAP50 0.8602 under the training loop's
   own evaluator).
-- Predictions are committed: `docs/reports/predictions/fcos-r50-fpn-v3-{fp32,int8}-cc0-test.json.gz`
-  (60 KiB each, boxes in original pixels), so every number here can be recomputed with pycocotools.
+- Predictions are committed as `docs/reports/predictions/fcos-r50-fpn-v3-fp32-cc0-test.json.gz`
+  and `docs/reports/predictions/fcos-r50-fpn-v3-int8-cc0-test.json.gz` (60 KiB each, boxes in
+  original pixels), so every number here can be recomputed with pycocotools.
 
 ## Results (CC0 Supermarket Shelves test split, 9 images, 1,950 ground-truth items)
 
@@ -72,3 +73,16 @@ dense ones (over 150), with count MAE 20.5 and 31.4 respectively; int8 is 0.640 
 largest shelf in the split (`002.jpg`, 690 items) is counted to within 5 %, so the failure mode is
 splitting a product into two boxes on the mid-density photos, where a shelf gap or a price rail
 creates a seam the box regressor treats as two items.
+
+## Published weights and the live app
+
+Release `v1.0.0` carries `fcos-r50-fpn-v3-fp32.onnx`, `fcos-r50-fpn-v3-int8.onnx`,
+`shelfsense-regression-v1.tar.gz` (20 fixed images with their counts and mAP) and
+`sha256sums.txt`. The web app loads the int8 file from
+`https://shelfsense-counter.vercel.app/models/shelfsense-v3-int8.onnx` (32,818,871 bytes,
+`application/octet-stream`, HTTP 200) and its `/models/manifest.json` reports the same SHA-256.
+
+On the live site, uploading `002.jpg` (690 ground-truth items) produced **663 products in 3,996 ms**
+on WASM with the int8 model, against 657 from the Python fp32 path on the same image; the 6-item
+difference is INT8 plus the browser's 640 px square stretch. That is a real measurement in the
+deployed page, not a local build.

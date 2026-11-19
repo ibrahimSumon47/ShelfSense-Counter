@@ -101,3 +101,24 @@ recorded in the model card.
   exports.
 - The page shows the provider and the inference time under the count, and never invents boxes when
   no model is published.
+
+## Production, after the v1.0.0 release (2026-11-20)
+
+The deployed app at https://shelfsense-counter.vercel.app served `/models/manifest.json` with
+`stage: production`, sha256 `e00176ae…63fc`, `normaliseInGraph: true`, `centreOffsetFix: false`,
+and the 32,818,871-byte int8 graph. A file injected through the page's file input (the 690-item
+`002.jpg`) was detected as **663 products in 3,996 ms on WASM**, compared with 657 boxes from the
+Python fp32 evaluation of the same photo. The earlier development stand-in measurements on 002,
+005, 006 and the non-shelf photo remain in the sections above.
+
+## Reproducing these numbers
+
+Command for the Python side of every comparison above:
+
+```
+cd training && python eval_onnx.py --onnx outputs/fcos-v3/outputs/fcos-r50-fpn-v3-int8.onnx   --dataset cc0 --split test --input-size 640 --normalise no --center-fix none   --score-thresh 0.30 --nms-thresh 0.35 --max-dets 1000   --out ../docs/reports/test-evaluation.json --predictions-dir ../docs/reports/predictions
+```
+
+The browser side is the deployed page itself; the predicted boxes it is compared against are in
+`docs/reports/predictions/fcos-r50-fpn-v3-int8-cc0-test.json.gz` and
+`docs/reports/predictions/fcos-r50-fpn-v3-fp32-cc0-test.json.gz`.

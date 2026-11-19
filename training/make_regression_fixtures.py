@@ -33,6 +33,7 @@ def collect(samples, predictions_payload: dict, limit: int) -> list[dict]:
                 "height": ann.height,
                 # Ground truth travels with the bundle so the test can recompute mAP, not only counts.
                 "ground_truth": image["ground_truth"],
+                "predictions": image["predictions"],
                 "ground_truth_count": len(ann.boxes),
                 "expected_count": count,
                 "tolerance": max(TOLERANCE_MIN_ITEMS, round(count * TOLERANCE_RATIO)),
@@ -41,6 +42,22 @@ def collect(samples, predictions_payload: dict, limit: int) -> list[dict]:
         if len(rows) >= limit:
             break
     return rows
+
+
+def compute_map50(rows: list[dict]) -> float:
+    """mAP50 of the bundle's own boxes, so the test can catch boxes that moved without changing counts."""
+    import sys
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
+    from shelfsense_training.coco_eval import coco_ap
+    from shelfsense_training.metrics import DetectionBox, ImageEvalInput
+
+    inputs = []
+    for row in rows:
+        gt = tuple(DetectionBox(float(b[0]), float(b[1]), float(b[2]), float(b[3]), 1.0) for b in row["ground_truth"])
+        preds = tuple(DetectionBox(float(b[0]), float(b[1]), float(b[2]), float(b[3]), float(b[4])) for b in row["predictions"])
+        inputs.append(ImageEvalInput(row["image"], gt, preds))
+    return float(coco_ap(inputs)["map50"])
 
 
 def write_bundle(
@@ -88,9 +105,14 @@ def write_bundle(
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Build the count-regression fixture bundle.")
-    parser.add_argument("--predictions", type=Path, required=True)
-    parser.add_argument("--cc0-test-dir", type=Path, required=True)
-    parser.add_argument("--sku-test-dir", type=Path, required=True)
+    parser.add_argument("--predictions", type=Path, nargs="+", required=True, help="one gz per split")
+    parser.add_argument("--cc0-dir", type=Path, required=True)
+    parser.add_argument("--sku-test-dir", type=Path, default=None)
+    parser.add_argument(
+        "--cc0-splits",
+        default="test,val,train",
+        help="Comma-separated CC0 splits to draw from, in order. The test split is always first.",
+    )
     parser.add_argument("--evaluation", type=Path, default=None, help="eval_onnx.py JSON, for the mAP50 expectation")
     parser.add_argument("--out-dir", type=Path, default=Path("training/fixtures"))
     parser.add_argument("--limit", type=int, default=20)
@@ -102,23 +124,34 @@ def main(argv: list[str] | None = None) -> int:
     sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
     from shelfsense_training import data as ds
 
-    with gzip.open(args.predictions, "rt", encoding="utf-8") as fh:
-        payload = json.load(fh)
+    payloads = []
+    for path in args.predictions:
+        with gzip.open(path, "rt", encoding="utf-8") as fh:
+            payloads.append(json.load(fh))
+    payload = payloads[0]
+    merged = {**payload, "images": [img for p in payloads for img in p["images"]]}
 
-    cc0_train, cc0_val, cc0_test, _leaks = ds.split_cc0(ds.load_cc0_supermarket(args.cc0_test_dir))
-    rows = collect(cc0_test, payload, limit=min(args.limit, len(cc0_test)))
-    if len(rows) < args.limit:
+    cc0_train, cc0_val, cc0_test, _leaks = ds.split_cc0(ds.load_cc0_supermarket(args.cc0_dir))
+    by_split = {"train": cc0_train, "val": cc0_val, "test": cc0_test}
+    rows = []
+    for split in [s.strip() for s in args.cc0_splits.split(",") if s.strip()]:
+        if len(rows) >= args.limit:
+            break
+        rows += collect(by_split.get(split, []), merged, limit=args.limit - len(rows))
+    if len(rows) < args.limit and args.sku_test_dir:
         sku_test = ds.load_sku110k_split(args.sku_test_dir, "test", args.limit)
-        rows += collect(sku_test, payload, limit=args.limit - len(rows))
+        rows += collect(sku_test, merged, limit=args.limit - len(rows))
 
     # The test rebuilds the decoder settings from this block, so the input size travels with them.
     decoding = dict(payload.get("params") or {})
     decoding["input_size"] = payload.get("input_size", 640)
-    map50 = None
+    map50 = compute_map50(rows)
     if args.evaluation and args.evaluation.is_file():
         evaluation = json.loads(args.evaluation.read_text(encoding="utf-8"))
         map50 = evaluation["models"][0]["primary"]["map50"]
     summary = write_bundle(rows, args.out_dir, params=decoding, map50=map50)
+    summary["splits"] = args.cc0_splits
+    summary["ground_truth_items"] = sum(row["ground_truth_count"] for row in rows)
     print(json.dumps(summary, indent=2))
     return 0
 

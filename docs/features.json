@@ -1,61 +1,559 @@
 {
   "evidence_format": "file:<path> and report:<path> are checked to exist; other strings are free text (ci run URL, command and result).",
   "features": [
-    { "id": "S0-01", "phase": "S0", "title": "Repo hygiene: .gitignore, .gitattributes, private/ ignored before first commit", "status": "done", "model": "[MODEL: Claude Opus 5.5, HIGH]", "evidence": ["file:.gitignore", "file:.gitattributes", "file:.env.example", "git check-ignore private/OWNER_ANSWERS.md private/.env.local: both ignored"] },
-    { "id": "S0-02", "phase": "S0", "title": "Git hooks: commit-msg, pre-commit (gitleaks), pre-push; core.hooksPath set", "status": "done", "model": "[MODEL: Claude Opus 5.5, HIGH]", "evidence": ["file:.githooks/commit-msg", "file:.githooks/pre-commit", "file:.githooks/pre-push", "file:scripts/lib/repo-rules.mjs", "file:scripts/test/repo-rules.test.mjs", "git config core.hooksPath = .githooks"] },
-    { "id": "S0-03", "phase": "S0", "title": "CI skeleton: history, tracked files, gitleaks, repo script tests", "status": "done", "model": "[MODEL: Claude Opus 5.5, HIGH]", "evidence": ["file:.github/workflows/ci.yml", "file:scripts/check-history.mjs", "file:scripts/check-repo-files.mjs"] },
-    { "id": "S0-04", "phase": "S0", "title": "Documentation system and check-done script", "status": "done", "model": "[MODEL: Claude Opus 5.5, HIGH]", "evidence": ["file:AGENTS.md", "file:docs/PROJECT_STATE.md", "file:docs/HANDOFF.md", "file:scripts/check-done.mjs", "file:scripts/test/features.test.mjs"] },
-    { "id": "S0-05", "phase": "S0", "title": "Architecture ADRs with free-tier terms checked and dated", "status": "done", "model": "[MODEL: Claude Opus 5.5, HIGH]", "evidence": ["file:docs/DECISIONS.md"] },
-    { "id": "S0-06", "phase": "S0", "title": "OWNER_TODO steps for Clerk, Kaggle token and phone verification", "status": "done", "model": "[MODEL: Claude Opus 5.5, HIGH]", "evidence": ["file:docs/OWNER_TODO.md"] },
-
-    { "id": "S1-01", "phase": "S1", "title": "Dataset survey: dense shelf sets, licence and access method verified (DATA.md)", "status": "done", "model": "[MODEL: Claude Opus 5.5, HIGH]", "evidence": ["file:docs/DATA.md", "file:docs/DECISIONS.md"] },
-    { "id": "S1-02", "phase": "S1", "title": "Download scripts using the kaggle CLI (no data in git)", "status": "done", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": ["file:training/src/shelfsense_training/download.py", "file:training/tests/test_download.py"] },
-    { "id": "S1-03", "phase": "S1", "title": "Leak-free train/val/test split by store or source, near-duplicate check", "status": "done", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": ["file:training/src/shelfsense_training/splits.py", "file:training/tests/test_splits.py", "file:training/src/shelfsense_training/data.py"] },
-    { "id": "S1-04", "phase": "S1", "title": "Data loader and annotation converters with tests", "status": "done", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": ["file:training/src/shelfsense_training/converters.py", "file:training/tests/test_converters.py", "uv run --directory training pytest: 13 passed"] },
-
-    { "id": "S2-01", "phase": "S2", "title": "Detector choice with licence comparison (ADR)", "status": "done", "model": "[MODEL: Claude Opus 5.5, HIGH]", "evidence": ["file:docs/DECISIONS.md", "ADR-011 selects torchvision FCOS ResNet-50 FPN (BSD-3-Clause) after the official YOLOX install failed twice"] },
-    { "id": "S2-02", "phase": "S2", "title": "Kaggle training pipeline pushed and run via kaggle CLI", "status": "done", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": ["file:training/train.py", "file:training/notebooks/kaggle_train.ipynb", "file:training/notebooks/kernel-metadata.json", "kaggle kernels push -p training/notebooks: ibrahimhossainsumon/shelfsense-fcos-training, kernel versions listed in docs/reports/validation-detection-cap.md"] },
-    { "id": "S2-03", "phase": "S2", "title": "Baseline run: config and validation metrics in docs/reports/", "status": "done", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": ["report:docs/reports/validation-detection-cap.md", "file:docs/reports/validation-cap-cc0-val.json", "file:docs/reports/predictions/baseline-fcos-r50-fpn-v1-fp32-cc0-val.json.gz", "file:training/configs/baseline.json"] },
-    { "id": "S2-04", "phase": "S2", "title": "Improved run tuned on validation only, report committed", "status": "in_progress", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": ["report:docs/reports/validation-detection-cap.md", "file:training/configs/fcos-dense-v3.json", "in_progress: 6000-image 12-epoch run pushed as ibrahimhossainsumon/shelfsense-fcos-training; its validation numbers replace the two-epoch ones on completion"] },
-    { "id": "S2-05", "phase": "S2", "title": "ONNX export and int8 quantization with file size and accuracy delta", "status": "done", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": ["report:docs/reports/validation-detection-cap.md", "file:training/src/shelfsense_training/export.py", "file:training/eval_onnx.py", "128.7 MB FP32 vs 32.8 MB INT8, mAP50 0.5306 vs 0.5309 on validation (measured, see report)"] },
-    { "id": "S2-06", "phase": "S2", "title": "Browser latency measured with onnxruntime-web (wasm and webgpu)", "status": "in_progress", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": ["report:docs/reports/browser-detection.md", "file:apps/web/src/lib/detector.ts", "WASM INT8 2.7-3.5 s per 640 px photo, 4.7 s cold start on the development stand-in; WebGPU is correct only for unquantised graphs (measured)"] },
-    { "id": "S2-07", "phase": "S2", "title": "Weights published to a GitHub Release with SHA-256", "status": "todo", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": ["not measured yet; pipeline demonstration only"] },
-
-    { "id": "S3-01", "phase": "S3", "title": "Test set reported once: mAP50, count MAE and percentage error", "status": "todo", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": ["not measured yet; pipeline demonstration only"] },
-    { "id": "S3-02", "phase": "S3", "title": "Results broken down by shelf density", "status": "todo", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": ["not measured yet; pipeline demonstration only"] },
-    { "id": "S3-03", "phase": "S3", "title": "Failure-case gallery", "status": "todo", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": ["not measured yet; pipeline demonstration only"] },
-    { "id": "S3-04", "phase": "S3", "title": "Regression test: 20 fixed images with count tolerances in CI", "status": "todo", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": ["not measured yet; pipeline demonstration only"] },
-    { "id": "S3-05", "phase": "S3", "title": "MODEL_CARD.md with intended use, limits and licence", "status": "todo", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": ["file:docs/MODEL_CARD.md", "not measured yet; pipeline demonstration only"] },
-
-    { "id": "S4-01", "phase": "S4", "title": "Next.js app scaffold, dark blue-grey and light themes, next-intl en/bn", "status": "done", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": ["file:apps/web/package.json", "file:apps/web/src/app/globals.css", "file:apps/web/src/lib/i18n.ts", "file:apps/web/src/app/page.tsx"] },
-    { "id": "S4-02", "phase": "S4", "title": "Clerk auth with owner and staff roles", "status": "done", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": ["file:apps/web/src/lib/security.ts", "file:apps/web/src/lib/cloud.ts", "file:apps/web/src/app/api/scans/route.ts", "file:apps/web/src/lib/shelfsense.test.ts"] },
-    { "id": "S4-03", "phase": "S4", "title": "Neon Postgres schema with Drizzle: stores, aisles, shelves, scans, thresholds", "status": "done", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": ["file:apps/web/src/lib/schema.ts"] },
-    { "id": "S4-04", "phase": "S4", "title": "Upload and camera capture with client-side resize", "status": "done", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": ["file:apps/web/src/lib/detector.ts", "file:apps/web/src/app/page.tsx", "file:apps/web/src/lib/shelfsense.test.ts"] },
-    { "id": "S4-05", "phase": "S4", "title": "In-browser detection with box overlay and count", "status": "in_progress", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": ["file:apps/web/src/lib/detector.ts", "file:apps/web/public/models/manifest.json", "report:docs/reports/browser-detection.md", "browser count matched the Python count within 9 items on three test-split photos and a non-shelf photo (481 vs 482, 387 vs 388, 170 vs 161, 12 vs 12)"] },
-    { "id": "S4-06", "phase": "S4", "title": "Empty-gap detection from spacing between items, with tests", "status": "done", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": ["file:apps/web/src/lib/gaps.ts", "file:apps/web/src/lib/shelfsense.test.ts"] },
-    { "id": "S4-07", "phase": "S4", "title": "Save scans per store/aisle/shelf with Cloudinary thumbnails", "status": "done", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": ["file:apps/web/src/lib/cloud.ts", "file:apps/web/src/app/api/scans/route.ts", "file:apps/web/src/app/page.tsx"] },
-    { "id": "S4-08", "phase": "S4", "title": "Scan history and trend charts", "status": "done", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": ["file:apps/web/src/app/page.tsx"] },
-    { "id": "S4-09", "phase": "S4", "title": "Low-stock thresholds (owner only) and alerts", "status": "done", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": ["file:apps/web/src/lib/security.ts", "file:apps/web/src/app/page.tsx", "file:apps/web/src/lib/shelfsense.test.ts"] },
-    { "id": "S4-10", "phase": "S4", "title": "CSV export", "status": "done", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": ["file:apps/web/src/lib/csv.ts", "file:apps/web/src/lib/shelfsense.test.ts"] },
-    { "id": "S4-11", "phase": "S4", "title": "Empty, loading and error states; responsive and Bangla copy review", "status": "done", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": ["file:apps/web/src/lib/i18n.ts", "file:apps/web/src/app/page.tsx", "file:apps/web/src/app/globals.css"] },
-    { "id": "S4-12", "phase": "S4", "title": "Production deploy on Vercel with env vars set by CLI", "status": "done", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": ["file:docs/DEPLOY.md", "https://shelfsense-counter.vercel.app"] },
-
-    { "id": "S5-01", "phase": "S5", "title": "Typed, user-scoped database tools for the chat", "status": "done", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": ["file:apps/web/src/lib/chat-tools.ts", "file:apps/web/src/lib/shelfsense.test.ts"] },
-    { "id": "S5-02", "phase": "S5", "title": "Bilingual chat with tool calling; numbers only from tools; refuses on missing data", "status": "done", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": ["file:apps/web/src/lib/chat-tools.ts", "file:apps/web/src/lib/shelfsense.test.ts", "report:docs/reports/chat-eval-s5.md"] },
-    { "id": "S5-03", "phase": "S5", "title": "30-question evaluation in English and Bangla with recorded accuracy", "status": "done", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": ["report:docs/reports/chat-eval-s5.md", "file:scripts/eval-chat-live.mts", "live free LLM: 30/30 (100%) tool selection and target number accuracy, 24/30 (80.0%) strict verbatim grounding check (9/15 EN, 15/15 BN)"] },
-
-    { "id": "S6-01", "phase": "S6", "title": "Python package: ONNX inference, counting and gap logic, with tests", "status": "done", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": ["file:python/src/shelfsense/detector.py", "file:python/src/shelfsense/gaps.py", "file:python/tests/test_shelfsense.py", "uv run --directory python pytest -x -q: 4 passed"] },
-    { "id": "S6-02", "phase": "S6", "title": "CLI: shelfsense count photo.jpg", "status": "done", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": ["file:python/src/shelfsense/cli.py", "file:python/tests/test_shelfsense.py"] },
-    { "id": "S6-03", "phase": "S6", "title": "FastAPI batch app with Dockerfile and tests; hosting decision recorded", "status": "done", "model": "[MODEL: Gemini 4 Argon, MID]", "evidence": ["file:python/src/shelfsense/api.py", "file:python/Dockerfile", "file:docs/DECISIONS.md", "file:python/tests/test_shelfsense.py"] },
-
-    { "id": "S7-01", "phase": "S7", "title": "Playwright flows against production", "status": "todo", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": ["not measured yet; pipeline demonstration only"] },
-    { "id": "S7-02", "phase": "S7", "title": "axe zero violations and Lighthouse scores recorded", "status": "todo", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": ["not measured yet; pipeline demonstration only"] },
-    { "id": "S7-03", "phase": "S7", "title": "Upload validation and rate limits", "status": "done", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": ["file:apps/web/src/lib/security.ts", "file:apps/web/src/lib/shelfsense.test.ts", "file:python/src/shelfsense/api.py"] },
-    { "id": "S7-04", "phase": "S7", "title": "Per-user data isolation tests", "status": "done", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": ["file:apps/web/src/lib/security.ts", "file:apps/web/src/lib/shelfsense.test.ts"] },
-    { "id": "S7-05", "phase": "S7", "title": "Dependency audit and CodeQL", "status": "done", "model": "[MODEL: Claude Sonnet 5.5, MID]", "evidence": ["file:.github/workflows/ci.yml"] },
-
-    { "id": "S8-01", "phase": "S8", "title": "README: live URL, architecture, screenshots, measured numbers with commands, limits, licences", "status": "todo", "model": "[MODEL: Gemini 3.8 Flash, LOW]", "evidence": ["file:README.md", "not measured yet; pipeline demonstration only"] },
-    { "id": "S8-02", "phase": "S8", "title": "docs/DEMO_SCRIPT.md", "status": "done", "model": "[MODEL: Gemini 3.8 Flash, LOW]", "evidence": ["file:docs/DEMO_SCRIPT.md"] },
-    { "id": "S8-03", "phase": "S8", "title": "docs/DEPLOY.md", "status": "done", "model": "[MODEL: Gemini 3.8 Flash, LOW]", "evidence": ["file:docs/DEPLOY.md"] }
+    {
+      "id": "S0-01",
+      "phase": "S0",
+      "title": "Repo hygiene: .gitignore, .gitattributes, private/ ignored before first commit",
+      "status": "done",
+      "model": "[MODEL: Claude Opus 5.5, HIGH]",
+      "evidence": [
+        "file:.gitignore",
+        "file:.gitattributes",
+        "file:.env.example",
+        "git check-ignore private/OWNER_ANSWERS.md private/.env.local: both ignored"
+      ]
+    },
+    {
+      "id": "S0-02",
+      "phase": "S0",
+      "title": "Git hooks: commit-msg, pre-commit (gitleaks), pre-push; core.hooksPath set",
+      "status": "done",
+      "model": "[MODEL: Claude Opus 5.5, HIGH]",
+      "evidence": [
+        "file:.githooks/commit-msg",
+        "file:.githooks/pre-commit",
+        "file:.githooks/pre-push",
+        "file:scripts/lib/repo-rules.mjs",
+        "file:scripts/test/repo-rules.test.mjs",
+        "git config core.hooksPath = .githooks"
+      ]
+    },
+    {
+      "id": "S0-03",
+      "phase": "S0",
+      "title": "CI skeleton: history, tracked files, gitleaks, repo script tests",
+      "status": "done",
+      "model": "[MODEL: Claude Opus 5.5, HIGH]",
+      "evidence": [
+        "file:.github/workflows/ci.yml",
+        "file:scripts/check-history.mjs",
+        "file:scripts/check-repo-files.mjs"
+      ]
+    },
+    {
+      "id": "S0-04",
+      "phase": "S0",
+      "title": "Documentation system and check-done script",
+      "status": "done",
+      "model": "[MODEL: Claude Opus 5.5, HIGH]",
+      "evidence": [
+        "file:AGENTS.md",
+        "file:docs/PROJECT_STATE.md",
+        "file:docs/HANDOFF.md",
+        "file:scripts/check-done.mjs",
+        "file:scripts/test/features.test.mjs"
+      ]
+    },
+    {
+      "id": "S0-05",
+      "phase": "S0",
+      "title": "Architecture ADRs with free-tier terms checked and dated",
+      "status": "done",
+      "model": "[MODEL: Claude Opus 5.5, HIGH]",
+      "evidence": [
+        "file:docs/DECISIONS.md"
+      ]
+    },
+    {
+      "id": "S0-06",
+      "phase": "S0",
+      "title": "OWNER_TODO steps for Clerk, Kaggle token and phone verification",
+      "status": "done",
+      "model": "[MODEL: Claude Opus 5.5, HIGH]",
+      "evidence": [
+        "file:docs/OWNER_TODO.md"
+      ]
+    },
+    {
+      "id": "S1-01",
+      "phase": "S1",
+      "title": "Dataset survey: dense shelf sets, licence and access method verified (DATA.md)",
+      "status": "done",
+      "model": "[MODEL: Claude Opus 5.5, HIGH]",
+      "evidence": [
+        "file:docs/DATA.md",
+        "file:docs/DECISIONS.md"
+      ]
+    },
+    {
+      "id": "S1-02",
+      "phase": "S1",
+      "title": "Download scripts using the kaggle CLI (no data in git)",
+      "status": "done",
+      "model": "[MODEL: Gemini 4 Argon, MID]",
+      "evidence": [
+        "file:training/src/shelfsense_training/download.py",
+        "file:training/tests/test_download.py"
+      ]
+    },
+    {
+      "id": "S1-03",
+      "phase": "S1",
+      "title": "Leak-free train/val/test split by store or source, near-duplicate check",
+      "status": "done",
+      "model": "[MODEL: Claude Sonnet 5.5, MID]",
+      "evidence": [
+        "file:training/src/shelfsense_training/splits.py",
+        "file:training/tests/test_splits.py",
+        "file:training/src/shelfsense_training/data.py"
+      ]
+    },
+    {
+      "id": "S1-04",
+      "phase": "S1",
+      "title": "Data loader and annotation converters with tests",
+      "status": "done",
+      "model": "[MODEL: Gemini 4 Argon, MID]",
+      "evidence": [
+        "file:training/src/shelfsense_training/converters.py",
+        "file:training/tests/test_converters.py",
+        "uv run --directory training pytest: 13 passed"
+      ]
+    },
+    {
+      "id": "S2-01",
+      "phase": "S2",
+      "title": "Detector choice with licence comparison (ADR)",
+      "status": "done",
+      "model": "[MODEL: Claude Opus 5.5, HIGH]",
+      "evidence": [
+        "file:docs/DECISIONS.md",
+        "ADR-011 selects torchvision FCOS ResNet-50 FPN (BSD-3-Clause) after the official YOLOX install failed twice"
+      ]
+    },
+    {
+      "id": "S2-02",
+      "phase": "S2",
+      "title": "Kaggle training pipeline pushed and run via kaggle CLI",
+      "status": "done",
+      "model": "[MODEL: Claude Sonnet 5.5, MID]",
+      "evidence": [
+        "file:training/train.py",
+        "file:training/notebooks/kaggle_train.ipynb",
+        "file:training/notebooks/kernel-metadata.json",
+        "kaggle kernels push -p training/notebooks: ibrahimhossainsumon/shelfsense-fcos-training, kernel versions listed in docs/reports/validation-detection-cap.md"
+      ]
+    },
+    {
+      "id": "S2-03",
+      "phase": "S2",
+      "title": "Baseline run: config and validation metrics in docs/reports/",
+      "status": "done",
+      "model": "[MODEL: Claude Sonnet 5.5, MID]",
+      "evidence": [
+        "report:docs/reports/validation-detection-cap.md",
+        "file:docs/reports/validation-cap-cc0-val.json",
+        "file:docs/reports/predictions/baseline-fcos-r50-fpn-v1-fp32-cc0-val.json.gz",
+        "file:training/configs/baseline.json"
+      ]
+    },
+    {
+      "id": "S2-04",
+      "phase": "S2",
+      "title": "Improved run tuned on validation only, report committed",
+      "status": "in_progress",
+      "model": "[MODEL: Claude Sonnet 5.5, MID]",
+      "evidence": [
+        "report:docs/reports/validation-detection-cap.md",
+        "file:training/configs/fcos-dense-v3.json",
+        "in_progress: 6000-image 12-epoch run pushed as ibrahimhossainsumon/shelfsense-fcos-training; its validation numbers replace the two-epoch ones on completion"
+      ]
+    },
+    {
+      "id": "S2-05",
+      "phase": "S2",
+      "title": "ONNX export and int8 quantization with file size and accuracy delta",
+      "status": "done",
+      "model": "[MODEL: Claude Sonnet 5.5, MID]",
+      "evidence": [
+        "report:docs/reports/validation-detection-cap.md",
+        "file:training/src/shelfsense_training/export.py",
+        "file:training/eval_onnx.py",
+        "128.7 MB FP32 vs 32.8 MB INT8, mAP50 0.5306 vs 0.5309 on validation (measured, see report)"
+      ]
+    },
+    {
+      "id": "S2-06",
+      "phase": "S2",
+      "title": "Browser latency measured with onnxruntime-web (wasm and webgpu)",
+      "status": "done",
+      "model": "[MODEL: Claude Sonnet 5.5, MID]",
+      "evidence": [
+        "report:docs/reports/browser-detection.md",
+        "live: 663 products in 3996 ms on WASM with the int8 graph at https://shelfsense-counter.vercel.app"
+      ]
+    },
+    {
+      "id": "S2-07",
+      "phase": "S2",
+      "title": "Weights published to a GitHub Release with SHA-256",
+      "status": "done",
+      "model": "[MODEL: Claude Sonnet 5.5, MID]",
+      "evidence": [
+        "file:docs/reports/test-evaluation.md",
+        "release: https://github.com/ibrahimSumon47/ShelfSense-Counter/releases/tag/v1.0.0 with fp32, int8, the regression bundle and sha256sums.txt"
+      ]
+    },
+    {
+      "id": "S3-01",
+      "phase": "S3",
+      "title": "Test set reported once: mAP50, count MAE and percentage error",
+      "status": "done",
+      "model": "[MODEL: Claude Sonnet 5.5, MID]",
+      "evidence": [
+        "report:docs/reports/test-evaluation.md",
+        "CC0 test split scored once: int8 mAP50 0.7215, count MAE 25.67, MAPE 19.91 %"
+      ]
+    },
+    {
+      "id": "S3-02",
+      "phase": "S3",
+      "title": "Results broken down by shelf density",
+      "status": "done",
+      "model": "[MODEL: Claude Sonnet 5.5, MID]",
+      "evidence": [
+        "report:docs/reports/test-evaluation.md",
+        "density buckets in docs/reports/test-evaluation.json: medium 0.654 / dense 0.741 mAP50"
+      ]
+    },
+    {
+      "id": "S3-03",
+      "phase": "S3",
+      "title": "Failure-case gallery",
+      "status": "done",
+      "model": "[MODEL: Claude Sonnet 5.5, MID]",
+      "evidence": [
+        "file:docs/reports/failure-gallery/index.json",
+        "three worst CC0 test images rendered with ground truth and predictions"
+      ]
+    },
+    {
+      "id": "S3-04",
+      "phase": "S3",
+      "title": "Regression test: 20 fixed images with count tolerances in CI",
+      "status": "done",
+      "model": "[MODEL: Claude Sonnet 5.5, MID]",
+      "evidence": [
+        "file:training/tests/test_regression_counts.py",
+        "file:.github/workflows/ci.yml",
+        "20-image bundle in release v1.0.0; CI fails when the release exists without it"
+      ]
+    },
+    {
+      "id": "S3-05",
+      "phase": "S3",
+      "title": "MODEL_CARD.md with intended use, limits and licence",
+      "status": "todo",
+      "model": "[MODEL: Claude Sonnet 5.5, MID]",
+      "evidence": [
+        "file:docs/MODEL_CARD.md",
+        "not measured yet; pipeline demonstration only"
+      ]
+    },
+    {
+      "id": "S4-01",
+      "phase": "S4",
+      "title": "Next.js app scaffold, dark blue-grey and light themes, next-intl en/bn",
+      "status": "done",
+      "model": "[MODEL: Gemini 4 Argon, MID]",
+      "evidence": [
+        "file:apps/web/package.json",
+        "file:apps/web/src/app/globals.css",
+        "file:apps/web/src/lib/i18n.ts",
+        "file:apps/web/src/app/page.tsx"
+      ]
+    },
+    {
+      "id": "S4-02",
+      "phase": "S4",
+      "title": "Clerk auth with owner and staff roles",
+      "status": "done",
+      "model": "[MODEL: Gemini 4 Argon, MID]",
+      "evidence": [
+        "file:apps/web/src/lib/security.ts",
+        "file:apps/web/src/lib/cloud.ts",
+        "file:apps/web/src/app/api/scans/route.ts",
+        "file:apps/web/src/lib/shelfsense.test.ts"
+      ]
+    },
+    {
+      "id": "S4-03",
+      "phase": "S4",
+      "title": "Neon Postgres schema with Drizzle: stores, aisles, shelves, scans, thresholds",
+      "status": "done",
+      "model": "[MODEL: Gemini 4 Argon, MID]",
+      "evidence": [
+        "file:apps/web/src/lib/schema.ts"
+      ]
+    },
+    {
+      "id": "S4-04",
+      "phase": "S4",
+      "title": "Upload and camera capture with client-side resize",
+      "status": "done",
+      "model": "[MODEL: Gemini 4 Argon, MID]",
+      "evidence": [
+        "file:apps/web/src/lib/detector.ts",
+        "file:apps/web/src/app/page.tsx",
+        "file:apps/web/src/lib/shelfsense.test.ts"
+      ]
+    },
+    {
+      "id": "S4-05",
+      "phase": "S4",
+      "title": "In-browser detection with box overlay and count",
+      "status": "done",
+      "model": "[MODEL: Claude Sonnet 5.5, MID]",
+      "evidence": [
+        "report:docs/reports/browser-detection.md",
+        "overlay and count verified on the live URL (663 products, 3996 ms)"
+      ]
+    },
+    {
+      "id": "S4-06",
+      "phase": "S4",
+      "title": "Empty-gap detection from spacing between items, with tests",
+      "status": "done",
+      "model": "[MODEL: Claude Sonnet 5.5, MID]",
+      "evidence": [
+        "file:apps/web/src/lib/gaps.ts",
+        "file:apps/web/src/lib/shelfsense.test.ts"
+      ]
+    },
+    {
+      "id": "S4-07",
+      "phase": "S4",
+      "title": "Save scans per store/aisle/shelf with Cloudinary thumbnails",
+      "status": "done",
+      "model": "[MODEL: Gemini 4 Argon, MID]",
+      "evidence": [
+        "file:apps/web/src/lib/cloud.ts",
+        "file:apps/web/src/app/api/scans/route.ts",
+        "file:apps/web/src/app/page.tsx"
+      ]
+    },
+    {
+      "id": "S4-08",
+      "phase": "S4",
+      "title": "Scan history and trend charts",
+      "status": "done",
+      "model": "[MODEL: Gemini 4 Argon, MID]",
+      "evidence": [
+        "file:apps/web/src/app/page.tsx"
+      ]
+    },
+    {
+      "id": "S4-09",
+      "phase": "S4",
+      "title": "Low-stock thresholds (owner only) and alerts",
+      "status": "done",
+      "model": "[MODEL: Gemini 4 Argon, MID]",
+      "evidence": [
+        "file:apps/web/src/lib/security.ts",
+        "file:apps/web/src/app/page.tsx",
+        "file:apps/web/src/lib/shelfsense.test.ts"
+      ]
+    },
+    {
+      "id": "S4-10",
+      "phase": "S4",
+      "title": "CSV export",
+      "status": "done",
+      "model": "[MODEL: Gemini 4 Argon, MID]",
+      "evidence": [
+        "file:apps/web/src/lib/csv.ts",
+        "file:apps/web/src/lib/shelfsense.test.ts"
+      ]
+    },
+    {
+      "id": "S4-11",
+      "phase": "S4",
+      "title": "Empty, loading and error states; responsive and Bangla copy review",
+      "status": "done",
+      "model": "[MODEL: Gemini 4 Argon, MID]",
+      "evidence": [
+        "file:apps/web/src/lib/i18n.ts",
+        "file:apps/web/src/app/page.tsx",
+        "file:apps/web/src/app/globals.css"
+      ]
+    },
+    {
+      "id": "S4-12",
+      "phase": "S4",
+      "title": "Production deploy on Vercel with env vars set by CLI",
+      "status": "done",
+      "model": "[MODEL: Gemini 4 Argon, MID]",
+      "evidence": [
+        "file:docs/DEPLOY.md",
+        "https://shelfsense-counter.vercel.app"
+      ]
+    },
+    {
+      "id": "S5-01",
+      "phase": "S5",
+      "title": "Typed, user-scoped database tools for the chat",
+      "status": "done",
+      "model": "[MODEL: Gemini 4 Argon, MID]",
+      "evidence": [
+        "file:apps/web/src/lib/chat-tools.ts",
+        "file:apps/web/src/lib/shelfsense.test.ts"
+      ]
+    },
+    {
+      "id": "S5-02",
+      "phase": "S5",
+      "title": "Bilingual chat with tool calling; numbers only from tools; refuses on missing data",
+      "status": "done",
+      "model": "[MODEL: Claude Sonnet 5.5, MID]",
+      "evidence": [
+        "file:apps/web/src/lib/chat-tools.ts",
+        "file:apps/web/src/lib/shelfsense.test.ts",
+        "report:docs/reports/chat-eval-s5.md"
+      ]
+    },
+    {
+      "id": "S5-03",
+      "phase": "S5",
+      "title": "30-question evaluation in English and Bangla with recorded accuracy",
+      "status": "done",
+      "model": "[MODEL: Claude Sonnet 5.5, MID]",
+      "evidence": [
+        "report:docs/reports/chat-eval-s5.md",
+        "file:scripts/eval-chat-live.mts",
+        "live free LLM: 30/30 (100%) tool selection and target number accuracy, 24/30 (80.0%) strict verbatim grounding check (9/15 EN, 15/15 BN)"
+      ]
+    },
+    {
+      "id": "S6-01",
+      "phase": "S6",
+      "title": "Python package: ONNX inference, counting and gap logic, with tests",
+      "status": "done",
+      "model": "[MODEL: Gemini 4 Argon, MID]",
+      "evidence": [
+        "file:python/src/shelfsense/detector.py",
+        "file:python/src/shelfsense/gaps.py",
+        "file:python/tests/test_shelfsense.py",
+        "uv run --directory python pytest -x -q: 4 passed"
+      ]
+    },
+    {
+      "id": "S6-02",
+      "phase": "S6",
+      "title": "CLI: shelfsense count photo.jpg",
+      "status": "done",
+      "model": "[MODEL: Gemini 4 Argon, MID]",
+      "evidence": [
+        "file:python/src/shelfsense/cli.py",
+        "file:python/tests/test_shelfsense.py"
+      ]
+    },
+    {
+      "id": "S6-03",
+      "phase": "S6",
+      "title": "FastAPI batch app with Dockerfile and tests; hosting decision recorded",
+      "status": "done",
+      "model": "[MODEL: Gemini 4 Argon, MID]",
+      "evidence": [
+        "file:python/src/shelfsense/api.py",
+        "file:python/Dockerfile",
+        "file:docs/DECISIONS.md",
+        "file:python/tests/test_shelfsense.py"
+      ]
+    },
+    {
+      "id": "S7-01",
+      "phase": "S7",
+      "title": "Playwright flows against production",
+      "status": "todo",
+      "model": "[MODEL: Claude Sonnet 5.5, MID]",
+      "evidence": [
+        "not measured yet; pipeline demonstration only"
+      ]
+    },
+    {
+      "id": "S7-02",
+      "phase": "S7",
+      "title": "axe zero violations and Lighthouse scores recorded",
+      "status": "todo",
+      "model": "[MODEL: Claude Sonnet 5.5, MID]",
+      "evidence": [
+        "not measured yet; pipeline demonstration only"
+      ]
+    },
+    {
+      "id": "S7-03",
+      "phase": "S7",
+      "title": "Upload validation and rate limits",
+      "status": "done",
+      "model": "[MODEL: Claude Sonnet 5.5, MID]",
+      "evidence": [
+        "file:apps/web/src/lib/security.ts",
+        "file:apps/web/src/lib/shelfsense.test.ts",
+        "file:python/src/shelfsense/api.py"
+      ]
+    },
+    {
+      "id": "S7-04",
+      "phase": "S7",
+      "title": "Per-user data isolation tests",
+      "status": "done",
+      "model": "[MODEL: Claude Sonnet 5.5, MID]",
+      "evidence": [
+        "file:apps/web/src/lib/security.ts",
+        "file:apps/web/src/lib/shelfsense.test.ts"
+      ]
+    },
+    {
+      "id": "S7-05",
+      "phase": "S7",
+      "title": "Dependency audit and CodeQL",
+      "status": "done",
+      "model": "[MODEL: Claude Sonnet 5.5, MID]",
+      "evidence": [
+        "file:.github/workflows/ci.yml"
+      ]
+    },
+    {
+      "id": "S8-01",
+      "phase": "S8",
+      "title": "README: live URL, architecture, screenshots, measured numbers with commands, limits, licences",
+      "status": "todo",
+      "model": "[MODEL: Gemini 3.8 Flash, LOW]",
+      "evidence": [
+        "file:README.md",
+        "not measured yet; pipeline demonstration only"
+      ]
+    },
+    {
+      "id": "S8-02",
+      "phase": "S8",
+      "title": "docs/DEMO_SCRIPT.md",
+      "status": "done",
+      "model": "[MODEL: Gemini 3.8 Flash, LOW]",
+      "evidence": [
+        "file:docs/DEMO_SCRIPT.md"
+      ]
+    },
+    {
+      "id": "S8-03",
+      "phase": "S8",
+      "title": "docs/DEPLOY.md",
+      "status": "done",
+      "model": "[MODEL: Gemini 3.8 Flash, LOW]",
+      "evidence": [
+        "file:docs/DEPLOY.md"
+      ]
+    }
   ]
 }
