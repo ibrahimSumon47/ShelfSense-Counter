@@ -1,6 +1,21 @@
 # Handoff
 
-Last updated: 2026-11-20 00:05 (37/48 features done; the Kaggle run finished COMPLETE at 23:57:52, output download in progress)
+Last updated: 2026-11-20 00:45 (36/48; run downloaded and test split scored, but the SKU-110K numbers need one re-run)
+
+## The evaluator bug that decides the next step
+
+`train.py` called `run_raw_candidates(...)` with the old `normalise=True` default while the new
+exporter bakes normalisation into the graph, so every SKU-110K number inside `metrics.json`
+(mAP50 0.13, MAE 563) is double-normalised garbage. The weights are fine: the same `best.pt` and
+export score mAP50 0.5976 on CC0 validation and 0.7227 on the CC0 test split through the corrected
+path (`docs/reports/test-evaluation.md`). The default is now `False`, both call sites pass it
+explicitly and a test pins the default.
+
+Because the local machine has no SKU-110K images, the run's own validation tuning and its SKU test
+numbers are unusable, which is why S2-04 and the test-evidence items are still open. The next step
+is a small CPU Kaggle kernel that clones this repository, downloads the v1.0.0 release ONNX file,
+runs `training/eval_onnx.py --dataset sku110k --split val --grid ...` and then `--split test` once,
+and commits the JSON; no GPU quota is needed for that.
 
 **Recommended model tag:** `[MODEL: Claude Sonnet 5.5, MID]`
 
