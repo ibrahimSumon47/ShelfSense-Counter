@@ -1,0 +1,39 @@
+{
+  "model_file": "fcos-r50-fpn-v3-fp32.onnx",
+  "params": {
+    "score_thresh": 0.3,
+    "nms_thresh": 0.35,
+    "max_dets": 1000,
+    "normalise": "no",
+    "center_fix": "none"
+  },
+  "gallery": [
+    {
+      "image_id": "005.jpg",
+      "gt_count": 251,
+      "pred_count": 335,
+      "abs_error": 84,
+      "pct_error": 33.5,
+      "file": "005-overlay.png",
+      "file_bytes": 647449
+    },
+    {
+      "image_id": "040.jpg",
+      "gt_count": 71,
+      "pred_count": 111,
+      "abs_error": 40,
+      "pct_error": 56.3,
+      "file": "040-overlay.png",
+      "file_bytes": 2078735
+    },
+    {
+      "image_id": "002.jpg",
+      "gt_count": 690,
+      "pred_count": 657,
+      "abs_error": 33,
+      "pct_error": 4.8,
+      "file": "002-overlay.png",
+      "file_bytes": 898291
+    }
+  ]
+}
