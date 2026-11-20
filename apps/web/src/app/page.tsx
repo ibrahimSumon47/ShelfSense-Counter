@@ -227,28 +227,26 @@ export default function ShelfSensePage() {
           <p>{dict.tagline}</p>
         </div>
         <div className="controls">
+          {/* The action words sit in a hidden span instead of an aria-label: an aria-label
+              that replaces the visible text fails the label-in-name rule. */}
           <button
             type="button"
             className="btn"
             onClick={() => setRole(role === 'owner' ? 'staff' : 'owner')}
-            aria-label="Switch user role"
           >
+            <span className="sr-only">Switch user role: </span>
             {role === 'owner' ? dict.roleOwner : dict.roleStaff}
           </button>
-          <button
-            type="button"
-            className="btn"
-            onClick={toggleTheme}
-            aria-label="Toggle color theme"
-          >
+          <button type="button" className="btn" onClick={toggleTheme}>
+            <span className="sr-only">Toggle color theme: </span>
             {theme === 'dark' ? dict.themeLight : dict.themeDark}
           </button>
           <button
             type="button"
             className="btn btn-primary"
             onClick={() => setLocale(locale === 'en' ? 'bn' : 'en')}
-            aria-label="Toggle language"
           >
+            <span className="sr-only">Toggle language: </span>
             {dict.langToggle}
           </button>
         </div>

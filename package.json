@@ -11,6 +11,14 @@
     "test:repo": "node --test \"scripts/test/*.test.mjs\"",
     "check:done": "node scripts/check-done.mjs",
     "check:files": "node scripts/check-repo-files.mjs",
-    "check:history": "node scripts/check-history.mjs"
+    "check:history": "node scripts/check-history.mjs",
+    "test:e2e": "playwright test",
+    "report:lighthouse": "node scripts/lighthouse-report.mjs"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@playwright/test": "^1.65.1",
+    "chrome-launcher": "^1.2.3",
+    "lighthouse": "^13.6.0"
   }
 }

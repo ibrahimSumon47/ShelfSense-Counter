@@ -477,20 +477,28 @@
       "id": "S7-01",
       "phase": "S7",
       "title": "Playwright flows against production",
-      "status": "todo",
+      "status": "done",
       "model": "[MODEL: Claude Sonnet 5.5, MID]",
       "evidence": [
-        "not measured yet; pipeline demonstration only"
+        "report:docs/reports/production-checks.md",
+        "file:e2e/production.spec.ts",
+        "file:playwright.config.ts",
+        "pnpm exec playwright test against https://shelfsense-counter.vercel.app: 7 flows passed, including a real shelf photo counted to >100 products on WASM with the overlay drawn"
       ]
     },
     {
       "id": "S7-02",
       "phase": "S7",
       "title": "axe zero violations and Lighthouse scores recorded",
-      "status": "todo",
+      "status": "done",
       "model": "[MODEL: Claude Sonnet 5.5, MID]",
       "evidence": [
-        "not measured yet; pipeline demonstration only"
+        "report:docs/reports/production-checks.md",
+        "file:docs/reports/axe-production.json",
+        "file:docs/reports/lighthouse-mobile.json",
+        "file:docs/reports/lighthouse-desktop.json",
+        "file:e2e/accessibility.spec.ts",
+        "axe-core: 0 violations in 32 rules across dark/light and English/Bangla; Lighthouse mobile 99/100/100/100 and desktop 100/100/100/100"
       ]
     },
     {

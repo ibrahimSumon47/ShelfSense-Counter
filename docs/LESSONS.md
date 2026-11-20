@@ -69,3 +69,19 @@ if it were a live model evaluation, and the web dashboard displayed hardcoded sa
 
 
 
+## 2026-11-20 Production checks found two accessibility defects, a 404 and a race
+
+The first axe run against the deployed site failed with two serious rules, both real. The three
+header toggles carried `aria-label` values that *replaced* their visible text, so a voice-control
+user reading "বাংলা" could not activate the language button; the fix is a `.sr-only` span holding
+the action words in front of the visible label, which keeps the visible text inside the accessible
+name. White text on the light-theme accent `#0284c7` measured 4.09:1, under the 4.5:1 minimum, so
+the light accent moved to `#0369a1` (5.9:1). Lighthouse separately scored best practices 96 on both
+profiles because `/favicon.ico` returned 404; the app now ships `app/icon.svg`.
+
+The upload flows also passed locally and timed out against production. Not a deploy problem:
+`MODEL_AVAILABLE` stays false until `/models/manifest.json` resolves, the file input is disabled
+until then, and a file dropped in before that is silently ignored because the change handler returns
+early. The specs now wait for the input to enable and for the blob preview. Lesson: an app that
+gates its main control on an async fetch needs an explicit ready signal, and an automated check
+against production is what exposes the difference between the two.

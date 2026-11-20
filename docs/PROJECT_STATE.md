@@ -67,10 +67,20 @@ where Python found 482; 1.31.1 gives 481), WebGPU returns the detection cap for 
 so INT8 declares `webgpu_capable: false`, and the manifest now carries the production file with
 its SHA-256. Earlier development measurements are in `docs/reports/browser-detection.md`.
 
+## Production checks
+
+`pnpm exec playwright test` drives the deployed site with 11 checks: seven visitor flows (load,
+count a shelf photo, do not invent a shelf, save and export a scan, language switch, owner-only
+threshold, chat refusing without data) and axe-core in both themes and both languages, where it
+reports zero violations across 32 rules. `node scripts/lighthouse-report.mjs` produced mobile
+99/100/100/100 and desktop 100/100/100/100, with LCP 869 ms and 289 ms and CLS 0. The first runs
+found two serious accessibility defects (aria-labels that replaced the visible button text, and a
+4.09:1 light-theme button contrast) and a 404 console error for the missing icon; all three are
+fixed and re-verified on the deployed build. Details and raw JSON:
+`docs/reports/production-checks.md`.
+
 ## What is still open
 
-- `S7-01` Playwright flows against the production URL, and `S7-02` axe-core and Lighthouse
-  scores recorded on production.
 - The live-LLM chat checks cannot be re-run on this PC because `private/.env.local` is missing and
   the key cannot be read back from Vercel; the owner steps are item 2b in `docs/OWNER_TODO.md`.
   The `S5-03` figures come from the run made with the key still available.
