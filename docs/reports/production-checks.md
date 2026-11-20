@@ -5,7 +5,11 @@ https://shelfsense-counter.vercel.app (Vercel deployment `shelfsense-counter-iwm
 the build that also carries the icon added below). The exception is marked where it applies: the
 analysed-photo scan and the pre-load message check exercise code that is not in that deployment
 yet, so they ran against `next start` of the same commit on `http://localhost:3100`. Every entry in
-`axe-production.json` records the URL it was scanned on.
+`axe-production.json` records the URL it was scanned on. The deployment those two need is not live:
+the push-triggered Vercel build fails before compiling (its root directory is the repo root, while
+the app is in `apps/web`), so production still serves `shelfsense-counter-iwmsov0ds` and a
+production re-run of the flow suite comes after that deploy. The install gate it also hit is fixed
+in `pnpm-workspace.yaml`; see the last two entries in `docs/LESSONS.md`.
 
 Run on 2026-11-20 with Node 24.22.1, Playwright 1.65.1 (bundled Chromium), axe-core 4.14.0 and
 Lighthouse 13.6.0. The raw artifacts are committed next to this file:

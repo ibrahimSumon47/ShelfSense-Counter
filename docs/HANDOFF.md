@@ -37,8 +37,12 @@ request to prove it. If a local run fails with `400` on a `_next/static/chunks/.
 `next start` is probably still holding port 3000 and serving a build whose files were replaced - run
 the new build on another port instead of killing that process. The axe states added for the
 analysed photo were captured on `http://localhost:3100` for that reason and say so in
-`docs/reports/axe-production.json`; the deployment still needs one redeploy to carry the message
-fix.
+`docs/reports/axe-production.json`. Production still serves `shelfsense-counter-iwmsov0ds`, so the
+message fix is not live yet: the deploy that the push triggered failed at `pnpm install`
+(`ignoredBuiltDependencies` is not read in pnpm 12, `allowBuilds` is - fixed here), then at Next
+detection (`NEXT_NO_VERSION`, because the Vercel project's root directory is the repo root while the
+app lives in `apps/web`). Either set Root Directory to `apps/web` in the Vercel project settings or
+deploy with `vercel deploy --prod --cwd apps/web`, then re-run the flow suite against production.
 
 ## Blocked elsewhere
 

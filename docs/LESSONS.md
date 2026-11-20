@@ -114,3 +114,9 @@ review (its script only prints a notice) and `pnpm install --frozen-lockfile` no
 machine never noticed because `node_modules` was already populated and only a fresh install checks.
 Lesson: when a deploy fails at install while local commands work, reproduce with
 `pnpm install --frozen-lockfile`, not just the app's own scripts.
+
+The fix moved the deploy one gate further and no more: it now fails with `NEXT_NO_VERSION`,
+because the Vercel project's Root Directory is the repository root while `next` is a dependency of
+`apps/web/package.json`. Git-triggered deploys need that setting changed to `apps/web` (a project
+setting, not a file), so until then the site is updated with a CLI deploy from `apps/web`. Two
+gates, two different causes: read the last log line of the failing step, not the first error found.
