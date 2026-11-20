@@ -149,8 +149,10 @@ printf '%s' '{"rootDirectory":"apps/web"}' | vercel api \
 ```
 
 The project now reports `rootDirectory: "apps/web"`, so the next push builds `apps/web` inside the
-same pnpm workspace. That could not be proven on 2026-11-20 because the team was blocked for fair
-use before a push-triggered build could run (ADR-012, `docs/OWNER_TODO.md` item 4).
+same pnpm workspace. That could not be proven on 2026-11-20: the team was blocked for fair use
+first, and while the block stands Vercel creates no Git-triggered deployments at all - the push of
+`c96dda5` four minutes later added nothing to the deployment list, whose newest entry is still the
+failed `562c4c1` build (ADR-012, `docs/OWNER_TODO.md` item 4).
 
 ## Not covered here
 

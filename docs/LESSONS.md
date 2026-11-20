@@ -142,6 +142,11 @@ account state, not a code defect, and it is not something the repository can fix
 deployment tool's own output before diagnosing the build, and treat the alias status code separately
 from the deployment status in the dashboard.
 
+While the block stands Vercel does not create Git-triggered deployments either: a push four minutes
+after the setting was fixed added no entry to the deployment list at all, so "no failed build" is
+not proof that a push deploys. Check the deployment list for the pushed commit before reporting a
+Git deployment as configured, and never report an uncreated deployment as a successful one.
+
 ## 2026-11-20 Lighthouse writes four zero scores and exits 0 when the page does not load
 
 With the site blocked, `node scripts/lighthouse-report.mjs` printed

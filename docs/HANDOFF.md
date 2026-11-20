@@ -45,7 +45,12 @@ directory inside the pnpm workspace and deploys on its own. `ERR_PNPM_IGNORED_BU
 `pnpm-workspace.yaml`. A manual deploy still works the same way: `vercel deploy --prod --yes` from
 `apps/web`.
 
-This is not yet proven end to end, and the site is offline: at 09:36Z on 2026-11-20 the alias began
+This is configured but not yet proven end to end: the push that carried this change (`c96dda5`)
+produced **no deployment at all** within four minutes, because Vercel stops creating Git-triggered
+deployments while the team is blocked. The last deployment in the project is still `562c4c1` from
+before the setting changed.
+
+The site is offline: at 09:36Z on 2026-11-20 the alias began
 answering `402 Payment Required` with `X-Vercel-Error: DEPLOYMENT_DISABLED`, and `vercel deploy`
 printed `Your Team exceeded our fair use limits and has been blocked`. The deployment is READY and
 aliased; Vercel is refusing to serve it and will not accept new deployments until the block is
