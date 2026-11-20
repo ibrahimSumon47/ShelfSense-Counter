@@ -78,11 +78,14 @@ overlay, the filled KPI cards, the history table and both stock badges exist onl
 99/100/100/100 and desktop 100/100/100/100, with LCP 869 ms and 289 ms and CLS 0. The first runs
 found two serious accessibility defects (aria-labels that replaced the visible button text, and a
 4.09:1 light-theme button contrast) and a 404 console error for the missing icon; all three are
-fixed and re-verified on the deployed build. The analysed-photo scan and the pre-load message flow
-ran on `next start` of the same commit instead, because the deployment still serves
-`shelfsense-counter-iwmsov0ds`: push-triggered Vercel builds fail before compiling (the project's
-root directory is the repo root; the app is in `apps/web`), and its install gate was fixed here with
-`allowBuilds` in `pnpm-workspace.yaml`. Details and raw JSON: `docs/reports/production-checks.md`.
+fixed and re-verified on the deployed build. All 13 checks were re-run on 2026-11-20 against
+deployment `shelfsense-counter-pogxu6nig`, which is what https://shelfsense-counter.vercel.app now
+serves: 13/13 passed, and the analysed-photo state passed with zero violations across 39 rules in
+all four theme and language combinations. That build was deployed with `vercel deploy --prod` from
+`apps/web`, because a push-triggered build still stops at Next detection: the Vercel project's root
+directory is the repository root while the app lives in `apps/web`. The install gate that failed
+first is fixed in the repository with `allowBuilds` in `pnpm-workspace.yaml`. Details and raw JSON:
+`docs/reports/production-checks.md`.
 
 ## What is still open
 

@@ -1,17 +1,11 @@
 # Production checks: flows, accessibility and Lighthouse
 
 Everything in this report was run against the deployed site, not a local build:
-https://shelfsense-counter.vercel.app (Vercel deployment `shelfsense-counter-iwmsov0ds`,
-the build that also carries the icon added below). The exception is marked where it applies: the
-analysed-photo scan and the pre-load message check exercise code that is not in that deployment
-yet, so they ran against `next start` of the same commit on `http://localhost:3100`. Every entry in
-`axe-production.json` records the URL it was scanned on. The deployment those two need is not live:
-the push-triggered Vercel build fails before compiling (its root directory is the repo root, while
-the app is in `apps/web`), so production still serves `shelfsense-counter-iwmsov0ds` and a
-production re-run of the flow suite comes after that deploy. The install gate it also hit is fixed
-in `pnpm-workspace.yaml`; see the last two entries in `docs/LESSONS.md`.
+https://shelfsense-counter.vercel.app, deployment `shelfsense-counter-pogxu6nig` (all 13 checks),
+and `shelfsense-counter-iwmsov0ds` for the Lighthouse scores, which are unaffected by later copy
+changes. Every entry in `axe-production.json` records the URL it was scanned on.
 
-Run on 2026-11-20 with Node 24.22.1, Playwright 1.65.1 (bundled Chromium), axe-core 4.14.0 and
+Run on 2026-11-20 with Node 24.22.1, Playwright 1.65.1 (bundled Chromium), axe-core 4.14.1 and
 Lighthouse 13.6.0. The raw artifacts are committed next to this file:
 `axe-production.json`, `lighthouse-mobile.json`, `lighthouse-desktop.json`,
 `lighthouse-summary.json`.
@@ -39,8 +33,8 @@ build, which is how the fixes below were checked before deploying.
 | Chat refuses to invent numbers when nothing is stored | A question with no stored scans is answered with `refusal_missing_data` |
 | Explains a photo chosen before the detector has loaded | With `/models/manifest.json` held, a file is dispatched into the still-disabled input; the page answers with a readable alert instead of doing nothing, the KPIs stay empty, and releasing the manifest enables the input again |
 
-The three upload flows each transfer the 32.8 MB model over the network, so the suite takes about
-two minutes against production. It is a manual check, not a CI job: CI already scores a 20-image
+Four of the checks upload a photo and therefore transfer the 32.8 MB model over the network; the
+whole suite took 1.4 minutes against production. It is a manual check, not a CI job: CI already scores a 20-image
 regression bundle on the released file, which is the check that belongs on every push.
 
 ## Accessibility (axe-core, zero violations)
@@ -74,9 +68,9 @@ states. That single page carries every surface the result state renders:
 - the history table with two saved rows and both stock badges - `Stock Normal` for the default
   threshold and `Low Stock Alert` for the row above the limit.
 
-Those states were scanned on the local production build noted at the top, because they need the
-message fix below, which is not deployed yet. The rules went from 32 to 39 per state: the table,
-the badges and the overlay expose checks the empty page cannot run.
+All four were scanned on the deployed build noted at the top, on the same page: 294 products drawn
+as 305 boxes with two saved rows. The rules went from 32 to 39 per state, because the table, the
+badges and the overlay expose checks the empty page cannot run.
 
 ### What the first run found, and what changed
 
@@ -117,13 +111,22 @@ input is disabled until then, and a file that arrived before that moment was ign
 error, because the change handler returned early. The tests wait for the input to become enabled -
 the app's own ready signal - and for the blob preview that proves the handler ran.
 
-The silent path is now closed as well. If a photo does reach the page before the manifest resolves
-(the input is disabled, so this takes a drop, an extension or automation), the handler shows a
-readable alert - "The detector is still loading in this browser, so this photo was not analysed.
+The silent path is now closed as well, and the live site carries the fix. If a photo does reach the
+page before the manifest resolves (the input is disabled, so this takes a drop, an extension or
+automation), the handler shows a readable alert - "The detector is still loading in this browser, so this photo was not analysed.
 Wait a moment, then choose the photo again." - in both languages, and clears the field so the same
 file can be chosen again. With no detector published at all it shows the existing `Detector not
 published in this build` explanation instead. The `Explains a photo chosen before the detector has
 loaded` flow holds the manifest request and dispatches exactly that change event to prove it.
+
+## How this build reached production
+
+The deployment was made with `vercel deploy --prod --yes` from `apps/web`, which is the directory
+linked to the Vercel project. Deploying from a push does not work yet: the project's Root Directory
+is the repository root, the app lives in `apps/web`, and the build stops at `NEXT_NO_VERSION` before
+compiling. Setting Root Directory to `apps/web` in the Vercel project settings is what would make
+pushes deploy on their own. The earlier `ERR_PNPM_IGNORED_BUILDS` failure is fixed in the repository
+by `allowBuilds` in `pnpm-workspace.yaml`; both causes are written up in `docs/LESSONS.md`.
 
 ## Not covered here
 

@@ -484,7 +484,7 @@
         "file:e2e/production.spec.ts",
         "file:playwright.config.ts",
         "pnpm exec playwright test against https://shelfsense-counter.vercel.app: 7 flows passed, including a real shelf photo counted to >100 products on WASM with the overlay drawn",
-        "playwright: an eighth flow holds /models/manifest.json and dispatches a file into the disabled input, asserting the readable 'still loading' alert and the empty KPI cards instead of a silent ignore (run on next start of this commit, port 3100)"
+        "playwright: an eighth flow holds /models/manifest.json and dispatches a file into the disabled input, asserting the readable 'still loading' alert and the empty KPI cards instead of a silent ignore; the suite passed 13/13 against deployment shelfsense-counter-pogxu6nig on 2026-11-20"
       ]
     },
     {
@@ -499,7 +499,7 @@
         "file:docs/reports/lighthouse-mobile.json",
         "file:docs/reports/lighthouse-desktop.json",
         "file:e2e/accessibility.spec.ts",
-        "axe-core: 0 violations in 32 rules across dark/light and English/Bangla, and 0 violations in 39 rules on the same four states after a photo was analysed (overlay, filled KPI cards, history table and both stock badges), recorded per state with its URL; Lighthouse mobile 99/100/100/100 and desktop 100/100/100/100"
+        "axe-core: 0 violations in 32 rules across dark/light and English/Bangla, and 0 violations in 39 rules on the same four states after a photo was analysed (overlay, filled KPI cards, history table and both stock badges), recorded per state against https://shelfsense-counter.vercel.app on 2026-11-20; Lighthouse mobile 99/100/100/100 and desktop 100/100/100/100"
       ]
     },
     {

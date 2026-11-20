@@ -1,7 +1,7 @@
 # Handoff
 
-Last updated: 2026-11-20 11:30 (48/48; production flows, axe and Lighthouse recorded, `check-done`
-exits 0)
+Last updated: 2026-11-20 12:20 (48/48; deployment `shelfsense-counter-pogxu6nig` live, 13/13 checks
+passed against it, `check-done` exits 0)
 
 ## Where things stand
 
@@ -13,7 +13,7 @@ the production checks are all recorded:
 | --- | --- |
 | Detector results (SKU-110K val and test, CC0 test) | `docs/reports/test-evaluation.md`, `docs/reports/sku110k-*.json` |
 | Published weights | release `v1.0.0`, checksums in `sha256sums.txt` |
-| Live site | https://shelfsense-counter.vercel.app |
+| Live site | https://shelfsense-counter.vercel.app (deployment `shelfsense-counter-pogxu6nig`) |
 | Flows, axe, Lighthouse | `docs/reports/production-checks.md` and the JSON files beside it |
 | Model limits and licence | `docs/MODEL_CARD.md` |
 | README numbers and commands | `README.md` |
@@ -35,14 +35,14 @@ The input is disabled until `/models/manifest.json` resolves; a file that arrive
 produces a readable alert rather than being dropped silently, and one flow holds the manifest
 request to prove it. If a local run fails with `400` on a `_next/static/chunks/...` file, an older
 `next start` is probably still holding port 3000 and serving a build whose files were replaced - run
-the new build on another port instead of killing that process. The axe states added for the
-analysed photo were captured on `http://localhost:3100` for that reason and say so in
-`docs/reports/axe-production.json`. Production still serves `shelfsense-counter-iwmsov0ds`, so the
-message fix is not live yet: the deploy that the push triggered failed at `pnpm install`
-(`ignoredBuiltDependencies` is not read in pnpm 12, `allowBuilds` is - fixed here), then at Next
-detection (`NEXT_NO_VERSION`, because the Vercel project's root directory is the repo root while the
-app lives in `apps/web`). Either set Root Directory to `apps/web` in the Vercel project settings or
-deploy with `vercel deploy --prod --cwd apps/web`, then re-run the flow suite against production.
+the new build on another port instead of killing that process. All eight axe
+states in `docs/reports/axe-production.json` were captured on the live site on 2026-11-20.
+
+To ship the next slice, deploy with `vercel deploy --prod --yes` from `apps/web` (the directory
+linked to the project): push-triggered builds still stop at `NEXT_NO_VERSION`, because the Vercel
+project's Root Directory is the repository root while the app lives in `apps/web`. Setting Root
+Directory to `apps/web` in the project settings is the one-click fix that makes pushes deploy on
+their own; the `ERR_PNPM_IGNORED_BUILDS` gate is already fixed in `pnpm-workspace.yaml`.
 
 ## Blocked elsewhere
 

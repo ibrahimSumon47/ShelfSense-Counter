@@ -120,3 +120,7 @@ because the Vercel project's Root Directory is the repository root while `next` 
 `apps/web/package.json`. Git-triggered deploys need that setting changed to `apps/web` (a project
 setting, not a file), so until then the site is updated with a CLI deploy from `apps/web`. Two
 gates, two different causes: read the last log line of the failing step, not the first error found.
+The site was then shipped with `vercel deploy --prod --yes` from `apps/web`, which aliased
+`shelfsense-counter-pogxu6nig` to https://shelfsense-counter.vercel.app, and all 13 checks passed
+against it. The project setting is still unset, so every push keeps producing one failed deployment
+until someone changes Root Directory to `apps/web`; that noise is the cost of leaving it.
