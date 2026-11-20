@@ -1,0 +1,2803 @@
+{
+  "dataset": "sku110k",
+  "split": "val",
+  "num_images": 200,
+  "input_size": 640,
+  "command": "python training/eval_onnx.py --onnx /kaggle/input/datasets/ibrahimhossainsumon/shelfsense-fcos-v3-onnx/fcos-r50-fpn-v3-fp32.onnx /kaggle/input/datasets/ibrahimhossainsumon/shelfsense-fcos-v3-onnx/fcos-r50-fpn-v3-int8.onnx --dataset sku110k --split val --sku-dir /kaggle/input --input-size 640 --normalise no --center-fix none --score-thresh 0.3 --nms-thresh 0.35 --max-dets 1000 --grid 0.15,0.2,0.25,0.3:0.35,0.45 --out /kaggle/working/val-sku110k.json",
+  "models": [
+    {
+      "onnx_file": "fcos-r50-fpn-v3-fp32.onnx",
+      "onnx_size_bytes": 128710729,
+      "onnx_sha256": "f303e0f7cb4dbd612528cd5649eeaba1ae1f91c64c9ea04570cbd9aa07143301",
+      "ms_per_image": 1239.6,
+      "results": [
+        {
+          "score_thresh": 0.3,
+          "nms_thresh": 0.35,
+          "max_dets": 1000,
+          "num_images": 200,
+          "map50": 0.8602,
+          "map50_95": 0.5016,
+          "pycocotools_map75": 0.5346,
+          "num_gt": 30119,
+          "num_dt": 35231,
+          "count_mae": 27.68,
+          "count_mape_pct": 20.99,
+          "pred_count_total": 35231,
+          "gt_count_total": 30119
+        }
+      ],
+      "threshold_sweep": [
+        {
+          "score_thresh": 0.15,
+          "nms_thresh": 0.35,
+          "max_dets": 1000,
+          "num_images": 200,
+          "map50": 0.8665,
+          "map50_95": 0.5046,
+          "pycocotools_map75": 0.5346,
+          "num_gt": 30119,
+          "num_dt": 56713,
+          "count_mae": 132.97,
+          "count_mape_pct": 95.34,
+          "pred_count_total": 56713,
+          "gt_count_total": 30119
+        },
+        {
+          "score_thresh": 0.15,
+          "nms_thresh": 0.45,
+          "max_dets": 1000,
+          "num_images": 200,
+          "map50": 0.8718,
+          "map50_95": 0.5058,
+          "pycocotools_map75": 0.5346,
+          "num_gt": 30119,
+          "num_dt": 66388,
+          "count_mae": 181.34,
+          "count_mape_pct": 129.29,
+          "pred_count_total": 66388,
+          "gt_count_total": 30119
+        },
+        {
+          "score_thresh": 0.2,
+          "nms_thresh": 0.35,
+          "max_dets": 1000,
+          "num_images": 200,
+          "map50": 0.8665,
+          "map50_95": 0.503,
+          "pycocotools_map75": 0.5346,
+          "num_gt": 30119,
+          "num_dt": 43701,
+          "count_mae": 67.91,
+          "count_mape_pct": 49.3,
+          "pred_count_total": 43701,
+          "gt_count_total": 30119
+        },
+        {
+          "score_thresh": 0.2,
+          "nms_thresh": 0.45,
+          "max_dets": 1000,
+          "num_images": 200,
+          "map50": 0.8669,
+          "map50_95": 0.5049,
+          "pycocotools_map75": 0.5346,
+          "num_gt": 30119,
+          "num_dt": 47854,
+          "count_mae": 88.67,
+          "count_mape_pct": 63.67,
+          "pred_count_total": 47854,
+          "gt_count_total": 30119
+        },
+        {
+          "score_thresh": 0.25,
+          "nms_thresh": 0.35,
+          "max_dets": 1000,
+          "num_images": 200,
+          "map50": 0.8602,
+          "map50_95": 0.5023,
+          "pycocotools_map75": 0.5346,
+          "num_gt": 30119,
+          "num_dt": 38213,
+          "count_mae": 40.89,
+          "count_mape_pct": 30.42,
+          "pred_count_total": 38213,
+          "gt_count_total": 30119
+        },
+        {
+          "score_thresh": 0.25,
+          "nms_thresh": 0.45,
+          "max_dets": 1000,
+          "num_images": 200,
+          "map50": 0.8669,
+          "map50_95": 0.5043,
+          "pycocotools_map75": 0.5346,
+          "num_gt": 30119,
+          "num_dt": 40166,
+          "count_mae": 50.38,
+          "count_mape_pct": 36.98,
+          "pred_count_total": 40166,
+          "gt_count_total": 30119
+        },
+        {
+          "score_thresh": 0.3,
+          "nms_thresh": 0.35,
+          "max_dets": 1000,
+          "num_images": 200,
+          "map50": 0.8602,
+          "map50_95": 0.5016,
+          "pycocotools_map75": 0.5346,
+          "num_gt": 30119,
+          "num_dt": 35231,
+          "count_mae": 27.68,
+          "count_mape_pct": 20.99,
+          "pred_count_total": 35231,
+          "gt_count_total": 30119
+        },
+        {
+          "score_thresh": 0.3,
+          "nms_thresh": 0.45,
+          "max_dets": 1000,
+          "num_images": 200,
+          "map50": 0.8602,
+          "map50_95": 0.5023,
+          "pycocotools_map75": 0.5346,
+          "num_gt": 30119,
+          "num_dt": 36204,
+          "count_mae": 32.0,
+          "count_mape_pct": 24.1,
+          "pred_count_total": 36204,
+          "gt_count_total": 30119
+        }
+      ],
+      "bootstrap_95_ci": {
+        "map50": [
+          0.8333,
+          0.877
+        ],
+        "count_mae": [
+          23.77,
+          31.48
+        ],
+        "count_mape_pct": [
+          17.14,
+          25.51
+        ]
+      },
+      "by_density": {
+        "sparse (<50)": {
+          "num_images": 0,
+          "map50": 0.0,
+          "count_mae": 0.0,
+          "count_mape_pct": 0.0
+        },
+        "medium (50-150)": {
+          "num_images": 130,
+          "map50": 0.8999,
+          "count_mae": 27.07,
+          "count_mape_pct": 24.05
+        },
+        "dense (>150)": {
+          "num_images": 70,
+          "map50": 0.8009,
+          "count_mae": 28.81,
+          "count_mape_pct": 15.3
+        }
+      },
+      "per_image": [
+        {
+          "image_id": "val_0.jpg",
+          "gt_count": 157,
+          "pred_count": 165,
+          "abs_error": 8
+        },
+        {
+          "image_id": "val_1.jpg",
+          "gt_count": 166,
+          "pred_count": 201,
+          "abs_error": 35
+        },
+        {
+          "image_id": "val_10.jpg",
+          "gt_count": 135,
+          "pred_count": 157,
+          "abs_error": 22
+        },
+        {
+          "image_id": "val_100.jpg",
+          "gt_count": 139,
+          "pred_count": 151,
+          "abs_error": 12
+        },
+        {
+          "image_id": "val_101.jpg",
+          "gt_count": 113,
+          "pred_count": 130,
+          "abs_error": 17
+        },
+        {
+          "image_id": "val_102.jpg",
+          "gt_count": 205,
+          "pred_count": 227,
+          "abs_error": 22
+        },
+        {
+          "image_id": "val_103.jpg",
+          "gt_count": 126,
+          "pred_count": 142,
+          "abs_error": 16
+        },
+        {
+          "image_id": "val_104.jpg",
+          "gt_count": 132,
+          "pred_count": 139,
+          "abs_error": 7
+        },
+        {
+          "image_id": "val_105.jpg",
+          "gt_count": 134,
+          "pred_count": 161,
+          "abs_error": 27
+        },
+        {
+          "image_id": "val_106.jpg",
+          "gt_count": 185,
+          "pred_count": 210,
+          "abs_error": 25
+        },
+        {
+          "image_id": "val_107.jpg",
+          "gt_count": 179,
+          "pred_count": 188,
+          "abs_error": 9
+        },
+        {
+          "image_id": "val_108.jpg",
+          "gt_count": 148,
+          "pred_count": 171,
+          "abs_error": 23
+        },
+        {
+          "image_id": "val_109.jpg",
+          "gt_count": 130,
+          "pred_count": 143,
+          "abs_error": 13
+        },
+        {
+          "image_id": "val_11.jpg",
+          "gt_count": 135,
+          "pred_count": 156,
+          "abs_error": 21
+        },
+        {
+          "image_id": "val_110.jpg",
+          "gt_count": 130,
+          "pred_count": 188,
+          "abs_error": 58
+        },
+        {
+          "image_id": "val_111.jpg",
+          "gt_count": 107,
+          "pred_count": 157,
+          "abs_error": 50
+        },
+        {
+          "image_id": "val_112.jpg",
+          "gt_count": 133,
+          "pred_count": 167,
+          "abs_error": 34
+        },
+        {
+          "image_id": "val_113.jpg",
+          "gt_count": 132,
+          "pred_count": 144,
+          "abs_error": 12
+        },
+        {
+          "image_id": "val_114.jpg",
+          "gt_count": 145,
+          "pred_count": 160,
+          "abs_error": 15
+        },
+        {
+          "image_id": "val_115.jpg",
+          "gt_count": 143,
+          "pred_count": 148,
+          "abs_error": 5
+        },
+        {
+          "image_id": "val_116.jpg",
+          "gt_count": 75,
+          "pred_count": 135,
+          "abs_error": 60
+        },
+        {
+          "image_id": "val_117.jpg",
+          "gt_count": 213,
+          "pred_count": 171,
+          "abs_error": 42
+        },
+        {
+          "image_id": "val_118.jpg",
+          "gt_count": 127,
+          "pred_count": 148,
+          "abs_error": 21
+        },
+        {
+          "image_id": "val_119.jpg",
+          "gt_count": 124,
+          "pred_count": 246,
+          "abs_error": 122
+        },
+        {
+          "image_id": "val_12.jpg",
+          "gt_count": 56,
+          "pred_count": 254,
+          "abs_error": 198
+        },
+        {
+          "image_id": "val_120.jpg",
+          "gt_count": 123,
+          "pred_count": 221,
+          "abs_error": 98
+        },
+        {
+          "image_id": "val_121.jpg",
+          "gt_count": 197,
+          "pred_count": 223,
+          "abs_error": 26
+        },
+        {
+          "image_id": "val_122.jpg",
+          "gt_count": 132,
+          "pred_count": 153,
+          "abs_error": 21
+        },
+        {
+          "image_id": "val_123.jpg",
+          "gt_count": 124,
+          "pred_count": 167,
+          "abs_error": 43
+        },
+        {
+          "image_id": "val_124.jpg",
+          "gt_count": 158,
+          "pred_count": 174,
+          "abs_error": 16
+        },
+        {
+          "image_id": "val_125.jpg",
+          "gt_count": 262,
+          "pred_count": 280,
+          "abs_error": 18
+        },
+        {
+          "image_id": "val_126.jpg",
+          "gt_count": 141,
+          "pred_count": 164,
+          "abs_error": 23
+        },
+        {
+          "image_id": "val_127.jpg",
+          "gt_count": 139,
+          "pred_count": 157,
+          "abs_error": 18
+        },
+        {
+          "image_id": "val_128.jpg",
+          "gt_count": 117,
+          "pred_count": 130,
+          "abs_error": 13
+        },
+        {
+          "image_id": "val_129.jpg",
+          "gt_count": 106,
+          "pred_count": 128,
+          "abs_error": 22
+        },
+        {
+          "image_id": "val_13.jpg",
+          "gt_count": 134,
+          "pred_count": 194,
+          "abs_error": 60
+        },
+        {
+          "image_id": "val_130.jpg",
+          "gt_count": 197,
+          "pred_count": 217,
+          "abs_error": 20
+        },
+        {
+          "image_id": "val_131.jpg",
+          "gt_count": 111,
+          "pred_count": 127,
+          "abs_error": 16
+        },
+        {
+          "image_id": "val_132.jpg",
+          "gt_count": 269,
+          "pred_count": 253,
+          "abs_error": 16
+        },
+        {
+          "image_id": "val_133.jpg",
+          "gt_count": 111,
+          "pred_count": 136,
+          "abs_error": 25
+        },
+        {
+          "image_id": "val_134.jpg",
+          "gt_count": 129,
+          "pred_count": 158,
+          "abs_error": 29
+        },
+        {
+          "image_id": "val_135.jpg",
+          "gt_count": 190,
+          "pred_count": 221,
+          "abs_error": 31
+        },
+        {
+          "image_id": "val_136.jpg",
+          "gt_count": 159,
+          "pred_count": 184,
+          "abs_error": 25
+        },
+        {
+          "image_id": "val_137.jpg",
+          "gt_count": 174,
+          "pred_count": 204,
+          "abs_error": 30
+        },
+        {
+          "image_id": "val_138.jpg",
+          "gt_count": 135,
+          "pred_count": 139,
+          "abs_error": 4
+        },
+        {
+          "image_id": "val_139.jpg",
+          "gt_count": 129,
+          "pred_count": 148,
+          "abs_error": 19
+        },
+        {
+          "image_id": "val_14.jpg",
+          "gt_count": 178,
+          "pred_count": 192,
+          "abs_error": 14
+        },
+        {
+          "image_id": "val_140.jpg",
+          "gt_count": 183,
+          "pred_count": 244,
+          "abs_error": 61
+        },
+        {
+          "image_id": "val_141.jpg",
+          "gt_count": 115,
+          "pred_count": 165,
+          "abs_error": 50
+        },
+        {
+          "image_id": "val_142.jpg",
+          "gt_count": 119,
+          "pred_count": 140,
+          "abs_error": 21
+        },
+        {
+          "image_id": "val_143.jpg",
+          "gt_count": 136,
+          "pred_count": 155,
+          "abs_error": 19
+        },
+        {
+          "image_id": "val_144.jpg",
+          "gt_count": 149,
+          "pred_count": 243,
+          "abs_error": 94
+        },
+        {
+          "image_id": "val_145.jpg",
+          "gt_count": 127,
+          "pred_count": 153,
+          "abs_error": 26
+        },
+        {
+          "image_id": "val_146.jpg",
+          "gt_count": 117,
+          "pred_count": 144,
+          "abs_error": 27
+        },
+        {
+          "image_id": "val_148.jpg",
+          "gt_count": 214,
+          "pred_count": 226,
+          "abs_error": 12
+        },
+        {
+          "image_id": "val_149.jpg",
+          "gt_count": 135,
+          "pred_count": 146,
+          "abs_error": 11
+        },
+        {
+          "image_id": "val_15.jpg",
+          "gt_count": 183,
+          "pred_count": 245,
+          "abs_error": 62
+        },
+        {
+          "image_id": "val_150.jpg",
+          "gt_count": 213,
+          "pred_count": 243,
+          "abs_error": 30
+        },
+        {
+          "image_id": "val_151.jpg",
+          "gt_count": 223,
+          "pred_count": 232,
+          "abs_error": 9
+        },
+        {
+          "image_id": "val_152.jpg",
+          "gt_count": 208,
+          "pred_count": 265,
+          "abs_error": 57
+        },
+        {
+          "image_id": "val_153.jpg",
+          "gt_count": 168,
+          "pred_count": 173,
+          "abs_error": 5
+        },
+        {
+          "image_id": "val_154.jpg",
+          "gt_count": 172,
+          "pred_count": 181,
+          "abs_error": 9
+        },
+        {
+          "image_id": "val_155.jpg",
+          "gt_count": 125,
+          "pred_count": 148,
+          "abs_error": 23
+        },
+        {
+          "image_id": "val_156.jpg",
+          "gt_count": 137,
+          "pred_count": 155,
+          "abs_error": 18
+        },
+        {
+          "image_id": "val_157.jpg",
+          "gt_count": 148,
+          "pred_count": 162,
+          "abs_error": 14
+        },
+        {
+          "image_id": "val_158.jpg",
+          "gt_count": 187,
+          "pred_count": 198,
+          "abs_error": 11
+        },
+        {
+          "image_id": "val_159.jpg",
+          "gt_count": 98,
+          "pred_count": 166,
+          "abs_error": 68
+        },
+        {
+          "image_id": "val_16.jpg",
+          "gt_count": 173,
+          "pred_count": 219,
+          "abs_error": 46
+        },
+        {
+          "image_id": "val_160.jpg",
+          "gt_count": 140,
+          "pred_count": 164,
+          "abs_error": 24
+        },
+        {
+          "image_id": "val_161.jpg",
+          "gt_count": 162,
+          "pred_count": 169,
+          "abs_error": 7
+        },
+        {
+          "image_id": "val_162.jpg",
+          "gt_count": 176,
+          "pred_count": 196,
+          "abs_error": 20
+        },
+        {
+          "image_id": "val_163.jpg",
+          "gt_count": 169,
+          "pred_count": 166,
+          "abs_error": 3
+        },
+        {
+          "image_id": "val_164.jpg",
+          "gt_count": 128,
+          "pred_count": 130,
+          "abs_error": 2
+        },
+        {
+          "image_id": "val_165.jpg",
+          "gt_count": 129,
+          "pred_count": 137,
+          "abs_error": 8
+        },
+        {
+          "image_id": "val_166.jpg",
+          "gt_count": 197,
+          "pred_count": 206,
+          "abs_error": 9
+        },
+        {
+          "image_id": "val_167.jpg",
+          "gt_count": 110,
+          "pred_count": 151,
+          "abs_error": 41
+        },
+        {
+          "image_id": "val_168.jpg",
+          "gt_count": 138,
+          "pred_count": 133,
+          "abs_error": 5
+        },
+        {
+          "image_id": "val_169.jpg",
+          "gt_count": 138,
+          "pred_count": 174,
+          "abs_error": 36
+        },
+        {
+          "image_id": "val_17.jpg",
+          "gt_count": 94,
+          "pred_count": 148,
+          "abs_error": 54
+        },
+        {
+          "image_id": "val_170.jpg",
+          "gt_count": 81,
+          "pred_count": 103,
+          "abs_error": 22
+        },
+        {
+          "image_id": "val_171.jpg",
+          "gt_count": 138,
+          "pred_count": 155,
+          "abs_error": 17
+        },
+        {
+          "image_id": "val_172.jpg",
+          "gt_count": 170,
+          "pred_count": 189,
+          "abs_error": 19
+        },
+        {
+          "image_id": "val_173.jpg",
+          "gt_count": 135,
+          "pred_count": 142,
+          "abs_error": 7
+        },
+        {
+          "image_id": "val_174.jpg",
+          "gt_count": 134,
+          "pred_count": 178,
+          "abs_error": 44
+        },
+        {
+          "image_id": "val_175.jpg",
+          "gt_count": 107,
+          "pred_count": 155,
+          "abs_error": 48
+        },
+        {
+          "image_id": "val_176.jpg",
+          "gt_count": 115,
+          "pred_count": 139,
+          "abs_error": 24
+        },
+        {
+          "image_id": "val_177.jpg",
+          "gt_count": 159,
+          "pred_count": 218,
+          "abs_error": 59
+        },
+        {
+          "image_id": "val_178.jpg",
+          "gt_count": 139,
+          "pred_count": 164,
+          "abs_error": 25
+        },
+        {
+          "image_id": "val_179.jpg",
+          "gt_count": 123,
+          "pred_count": 131,
+          "abs_error": 8
+        },
+        {
+          "image_id": "val_18.jpg",
+          "gt_count": 232,
+          "pred_count": 255,
+          "abs_error": 23
+        },
+        {
+          "image_id": "val_180.jpg",
+          "gt_count": 210,
+          "pred_count": 215,
+          "abs_error": 5
+        },
+        {
+          "image_id": "val_181.jpg",
+          "gt_count": 187,
+          "pred_count": 201,
+          "abs_error": 14
+        },
+        {
+          "image_id": "val_182.jpg",
+          "gt_count": 134,
+          "pred_count": 153,
+          "abs_error": 19
+        },
+        {
+          "image_id": "val_183.jpg",
+          "gt_count": 123,
+          "pred_count": 134,
+          "abs_error": 11
+        },
+        {
+          "image_id": "val_184.jpg",
+          "gt_count": 198,
+          "pred_count": 243,
+          "abs_error": 45
+        },
+        {
+          "image_id": "val_185.jpg",
+          "gt_count": 173,
+          "pred_count": 168,
+          "abs_error": 5
+        },
+        {
+          "image_id": "val_186.jpg",
+          "gt_count": 140,
+          "pred_count": 153,
+          "abs_error": 13
+        },
+        {
+          "image_id": "val_187.jpg",
+          "gt_count": 140,
+          "pred_count": 158,
+          "abs_error": 18
+        },
+        {
+          "image_id": "val_188.jpg",
+          "gt_count": 130,
+          "pred_count": 145,
+          "abs_error": 15
+        },
+        {
+          "image_id": "val_189.jpg",
+          "gt_count": 148,
+          "pred_count": 155,
+          "abs_error": 7
+        },
+        {
+          "image_id": "val_19.jpg",
+          "gt_count": 120,
+          "pred_count": 137,
+          "abs_error": 17
+        },
+        {
+          "image_id": "val_190.jpg",
+          "gt_count": 135,
+          "pred_count": 147,
+          "abs_error": 12
+        },
+        {
+          "image_id": "val_191.jpg",
+          "gt_count": 124,
+          "pred_count": 130,
+          "abs_error": 6
+        },
+        {
+          "image_id": "val_192.jpg",
+          "gt_count": 154,
+          "pred_count": 182,
+          "abs_error": 28
+        },
+        {
+          "image_id": "val_193.jpg",
+          "gt_count": 117,
+          "pred_count": 139,
+          "abs_error": 22
+        },
+        {
+          "image_id": "val_194.jpg",
+          "gt_count": 146,
+          "pred_count": 151,
+          "abs_error": 5
+        },
+        {
+          "image_id": "val_195.jpg",
+          "gt_count": 146,
+          "pred_count": 160,
+          "abs_error": 14
+        },
+        {
+          "image_id": "val_196.jpg",
+          "gt_count": 190,
+          "pred_count": 261,
+          "abs_error": 71
+        },
+        {
+          "image_id": "val_197.jpg",
+          "gt_count": 115,
+          "pred_count": 125,
+          "abs_error": 10
+        },
+        {
+          "image_id": "val_198.jpg",
+          "gt_count": 133,
+          "pred_count": 144,
+          "abs_error": 11
+        },
+        {
+          "image_id": "val_199.jpg",
+          "gt_count": 145,
+          "pred_count": 188,
+          "abs_error": 43
+        },
+        {
+          "image_id": "val_2.jpg",
+          "gt_count": 202,
+          "pred_count": 214,
+          "abs_error": 12
+        },
+        {
+          "image_id": "val_20.jpg",
+          "gt_count": 126,
+          "pred_count": 157,
+          "abs_error": 31
+        },
+        {
+          "image_id": "val_200.jpg",
+          "gt_count": 204,
+          "pred_count": 184,
+          "abs_error": 20
+        },
+        {
+          "image_id": "val_201.jpg",
+          "gt_count": 133,
+          "pred_count": 161,
+          "abs_error": 28
+        },
+        {
+          "image_id": "val_202.jpg",
+          "gt_count": 133,
+          "pred_count": 173,
+          "abs_error": 40
+        },
+        {
+          "image_id": "val_203.jpg",
+          "gt_count": 117,
+          "pred_count": 130,
+          "abs_error": 13
+        },
+        {
+          "image_id": "val_204.jpg",
+          "gt_count": 192,
+          "pred_count": 496,
+          "abs_error": 304
+        },
+        {
+          "image_id": "val_205.jpg",
+          "gt_count": 137,
+          "pred_count": 140,
+          "abs_error": 3
+        },
+        {
+          "image_id": "val_206.jpg",
+          "gt_count": 126,
+          "pred_count": 163,
+          "abs_error": 37
+        },
+        {
+          "image_id": "val_207.jpg",
+          "gt_count": 124,
+          "pred_count": 151,
+          "abs_error": 27
+        },
+        {
+          "image_id": "val_208.jpg",
+          "gt_count": 167,
+          "pred_count": 244,
+          "abs_error": 77
+        },
+        {
+          "image_id": "val_209.jpg",
+          "gt_count": 141,
+          "pred_count": 148,
+          "abs_error": 7
+        },
+        {
+          "image_id": "val_21.jpg",
+          "gt_count": 137,
+          "pred_count": 142,
+          "abs_error": 5
+        },
+        {
+          "image_id": "val_210.jpg",
+          "gt_count": 147,
+          "pred_count": 161,
+          "abs_error": 14
+        },
+        {
+          "image_id": "val_211.jpg",
+          "gt_count": 120,
+          "pred_count": 130,
+          "abs_error": 10
+        },
+        {
+          "image_id": "val_212.jpg",
+          "gt_count": 156,
+          "pred_count": 140,
+          "abs_error": 16
+        },
+        {
+          "image_id": "val_213.jpg",
+          "gt_count": 106,
+          "pred_count": 151,
+          "abs_error": 45
+        },
+        {
+          "image_id": "val_214.jpg",
+          "gt_count": 121,
+          "pred_count": 150,
+          "abs_error": 29
+        },
+        {
+          "image_id": "val_215.jpg",
+          "gt_count": 153,
+          "pred_count": 180,
+          "abs_error": 27
+        },
+        {
+          "image_id": "val_216.jpg",
+          "gt_count": 125,
+          "pred_count": 133,
+          "abs_error": 8
+        },
+        {
+          "image_id": "val_217.jpg",
+          "gt_count": 123,
+          "pred_count": 153,
+          "abs_error": 30
+        },
+        {
+          "image_id": "val_218.jpg",
+          "gt_count": 146,
+          "pred_count": 161,
+          "abs_error": 15
+        },
+        {
+          "image_id": "val_219.jpg",
+          "gt_count": 163,
+          "pred_count": 203,
+          "abs_error": 40
+        },
+        {
+          "image_id": "val_22.jpg",
+          "gt_count": 168,
+          "pred_count": 192,
+          "abs_error": 24
+        },
+        {
+          "image_id": "val_220.jpg",
+          "gt_count": 150,
+          "pred_count": 145,
+          "abs_error": 5
+        },
+        {
+          "image_id": "val_221.jpg",
+          "gt_count": 122,
+          "pred_count": 132,
+          "abs_error": 10
+        },
+        {
+          "image_id": "val_222.jpg",
+          "gt_count": 180,
+          "pred_count": 183,
+          "abs_error": 3
+        },
+        {
+          "image_id": "val_223.jpg",
+          "gt_count": 139,
+          "pred_count": 172,
+          "abs_error": 33
+        },
+        {
+          "image_id": "val_224.jpg",
+          "gt_count": 121,
+          "pred_count": 187,
+          "abs_error": 66
+        },
+        {
+          "image_id": "val_225.jpg",
+          "gt_count": 148,
+          "pred_count": 154,
+          "abs_error": 6
+        },
+        {
+          "image_id": "val_226.jpg",
+          "gt_count": 158,
+          "pred_count": 200,
+          "abs_error": 42
+        },
+        {
+          "image_id": "val_227.jpg",
+          "gt_count": 136,
+          "pred_count": 169,
+          "abs_error": 33
+        },
+        {
+          "image_id": "val_228.jpg",
+          "gt_count": 136,
+          "pred_count": 154,
+          "abs_error": 18
+        },
+        {
+          "image_id": "val_229.jpg",
+          "gt_count": 466,
+          "pred_count": 507,
+          "abs_error": 41
+        },
+        {
+          "image_id": "val_23.jpg",
+          "gt_count": 134,
+          "pred_count": 156,
+          "abs_error": 22
+        },
+        {
+          "image_id": "val_230.jpg",
+          "gt_count": 88,
+          "pred_count": 174,
+          "abs_error": 86
+        },
+        {
+          "image_id": "val_231.jpg",
+          "gt_count": 61,
+          "pred_count": 109,
+          "abs_error": 48
+        },
+        {
+          "image_id": "val_232.jpg",
+          "gt_count": 124,
+          "pred_count": 158,
+          "abs_error": 34
+        },
+        {
+          "image_id": "val_233.jpg",
+          "gt_count": 183,
+          "pred_count": 192,
+          "abs_error": 9
+        },
+        {
+          "image_id": "val_234.jpg",
+          "gt_count": 138,
+          "pred_count": 137,
+          "abs_error": 1
+        },
+        {
+          "image_id": "val_235.jpg",
+          "gt_count": 176,
+          "pred_count": 193,
+          "abs_error": 17
+        },
+        {
+          "image_id": "val_236.jpg",
+          "gt_count": 151,
+          "pred_count": 154,
+          "abs_error": 3
+        },
+        {
+          "image_id": "val_237.jpg",
+          "gt_count": 121,
+          "pred_count": 142,
+          "abs_error": 21
+        },
+        {
+          "image_id": "val_238.jpg",
+          "gt_count": 155,
+          "pred_count": 186,
+          "abs_error": 31
+        },
+        {
+          "image_id": "val_239.jpg",
+          "gt_count": 157,
+          "pred_count": 161,
+          "abs_error": 4
+        },
+        {
+          "image_id": "val_24.jpg",
+          "gt_count": 156,
+          "pred_count": 181,
+          "abs_error": 25
+        },
+        {
+          "image_id": "val_240.jpg",
+          "gt_count": 195,
+          "pred_count": 216,
+          "abs_error": 21
+        },
+        {
+          "image_id": "val_241.jpg",
+          "gt_count": 110,
+          "pred_count": 167,
+          "abs_error": 57
+        },
+        {
+          "image_id": "val_242.jpg",
+          "gt_count": 142,
+          "pred_count": 188,
+          "abs_error": 46
+        },
+        {
+          "image_id": "val_243.jpg",
+          "gt_count": 143,
+          "pred_count": 158,
+          "abs_error": 15
+        },
+        {
+          "image_id": "val_244.jpg",
+          "gt_count": 184,
+          "pred_count": 211,
+          "abs_error": 27
+        },
+        {
+          "image_id": "val_245.jpg",
+          "gt_count": 148,
+          "pred_count": 184,
+          "abs_error": 36
+        },
+        {
+          "image_id": "val_246.jpg",
+          "gt_count": 150,
+          "pred_count": 178,
+          "abs_error": 28
+        },
+        {
+          "image_id": "val_247.jpg",
+          "gt_count": 122,
+          "pred_count": 128,
+          "abs_error": 6
+        },
+        {
+          "image_id": "val_248.jpg",
+          "gt_count": 282,
+          "pred_count": 317,
+          "abs_error": 35
+        },
+        {
+          "image_id": "val_249.jpg",
+          "gt_count": 90,
+          "pred_count": 146,
+          "abs_error": 56
+        },
+        {
+          "image_id": "val_25.jpg",
+          "gt_count": 126,
+          "pred_count": 139,
+          "abs_error": 13
+        },
+        {
+          "image_id": "val_250.jpg",
+          "gt_count": 131,
+          "pred_count": 144,
+          "abs_error": 13
+        },
+        {
+          "image_id": "val_251.jpg",
+          "gt_count": 251,
+          "pred_count": 257,
+          "abs_error": 6
+        },
+        {
+          "image_id": "val_252.jpg",
+          "gt_count": 136,
+          "pred_count": 162,
+          "abs_error": 26
+        },
+        {
+          "image_id": "val_253.jpg",
+          "gt_count": 119,
+          "pred_count": 142,
+          "abs_error": 23
+        },
+        {
+          "image_id": "val_254.jpg",
+          "gt_count": 133,
+          "pred_count": 148,
+          "abs_error": 15
+        },
+        {
+          "image_id": "val_255.jpg",
+          "gt_count": 150,
+          "pred_count": 158,
+          "abs_error": 8
+        },
+        {
+          "image_id": "val_256.jpg",
+          "gt_count": 130,
+          "pred_count": 171,
+          "abs_error": 41
+        },
+        {
+          "image_id": "val_257.jpg",
+          "gt_count": 225,
+          "pred_count": 217,
+          "abs_error": 8
+        },
+        {
+          "image_id": "val_258.jpg",
+          "gt_count": 144,
+          "pred_count": 194,
+          "abs_error": 50
+        },
+        {
+          "image_id": "val_259.jpg",
+          "gt_count": 114,
+          "pred_count": 150,
+          "abs_error": 36
+        },
+        {
+          "image_id": "val_26.jpg",
+          "gt_count": 227,
+          "pred_count": 252,
+          "abs_error": 25
+        },
+        {
+          "image_id": "val_260.jpg",
+          "gt_count": 113,
+          "pred_count": 142,
+          "abs_error": 29
+        },
+        {
+          "image_id": "val_261.jpg",
+          "gt_count": 150,
+          "pred_count": 173,
+          "abs_error": 23
+        },
+        {
+          "image_id": "val_262.jpg",
+          "gt_count": 104,
+          "pred_count": 136,
+          "abs_error": 32
+        },
+        {
+          "image_id": "val_263.jpg",
+          "gt_count": 162,
+          "pred_count": 174,
+          "abs_error": 12
+        },
+        {
+          "image_id": "val_264.jpg",
+          "gt_count": 205,
+          "pred_count": 223,
+          "abs_error": 18
+        },
+        {
+          "image_id": "val_265.jpg",
+          "gt_count": 117,
+          "pred_count": 118,
+          "abs_error": 1
+        },
+        {
+          "image_id": "val_266.jpg",
+          "gt_count": 123,
+          "pred_count": 146,
+          "abs_error": 23
+        },
+        {
+          "image_id": "val_267.jpg",
+          "gt_count": 108,
+          "pred_count": 132,
+          "abs_error": 24
+        },
+        {
+          "image_id": "val_268.jpg",
+          "gt_count": 162,
+          "pred_count": 165,
+          "abs_error": 3
+        },
+        {
+          "image_id": "val_269.jpg",
+          "gt_count": 144,
+          "pred_count": 166,
+          "abs_error": 22
+        },
+        {
+          "image_id": "val_27.jpg",
+          "gt_count": 118,
+          "pred_count": 152,
+          "abs_error": 34
+        },
+        {
+          "image_id": "val_270.jpg",
+          "gt_count": 227,
+          "pred_count": 182,
+          "abs_error": 45
+        },
+        {
+          "image_id": "val_271.jpg",
+          "gt_count": 420,
+          "pred_count": 374,
+          "abs_error": 46
+        },
+        {
+          "image_id": "val_272.jpg",
+          "gt_count": 123,
+          "pred_count": 130,
+          "abs_error": 7
+        },
+        {
+          "image_id": "val_273.jpg",
+          "gt_count": 141,
+          "pred_count": 152,
+          "abs_error": 11
+        },
+        {
+          "image_id": "val_274.jpg",
+          "gt_count": 167,
+          "pred_count": 204,
+          "abs_error": 37
+        },
+        {
+          "image_id": "val_275.jpg",
+          "gt_count": 188,
+          "pred_count": 188,
+          "abs_error": 0
+        },
+        {
+          "image_id": "val_276.jpg",
+          "gt_count": 164,
+          "pred_count": 218,
+          "abs_error": 54
+        },
+        {
+          "image_id": "val_277.jpg",
+          "gt_count": 127,
+          "pred_count": 157,
+          "abs_error": 30
+        },
+        {
+          "image_id": "val_278.jpg",
+          "gt_count": 145,
+          "pred_count": 151,
+          "abs_error": 6
+        },
+        {
+          "image_id": "val_279.jpg",
+          "gt_count": 156,
+          "pred_count": 194,
+          "abs_error": 38
+        }
+      ],
+      "predictions_file": null,
+      "primary": {
+        "score_thresh": 0.3,
+        "nms_thresh": 0.35,
+        "max_dets": 1000,
+        "num_images": 200,
+        "map50": 0.8602,
+        "map50_95": 0.5016,
+        "pycocotools_map75": 0.5346,
+        "num_gt": 30119,
+        "num_dt": 35231,
+        "count_mae": 27.68,
+        "count_mape_pct": 20.99,
+        "pred_count_total": 35231,
+        "gt_count_total": 30119
+      }
+    },
+    {
+      "onnx_file": "fcos-r50-fpn-v3-int8.onnx",
+      "onnx_size_bytes": 32818871,
+      "onnx_sha256": "e00176ae386053f9db49b9fb7e521c10ff25d361411fa9cd6dd7c07bca7863fc",
+      "ms_per_image": 1054.1,
+      "results": [
+        {
+          "score_thresh": 0.3,
+          "nms_thresh": 0.35,
+          "max_dets": 1000,
+          "num_images": 200,
+          "map50": 0.8524,
+          "map50_95": 0.5009,
+          "pycocotools_map75": 0.5342,
+          "num_gt": 30119,
+          "num_dt": 35251,
+          "count_mae": 27.68,
+          "count_mape_pct": 21.0,
+          "pred_count_total": 35251,
+          "gt_count_total": 30119
+        }
+      ],
+      "threshold_sweep": [
+        {
+          "score_thresh": 0.15,
+          "nms_thresh": 0.35,
+          "max_dets": 1000,
+          "num_images": 200,
+          "map50": 0.8662,
+          "map50_95": 0.5045,
+          "pycocotools_map75": 0.5342,
+          "num_gt": 30119,
+          "num_dt": 56817,
+          "count_mae": 133.49,
+          "count_mape_pct": 95.72,
+          "pred_count_total": 56817,
+          "gt_count_total": 30119
+        },
+        {
+          "score_thresh": 0.15,
+          "nms_thresh": 0.45,
+          "max_dets": 1000,
+          "num_images": 200,
+          "map50": 0.8714,
+          "map50_95": 0.5057,
+          "pycocotools_map75": 0.5342,
+          "num_gt": 30119,
+          "num_dt": 66533,
+          "count_mae": 182.07,
+          "count_mape_pct": 129.83,
+          "pred_count_total": 66533,
+          "gt_count_total": 30119
+        },
+        {
+          "score_thresh": 0.2,
+          "nms_thresh": 0.35,
+          "max_dets": 1000,
+          "num_images": 200,
+          "map50": 0.8662,
+          "map50_95": 0.503,
+          "pycocotools_map75": 0.5342,
+          "num_gt": 30119,
+          "num_dt": 43810,
+          "count_mae": 68.45,
+          "count_mape_pct": 49.63,
+          "pred_count_total": 43810,
+          "gt_count_total": 30119
+        },
+        {
+          "score_thresh": 0.2,
+          "nms_thresh": 0.45,
+          "max_dets": 1000,
+          "num_images": 200,
+          "map50": 0.8666,
+          "map50_95": 0.5049,
+          "pycocotools_map75": 0.5342,
+          "num_gt": 30119,
+          "num_dt": 47949,
+          "count_mae": 89.15,
+          "count_mape_pct": 64.01,
+          "pred_count_total": 47949,
+          "gt_count_total": 30119
+        },
+        {
+          "score_thresh": 0.25,
+          "nms_thresh": 0.35,
+          "max_dets": 1000,
+          "num_images": 200,
+          "map50": 0.8599,
+          "map50_95": 0.5023,
+          "pycocotools_map75": 0.5342,
+          "num_gt": 30119,
+          "num_dt": 38241,
+          "count_mae": 41.02,
+          "count_mape_pct": 30.51,
+          "pred_count_total": 38241,
+          "gt_count_total": 30119
+        },
+        {
+          "score_thresh": 0.25,
+          "nms_thresh": 0.45,
+          "max_dets": 1000,
+          "num_images": 200,
+          "map50": 0.8666,
+          "map50_95": 0.5042,
+          "pycocotools_map75": 0.5342,
+          "num_gt": 30119,
+          "num_dt": 40206,
+          "count_mae": 50.58,
+          "count_mape_pct": 37.16,
+          "pred_count_total": 40206,
+          "gt_count_total": 30119
+        },
+        {
+          "score_thresh": 0.3,
+          "nms_thresh": 0.35,
+          "max_dets": 1000,
+          "num_images": 200,
+          "map50": 0.8524,
+          "map50_95": 0.5009,
+          "pycocotools_map75": 0.5342,
+          "num_gt": 30119,
+          "num_dt": 35251,
+          "count_mae": 27.68,
+          "count_mape_pct": 21.0,
+          "pred_count_total": 35251,
+          "gt_count_total": 30119
+        },
+        {
+          "score_thresh": 0.3,
+          "nms_thresh": 0.45,
+          "max_dets": 1000,
+          "num_images": 200,
+          "map50": 0.8599,
+          "map50_95": 0.5023,
+          "pycocotools_map75": 0.5342,
+          "num_gt": 30119,
+          "num_dt": 36219,
+          "count_mae": 31.91,
+          "count_mape_pct": 24.06,
+          "pred_count_total": 36219,
+          "gt_count_total": 30119
+        }
+      ],
+      "bootstrap_95_ci": {
+        "map50": [
+          0.8328,
+          0.8769
+        ],
+        "count_mae": [
+          23.8,
+          31.43
+        ],
+        "count_mape_pct": [
+          17.12,
+          25.5
+        ]
+      },
+      "by_density": {
+        "sparse (<50)": {
+          "num_images": 0,
+          "map50": 0.0,
+          "count_mae": 0.0,
+          "count_mape_pct": 0.0
+        },
+        "medium (50-150)": {
+          "num_images": 130,
+          "map50": 0.8997,
+          "count_mae": 26.94,
+          "count_mape_pct": 23.98
+        },
+        "dense (>150)": {
+          "num_images": 70,
+          "map50": 0.8004,
+          "count_mae": 29.06,
+          "count_mape_pct": 15.45
+        }
+      },
+      "per_image": [
+        {
+          "image_id": "val_0.jpg",
+          "gt_count": 157,
+          "pred_count": 168,
+          "abs_error": 11
+        },
+        {
+          "image_id": "val_1.jpg",
+          "gt_count": 166,
+          "pred_count": 201,
+          "abs_error": 35
+        },
+        {
+          "image_id": "val_10.jpg",
+          "gt_count": 135,
+          "pred_count": 159,
+          "abs_error": 24
+        },
+        {
+          "image_id": "val_100.jpg",
+          "gt_count": 139,
+          "pred_count": 152,
+          "abs_error": 13
+        },
+        {
+          "image_id": "val_101.jpg",
+          "gt_count": 113,
+          "pred_count": 128,
+          "abs_error": 15
+        },
+        {
+          "image_id": "val_102.jpg",
+          "gt_count": 205,
+          "pred_count": 228,
+          "abs_error": 23
+        },
+        {
+          "image_id": "val_103.jpg",
+          "gt_count": 126,
+          "pred_count": 142,
+          "abs_error": 16
+        },
+        {
+          "image_id": "val_104.jpg",
+          "gt_count": 132,
+          "pred_count": 144,
+          "abs_error": 12
+        },
+        {
+          "image_id": "val_105.jpg",
+          "gt_count": 134,
+          "pred_count": 163,
+          "abs_error": 29
+        },
+        {
+          "image_id": "val_106.jpg",
+          "gt_count": 185,
+          "pred_count": 212,
+          "abs_error": 27
+        },
+        {
+          "image_id": "val_107.jpg",
+          "gt_count": 179,
+          "pred_count": 188,
+          "abs_error": 9
+        },
+        {
+          "image_id": "val_108.jpg",
+          "gt_count": 148,
+          "pred_count": 170,
+          "abs_error": 22
+        },
+        {
+          "image_id": "val_109.jpg",
+          "gt_count": 130,
+          "pred_count": 144,
+          "abs_error": 14
+        },
+        {
+          "image_id": "val_11.jpg",
+          "gt_count": 135,
+          "pred_count": 151,
+          "abs_error": 16
+        },
+        {
+          "image_id": "val_110.jpg",
+          "gt_count": 130,
+          "pred_count": 187,
+          "abs_error": 57
+        },
+        {
+          "image_id": "val_111.jpg",
+          "gt_count": 107,
+          "pred_count": 156,
+          "abs_error": 49
+        },
+        {
+          "image_id": "val_112.jpg",
+          "gt_count": 133,
+          "pred_count": 169,
+          "abs_error": 36
+        },
+        {
+          "image_id": "val_113.jpg",
+          "gt_count": 132,
+          "pred_count": 144,
+          "abs_error": 12
+        },
+        {
+          "image_id": "val_114.jpg",
+          "gt_count": 145,
+          "pred_count": 160,
+          "abs_error": 15
+        },
+        {
+          "image_id": "val_115.jpg",
+          "gt_count": 143,
+          "pred_count": 150,
+          "abs_error": 7
+        },
+        {
+          "image_id": "val_116.jpg",
+          "gt_count": 75,
+          "pred_count": 134,
+          "abs_error": 59
+        },
+        {
+          "image_id": "val_117.jpg",
+          "gt_count": 213,
+          "pred_count": 171,
+          "abs_error": 42
+        },
+        {
+          "image_id": "val_118.jpg",
+          "gt_count": 127,
+          "pred_count": 147,
+          "abs_error": 20
+        },
+        {
+          "image_id": "val_119.jpg",
+          "gt_count": 124,
+          "pred_count": 245,
+          "abs_error": 121
+        },
+        {
+          "image_id": "val_12.jpg",
+          "gt_count": 56,
+          "pred_count": 255,
+          "abs_error": 199
+        },
+        {
+          "image_id": "val_120.jpg",
+          "gt_count": 123,
+          "pred_count": 224,
+          "abs_error": 101
+        },
+        {
+          "image_id": "val_121.jpg",
+          "gt_count": 197,
+          "pred_count": 222,
+          "abs_error": 25
+        },
+        {
+          "image_id": "val_122.jpg",
+          "gt_count": 132,
+          "pred_count": 154,
+          "abs_error": 22
+        },
+        {
+          "image_id": "val_123.jpg",
+          "gt_count": 124,
+          "pred_count": 165,
+          "abs_error": 41
+        },
+        {
+          "image_id": "val_124.jpg",
+          "gt_count": 158,
+          "pred_count": 176,
+          "abs_error": 18
+        },
+        {
+          "image_id": "val_125.jpg",
+          "gt_count": 262,
+          "pred_count": 287,
+          "abs_error": 25
+        },
+        {
+          "image_id": "val_126.jpg",
+          "gt_count": 141,
+          "pred_count": 164,
+          "abs_error": 23
+        },
+        {
+          "image_id": "val_127.jpg",
+          "gt_count": 139,
+          "pred_count": 157,
+          "abs_error": 18
+        },
+        {
+          "image_id": "val_128.jpg",
+          "gt_count": 117,
+          "pred_count": 129,
+          "abs_error": 12
+        },
+        {
+          "image_id": "val_129.jpg",
+          "gt_count": 106,
+          "pred_count": 132,
+          "abs_error": 26
+        },
+        {
+          "image_id": "val_13.jpg",
+          "gt_count": 134,
+          "pred_count": 197,
+          "abs_error": 63
+        },
+        {
+          "image_id": "val_130.jpg",
+          "gt_count": 197,
+          "pred_count": 219,
+          "abs_error": 22
+        },
+        {
+          "image_id": "val_131.jpg",
+          "gt_count": 111,
+          "pred_count": 128,
+          "abs_error": 17
+        },
+        {
+          "image_id": "val_132.jpg",
+          "gt_count": 269,
+          "pred_count": 255,
+          "abs_error": 14
+        },
+        {
+          "image_id": "val_133.jpg",
+          "gt_count": 111,
+          "pred_count": 136,
+          "abs_error": 25
+        },
+        {
+          "image_id": "val_134.jpg",
+          "gt_count": 129,
+          "pred_count": 158,
+          "abs_error": 29
+        },
+        {
+          "image_id": "val_135.jpg",
+          "gt_count": 190,
+          "pred_count": 221,
+          "abs_error": 31
+        },
+        {
+          "image_id": "val_136.jpg",
+          "gt_count": 159,
+          "pred_count": 186,
+          "abs_error": 27
+        },
+        {
+          "image_id": "val_137.jpg",
+          "gt_count": 174,
+          "pred_count": 205,
+          "abs_error": 31
+        },
+        {
+          "image_id": "val_138.jpg",
+          "gt_count": 135,
+          "pred_count": 138,
+          "abs_error": 3
+        },
+        {
+          "image_id": "val_139.jpg",
+          "gt_count": 129,
+          "pred_count": 148,
+          "abs_error": 19
+        },
+        {
+          "image_id": "val_14.jpg",
+          "gt_count": 178,
+          "pred_count": 192,
+          "abs_error": 14
+        },
+        {
+          "image_id": "val_140.jpg",
+          "gt_count": 183,
+          "pred_count": 254,
+          "abs_error": 71
+        },
+        {
+          "image_id": "val_141.jpg",
+          "gt_count": 115,
+          "pred_count": 165,
+          "abs_error": 50
+        },
+        {
+          "image_id": "val_142.jpg",
+          "gt_count": 119,
+          "pred_count": 139,
+          "abs_error": 20
+        },
+        {
+          "image_id": "val_143.jpg",
+          "gt_count": 136,
+          "pred_count": 153,
+          "abs_error": 17
+        },
+        {
+          "image_id": "val_144.jpg",
+          "gt_count": 149,
+          "pred_count": 243,
+          "abs_error": 94
+        },
+        {
+          "image_id": "val_145.jpg",
+          "gt_count": 127,
+          "pred_count": 152,
+          "abs_error": 25
+        },
+        {
+          "image_id": "val_146.jpg",
+          "gt_count": 117,
+          "pred_count": 143,
+          "abs_error": 26
+        },
+        {
+          "image_id": "val_148.jpg",
+          "gt_count": 214,
+          "pred_count": 226,
+          "abs_error": 12
+        },
+        {
+          "image_id": "val_149.jpg",
+          "gt_count": 135,
+          "pred_count": 146,
+          "abs_error": 11
+        },
+        {
+          "image_id": "val_15.jpg",
+          "gt_count": 183,
+          "pred_count": 249,
+          "abs_error": 66
+        },
+        {
+          "image_id": "val_150.jpg",
+          "gt_count": 213,
+          "pred_count": 244,
+          "abs_error": 31
+        },
+        {
+          "image_id": "val_151.jpg",
+          "gt_count": 223,
+          "pred_count": 231,
+          "abs_error": 8
+        },
+        {
+          "image_id": "val_152.jpg",
+          "gt_count": 208,
+          "pred_count": 265,
+          "abs_error": 57
+        },
+        {
+          "image_id": "val_153.jpg",
+          "gt_count": 168,
+          "pred_count": 174,
+          "abs_error": 6
+        },
+        {
+          "image_id": "val_154.jpg",
+          "gt_count": 172,
+          "pred_count": 180,
+          "abs_error": 8
+        },
+        {
+          "image_id": "val_155.jpg",
+          "gt_count": 125,
+          "pred_count": 149,
+          "abs_error": 24
+        },
+        {
+          "image_id": "val_156.jpg",
+          "gt_count": 137,
+          "pred_count": 156,
+          "abs_error": 19
+        },
+        {
+          "image_id": "val_157.jpg",
+          "gt_count": 148,
+          "pred_count": 162,
+          "abs_error": 14
+        },
+        {
+          "image_id": "val_158.jpg",
+          "gt_count": 187,
+          "pred_count": 198,
+          "abs_error": 11
+        },
+        {
+          "image_id": "val_159.jpg",
+          "gt_count": 98,
+          "pred_count": 165,
+          "abs_error": 67
+        },
+        {
+          "image_id": "val_16.jpg",
+          "gt_count": 173,
+          "pred_count": 219,
+          "abs_error": 46
+        },
+        {
+          "image_id": "val_160.jpg",
+          "gt_count": 140,
+          "pred_count": 160,
+          "abs_error": 20
+        },
+        {
+          "image_id": "val_161.jpg",
+          "gt_count": 162,
+          "pred_count": 168,
+          "abs_error": 6
+        },
+        {
+          "image_id": "val_162.jpg",
+          "gt_count": 176,
+          "pred_count": 195,
+          "abs_error": 19
+        },
+        {
+          "image_id": "val_163.jpg",
+          "gt_count": 169,
+          "pred_count": 169,
+          "abs_error": 0
+        },
+        {
+          "image_id": "val_164.jpg",
+          "gt_count": 128,
+          "pred_count": 130,
+          "abs_error": 2
+        },
+        {
+          "image_id": "val_165.jpg",
+          "gt_count": 129,
+          "pred_count": 137,
+          "abs_error": 8
+        },
+        {
+          "image_id": "val_166.jpg",
+          "gt_count": 197,
+          "pred_count": 210,
+          "abs_error": 13
+        },
+        {
+          "image_id": "val_167.jpg",
+          "gt_count": 110,
+          "pred_count": 149,
+          "abs_error": 39
+        },
+        {
+          "image_id": "val_168.jpg",
+          "gt_count": 138,
+          "pred_count": 136,
+          "abs_error": 2
+        },
+        {
+          "image_id": "val_169.jpg",
+          "gt_count": 138,
+          "pred_count": 173,
+          "abs_error": 35
+        },
+        {
+          "image_id": "val_17.jpg",
+          "gt_count": 94,
+          "pred_count": 150,
+          "abs_error": 56
+        },
+        {
+          "image_id": "val_170.jpg",
+          "gt_count": 81,
+          "pred_count": 105,
+          "abs_error": 24
+        },
+        {
+          "image_id": "val_171.jpg",
+          "gt_count": 138,
+          "pred_count": 155,
+          "abs_error": 17
+        },
+        {
+          "image_id": "val_172.jpg",
+          "gt_count": 170,
+          "pred_count": 190,
+          "abs_error": 20
+        },
+        {
+          "image_id": "val_173.jpg",
+          "gt_count": 135,
+          "pred_count": 138,
+          "abs_error": 3
+        },
+        {
+          "image_id": "val_174.jpg",
+          "gt_count": 134,
+          "pred_count": 177,
+          "abs_error": 43
+        },
+        {
+          "image_id": "val_175.jpg",
+          "gt_count": 107,
+          "pred_count": 154,
+          "abs_error": 47
+        },
+        {
+          "image_id": "val_176.jpg",
+          "gt_count": 115,
+          "pred_count": 141,
+          "abs_error": 26
+        },
+        {
+          "image_id": "val_177.jpg",
+          "gt_count": 159,
+          "pred_count": 214,
+          "abs_error": 55
+        },
+        {
+          "image_id": "val_178.jpg",
+          "gt_count": 139,
+          "pred_count": 166,
+          "abs_error": 27
+        },
+        {
+          "image_id": "val_179.jpg",
+          "gt_count": 123,
+          "pred_count": 133,
+          "abs_error": 10
+        },
+        {
+          "image_id": "val_18.jpg",
+          "gt_count": 232,
+          "pred_count": 254,
+          "abs_error": 22
+        },
+        {
+          "image_id": "val_180.jpg",
+          "gt_count": 210,
+          "pred_count": 215,
+          "abs_error": 5
+        },
+        {
+          "image_id": "val_181.jpg",
+          "gt_count": 187,
+          "pred_count": 200,
+          "abs_error": 13
+        },
+        {
+          "image_id": "val_182.jpg",
+          "gt_count": 134,
+          "pred_count": 154,
+          "abs_error": 20
+        },
+        {
+          "image_id": "val_183.jpg",
+          "gt_count": 123,
+          "pred_count": 132,
+          "abs_error": 9
+        },
+        {
+          "image_id": "val_184.jpg",
+          "gt_count": 198,
+          "pred_count": 245,
+          "abs_error": 47
+        },
+        {
+          "image_id": "val_185.jpg",
+          "gt_count": 173,
+          "pred_count": 168,
+          "abs_error": 5
+        },
+        {
+          "image_id": "val_186.jpg",
+          "gt_count": 140,
+          "pred_count": 152,
+          "abs_error": 12
+        },
+        {
+          "image_id": "val_187.jpg",
+          "gt_count": 140,
+          "pred_count": 159,
+          "abs_error": 19
+        },
+        {
+          "image_id": "val_188.jpg",
+          "gt_count": 130,
+          "pred_count": 148,
+          "abs_error": 18
+        },
+        {
+          "image_id": "val_189.jpg",
+          "gt_count": 148,
+          "pred_count": 155,
+          "abs_error": 7
+        },
+        {
+          "image_id": "val_19.jpg",
+          "gt_count": 120,
+          "pred_count": 137,
+          "abs_error": 17
+        },
+        {
+          "image_id": "val_190.jpg",
+          "gt_count": 135,
+          "pred_count": 147,
+          "abs_error": 12
+        },
+        {
+          "image_id": "val_191.jpg",
+          "gt_count": 124,
+          "pred_count": 129,
+          "abs_error": 5
+        },
+        {
+          "image_id": "val_192.jpg",
+          "gt_count": 154,
+          "pred_count": 180,
+          "abs_error": 26
+        },
+        {
+          "image_id": "val_193.jpg",
+          "gt_count": 117,
+          "pred_count": 138,
+          "abs_error": 21
+        },
+        {
+          "image_id": "val_194.jpg",
+          "gt_count": 146,
+          "pred_count": 150,
+          "abs_error": 4
+        },
+        {
+          "image_id": "val_195.jpg",
+          "gt_count": 146,
+          "pred_count": 160,
+          "abs_error": 14
+        },
+        {
+          "image_id": "val_196.jpg",
+          "gt_count": 190,
+          "pred_count": 259,
+          "abs_error": 69
+        },
+        {
+          "image_id": "val_197.jpg",
+          "gt_count": 115,
+          "pred_count": 124,
+          "abs_error": 9
+        },
+        {
+          "image_id": "val_198.jpg",
+          "gt_count": 133,
+          "pred_count": 144,
+          "abs_error": 11
+        },
+        {
+          "image_id": "val_199.jpg",
+          "gt_count": 145,
+          "pred_count": 181,
+          "abs_error": 36
+        },
+        {
+          "image_id": "val_2.jpg",
+          "gt_count": 202,
+          "pred_count": 215,
+          "abs_error": 13
+        },
+        {
+          "image_id": "val_20.jpg",
+          "gt_count": 126,
+          "pred_count": 157,
+          "abs_error": 31
+        },
+        {
+          "image_id": "val_200.jpg",
+          "gt_count": 204,
+          "pred_count": 183,
+          "abs_error": 21
+        },
+        {
+          "image_id": "val_201.jpg",
+          "gt_count": 133,
+          "pred_count": 163,
+          "abs_error": 30
+        },
+        {
+          "image_id": "val_202.jpg",
+          "gt_count": 133,
+          "pred_count": 170,
+          "abs_error": 37
+        },
+        {
+          "image_id": "val_203.jpg",
+          "gt_count": 117,
+          "pred_count": 130,
+          "abs_error": 13
+        },
+        {
+          "image_id": "val_204.jpg",
+          "gt_count": 192,
+          "pred_count": 496,
+          "abs_error": 304
+        },
+        {
+          "image_id": "val_205.jpg",
+          "gt_count": 137,
+          "pred_count": 139,
+          "abs_error": 2
+        },
+        {
+          "image_id": "val_206.jpg",
+          "gt_count": 126,
+          "pred_count": 163,
+          "abs_error": 37
+        },
+        {
+          "image_id": "val_207.jpg",
+          "gt_count": 124,
+          "pred_count": 149,
+          "abs_error": 25
+        },
+        {
+          "image_id": "val_208.jpg",
+          "gt_count": 167,
+          "pred_count": 244,
+          "abs_error": 77
+        },
+        {
+          "image_id": "val_209.jpg",
+          "gt_count": 141,
+          "pred_count": 147,
+          "abs_error": 6
+        },
+        {
+          "image_id": "val_21.jpg",
+          "gt_count": 137,
+          "pred_count": 142,
+          "abs_error": 5
+        },
+        {
+          "image_id": "val_210.jpg",
+          "gt_count": 147,
+          "pred_count": 162,
+          "abs_error": 15
+        },
+        {
+          "image_id": "val_211.jpg",
+          "gt_count": 120,
+          "pred_count": 130,
+          "abs_error": 10
+        },
+        {
+          "image_id": "val_212.jpg",
+          "gt_count": 156,
+          "pred_count": 140,
+          "abs_error": 16
+        },
+        {
+          "image_id": "val_213.jpg",
+          "gt_count": 106,
+          "pred_count": 146,
+          "abs_error": 40
+        },
+        {
+          "image_id": "val_214.jpg",
+          "gt_count": 121,
+          "pred_count": 151,
+          "abs_error": 30
+        },
+        {
+          "image_id": "val_215.jpg",
+          "gt_count": 153,
+          "pred_count": 180,
+          "abs_error": 27
+        },
+        {
+          "image_id": "val_216.jpg",
+          "gt_count": 125,
+          "pred_count": 133,
+          "abs_error": 8
+        },
+        {
+          "image_id": "val_217.jpg",
+          "gt_count": 123,
+          "pred_count": 154,
+          "abs_error": 31
+        },
+        {
+          "image_id": "val_218.jpg",
+          "gt_count": 146,
+          "pred_count": 160,
+          "abs_error": 14
+        },
+        {
+          "image_id": "val_219.jpg",
+          "gt_count": 163,
+          "pred_count": 201,
+          "abs_error": 38
+        },
+        {
+          "image_id": "val_22.jpg",
+          "gt_count": 168,
+          "pred_count": 192,
+          "abs_error": 24
+        },
+        {
+          "image_id": "val_220.jpg",
+          "gt_count": 150,
+          "pred_count": 145,
+          "abs_error": 5
+        },
+        {
+          "image_id": "val_221.jpg",
+          "gt_count": 122,
+          "pred_count": 132,
+          "abs_error": 10
+        },
+        {
+          "image_id": "val_222.jpg",
+          "gt_count": 180,
+          "pred_count": 184,
+          "abs_error": 4
+        },
+        {
+          "image_id": "val_223.jpg",
+          "gt_count": 139,
+          "pred_count": 171,
+          "abs_error": 32
+        },
+        {
+          "image_id": "val_224.jpg",
+          "gt_count": 121,
+          "pred_count": 187,
+          "abs_error": 66
+        },
+        {
+          "image_id": "val_225.jpg",
+          "gt_count": 148,
+          "pred_count": 154,
+          "abs_error": 6
+        },
+        {
+          "image_id": "val_226.jpg",
+          "gt_count": 158,
+          "pred_count": 204,
+          "abs_error": 46
+        },
+        {
+          "image_id": "val_227.jpg",
+          "gt_count": 136,
+          "pred_count": 168,
+          "abs_error": 32
+        },
+        {
+          "image_id": "val_228.jpg",
+          "gt_count": 136,
+          "pred_count": 153,
+          "abs_error": 17
+        },
+        {
+          "image_id": "val_229.jpg",
+          "gt_count": 466,
+          "pred_count": 506,
+          "abs_error": 40
+        },
+        {
+          "image_id": "val_23.jpg",
+          "gt_count": 134,
+          "pred_count": 153,
+          "abs_error": 19
+        },
+        {
+          "image_id": "val_230.jpg",
+          "gt_count": 88,
+          "pred_count": 175,
+          "abs_error": 87
+        },
+        {
+          "image_id": "val_231.jpg",
+          "gt_count": 61,
+          "pred_count": 111,
+          "abs_error": 50
+        },
+        {
+          "image_id": "val_232.jpg",
+          "gt_count": 124,
+          "pred_count": 158,
+          "abs_error": 34
+        },
+        {
+          "image_id": "val_233.jpg",
+          "gt_count": 183,
+          "pred_count": 193,
+          "abs_error": 10
+        },
+        {
+          "image_id": "val_234.jpg",
+          "gt_count": 138,
+          "pred_count": 139,
+          "abs_error": 1
+        },
+        {
+          "image_id": "val_235.jpg",
+          "gt_count": 176,
+          "pred_count": 191,
+          "abs_error": 15
+        },
+        {
+          "image_id": "val_236.jpg",
+          "gt_count": 151,
+          "pred_count": 155,
+          "abs_error": 4
+        },
+        {
+          "image_id": "val_237.jpg",
+          "gt_count": 121,
+          "pred_count": 143,
+          "abs_error": 22
+        },
+        {
+          "image_id": "val_238.jpg",
+          "gt_count": 155,
+          "pred_count": 186,
+          "abs_error": 31
+        },
+        {
+          "image_id": "val_239.jpg",
+          "gt_count": 157,
+          "pred_count": 161,
+          "abs_error": 4
+        },
+        {
+          "image_id": "val_24.jpg",
+          "gt_count": 156,
+          "pred_count": 182,
+          "abs_error": 26
+        },
+        {
+          "image_id": "val_240.jpg",
+          "gt_count": 195,
+          "pred_count": 214,
+          "abs_error": 19
+        },
+        {
+          "image_id": "val_241.jpg",
+          "gt_count": 110,
+          "pred_count": 164,
+          "abs_error": 54
+        },
+        {
+          "image_id": "val_242.jpg",
+          "gt_count": 142,
+          "pred_count": 194,
+          "abs_error": 52
+        },
+        {
+          "image_id": "val_243.jpg",
+          "gt_count": 143,
+          "pred_count": 157,
+          "abs_error": 14
+        },
+        {
+          "image_id": "val_244.jpg",
+          "gt_count": 184,
+          "pred_count": 207,
+          "abs_error": 23
+        },
+        {
+          "image_id": "val_245.jpg",
+          "gt_count": 148,
+          "pred_count": 180,
+          "abs_error": 32
+        },
+        {
+          "image_id": "val_246.jpg",
+          "gt_count": 150,
+          "pred_count": 176,
+          "abs_error": 26
+        },
+        {
+          "image_id": "val_247.jpg",
+          "gt_count": 122,
+          "pred_count": 128,
+          "abs_error": 6
+        },
+        {
+          "image_id": "val_248.jpg",
+          "gt_count": 282,
+          "pred_count": 318,
+          "abs_error": 36
+        },
+        {
+          "image_id": "val_249.jpg",
+          "gt_count": 90,
+          "pred_count": 146,
+          "abs_error": 56
+        },
+        {
+          "image_id": "val_25.jpg",
+          "gt_count": 126,
+          "pred_count": 137,
+          "abs_error": 11
+        },
+        {
+          "image_id": "val_250.jpg",
+          "gt_count": 131,
+          "pred_count": 145,
+          "abs_error": 14
+        },
+        {
+          "image_id": "val_251.jpg",
+          "gt_count": 251,
+          "pred_count": 253,
+          "abs_error": 2
+        },
+        {
+          "image_id": "val_252.jpg",
+          "gt_count": 136,
+          "pred_count": 161,
+          "abs_error": 25
+        },
+        {
+          "image_id": "val_253.jpg",
+          "gt_count": 119,
+          "pred_count": 141,
+          "abs_error": 22
+        },
+        {
+          "image_id": "val_254.jpg",
+          "gt_count": 133,
+          "pred_count": 150,
+          "abs_error": 17
+        },
+        {
+          "image_id": "val_255.jpg",
+          "gt_count": 150,
+          "pred_count": 161,
+          "abs_error": 11
+        },
+        {
+          "image_id": "val_256.jpg",
+          "gt_count": 130,
+          "pred_count": 170,
+          "abs_error": 40
+        },
+        {
+          "image_id": "val_257.jpg",
+          "gt_count": 225,
+          "pred_count": 215,
+          "abs_error": 10
+        },
+        {
+          "image_id": "val_258.jpg",
+          "gt_count": 144,
+          "pred_count": 194,
+          "abs_error": 50
+        },
+        {
+          "image_id": "val_259.jpg",
+          "gt_count": 114,
+          "pred_count": 150,
+          "abs_error": 36
+        },
+        {
+          "image_id": "val_26.jpg",
+          "gt_count": 227,
+          "pred_count": 249,
+          "abs_error": 22
+        },
+        {
+          "image_id": "val_260.jpg",
+          "gt_count": 113,
+          "pred_count": 142,
+          "abs_error": 29
+        },
+        {
+          "image_id": "val_261.jpg",
+          "gt_count": 150,
+          "pred_count": 175,
+          "abs_error": 25
+        },
+        {
+          "image_id": "val_262.jpg",
+          "gt_count": 104,
+          "pred_count": 137,
+          "abs_error": 33
+        },
+        {
+          "image_id": "val_263.jpg",
+          "gt_count": 162,
+          "pred_count": 175,
+          "abs_error": 13
+        },
+        {
+          "image_id": "val_264.jpg",
+          "gt_count": 205,
+          "pred_count": 223,
+          "abs_error": 18
+        },
+        {
+          "image_id": "val_265.jpg",
+          "gt_count": 117,
+          "pred_count": 118,
+          "abs_error": 1
+        },
+        {
+          "image_id": "val_266.jpg",
+          "gt_count": 123,
+          "pred_count": 146,
+          "abs_error": 23
+        },
+        {
+          "image_id": "val_267.jpg",
+          "gt_count": 108,
+          "pred_count": 134,
+          "abs_error": 26
+        },
+        {
+          "image_id": "val_268.jpg",
+          "gt_count": 162,
+          "pred_count": 165,
+          "abs_error": 3
+        },
+        {
+          "image_id": "val_269.jpg",
+          "gt_count": 144,
+          "pred_count": 165,
+          "abs_error": 21
+        },
+        {
+          "image_id": "val_27.jpg",
+          "gt_count": 118,
+          "pred_count": 153,
+          "abs_error": 35
+        },
+        {
+          "image_id": "val_270.jpg",
+          "gt_count": 227,
+          "pred_count": 184,
+          "abs_error": 43
+        },
+        {
+          "image_id": "val_271.jpg",
+          "gt_count": 420,
+          "pred_count": 376,
+          "abs_error": 44
+        },
+        {
+          "image_id": "val_272.jpg",
+          "gt_count": 123,
+          "pred_count": 129,
+          "abs_error": 6
+        },
+        {
+          "image_id": "val_273.jpg",
+          "gt_count": 141,
+          "pred_count": 150,
+          "abs_error": 9
+        },
+        {
+          "image_id": "val_274.jpg",
+          "gt_count": 167,
+          "pred_count": 205,
+          "abs_error": 38
+        },
+        {
+          "image_id": "val_275.jpg",
+          "gt_count": 188,
+          "pred_count": 188,
+          "abs_error": 0
+        },
+        {
+          "image_id": "val_276.jpg",
+          "gt_count": 164,
+          "pred_count": 219,
+          "abs_error": 55
+        },
+        {
+          "image_id": "val_277.jpg",
+          "gt_count": 127,
+          "pred_count": 161,
+          "abs_error": 34
+        },
+        {
+          "image_id": "val_278.jpg",
+          "gt_count": 145,
+          "pred_count": 149,
+          "abs_error": 4
+        },
+        {
+          "image_id": "val_279.jpg",
+          "gt_count": 156,
+          "pred_count": 194,
+          "abs_error": 38
+        }
+      ],
+      "predictions_file": null,
+      "primary": {
+        "score_thresh": 0.3,
+        "nms_thresh": 0.35,
+        "max_dets": 1000,
+        "num_images": 200,
+        "map50": 0.8524,
+        "map50_95": 0.5009,
+        "pycocotools_map75": 0.5342,
+        "num_gt": 30119,
+        "num_dt": 35251,
+        "count_mae": 27.68,
+        "count_mape_pct": 21.0,
+        "pred_count_total": 35251,
+        "gt_count_total": 30119
+      }
+    }
+  ]
+}

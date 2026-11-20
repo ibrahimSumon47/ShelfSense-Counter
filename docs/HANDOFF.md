@@ -1,87 +1,39 @@
 # Handoff
 
-Last updated: 2026-11-20 00:45 (36/48; run downloaded and test split scored, but the SKU-110K numbers need one re-run)
+Last updated: 2026-11-20 10:45 (46/48; SKU-110K validation and test measured and committed,
+release and deployment done, production checks left)
 
-## The evaluator bug that decides the next step
+## Where things stand
 
-`train.py` called `run_raw_candidates(...)` with the old `normalise=True` default while the new
-exporter bakes normalisation into the graph, so every SKU-110K number inside `metrics.json`
-(mAP50 0.13, MAE 563) is double-normalised garbage. The weights are fine: the same `best.pt` and
-export score mAP50 0.5976 on CC0 validation and 0.7227 on the CC0 test split through the corrected
-path (`docs/reports/test-evaluation.md`). The default is now `False`, both call sites pass it
-explicitly and a test pins the default.
+Kernel `ibrahimhossainsumon/shelfsense-fcos-training` version 1 finished on 2026-11-19 23:57:52
+after 12,658 s on a Tesla T4 (12 epochs, best checkpoint from epoch 8). Its exported pair was
+scored by `ibrahimhossainsumon/shelfsense-fcos-eval` version 1 on Kaggle CPU: 200 SKU-110K
+validation images to fix the thresholds, then 200 test images once.
 
-Because the local machine has no SKU-110K images, the run's own validation tuning and its SKU test
-numbers are unusable, which is why S2-04 and the test-evidence items are still open. The next step
-is a small CPU Kaggle kernel that clones this repository, downloads the v1.0.0 release ONNX file,
-runs `training/eval_onnx.py --dataset sku110k --split val --grid ...` and then `--split test` once,
-and commits the JSON; no GPU quota is needed for that.
+SKU-110K test, 29,092 items: int8 mAP50 0.8418, mAP50-95 0.4844, count MAE 26.52, MAPE 21.29 %;
+fp32 mAP50 0.8418, count MAE 26.55. Validation: 0.8524 and 0.8602 mAP50, MAE 27.68 both.
+The JSON, the prediction files and the rescoring recipe are in `docs/reports/test-evaluation.md`
+and `docs/reports/sku110k-*.json`.
 
-**Recommended model tag:** `[MODEL: Claude Sonnet 5.5, MID]`
+## The two traps in this pipeline
 
-## Observed so far
-
-The kernel started at 13:11 and was still `RUNNING` at 23:00, so it has passed the 9-hour mark.
-Committed Kaggle notebook runs are allowed 12 hours, which puts the hard stop at about 01:11.
-`plan_epochs()` deliberately clamps to the configured `min_epochs` of 12 even when the 3-hour GPU
-budget says fewer (`training/tests/test_train_plan.py` pins that behaviour), and each epoch is
-taking roughly 35 minutes at 800 px on the free GPU, so 12 epochs alone is about 7 hours plus the
-validation sweep, the export and the single test pass.
-
-A watch loop polling every 4 minutes logs to `/tmp/kwatch2.txt` and, the moment Kaggle reports a
-terminal status, runs `kaggle kernels output ibrahimhossainsumon/shelfsense-fcos-training -p
-training/outputs/fcos-v3` and appends `DOWNLOAD_EXIT=` plus the file list to the same log. Check
-there first; if the loop is gone, run that download command by hand.
-
-## Where the run stands
-
-Kernel `ibrahimhossainsumon/shelfsense-fcos-training`, version 1, trains 12 epochs on 6,036
-SKU-110K + CC0 images and writes `metrics.json`, checkpoints, ONNX files and test predictions to
-`/kaggle/working/outputs`. It clones `main` at start-up, so a failure can be fixed by pushing a
-commit and pushing the kernel again.
-
-## Download in progress
-
-`training/outputs/fcos-v3/outputs/` is being filled by `kaggle kernels output`. The run committed every
-epoch checkpoint, so the transfer is several gigabytes (each checkpoint is about 383 MB); let it
-finish, then read `train.log` and `metrics.json` before doing anything else. If the transfer was
-interrupted, rerun the same command; it skips files that already match. To save space afterwards,
-the `epoch-*.pt` files can be deleted once `best.pt`, the ONNX files and the predictions are copied.
+1. **Do not normalise twice.** The exporter bakes ImageNet mean/std into the graph, so
+   `eval_onnx.py` must be called with `--normalise no` and `run_raw_candidates` must keep
+   `normalise=False` (a test pins the default). The run's own `metrics.json` SKU numbers
+   (mAP50 0.13) were produced with the old reversed default and must never be quoted.
+2. **`primary` has no `onnx_file` key.** It sits on the model entry one level up. The eval
+   notebook's summary cell assumed otherwise and died with `KeyError` after both splits were
+   already scored and written; it is fixed, but check the log tail, not just the kernel status.
 
 ## Exact next step
 
-1. Verify the download: `training/outputs/fcos-v3/train.log` must end with `SUCCESS`, and
-   `training/outputs/fcos-v3/outputs/` must hold `metrics.json`, `checkpoints/best.pt`,
-   `*-fp32.onnx`, `*-int8.onnx`, `predictions/*.json.gz`, with no `*-error.txt`. A COMPLETE
-   status alone proves nothing.
-2. If it FAILED: read `train.log` for the first traceback, fix `training/`, push to `main` (the
-   notebook clones the repo), push the kernel again. At most 3 attempts, then record the cause
-   here and in `docs/OWNER_TODO.md`.
-3. With a good run, in one slice:
-   - copy the test prediction files into `docs/reports/predictions/`;
-   - `python training/eval_onnx.py --onnx training/outputs/fcos-v3/outputs/*-int8.onnx <and fp32>
-     --dataset cc0 --split test --input-size 640 --normalise no --center-fix none
-     --score-thresh <tuned> --nms-thresh <tuned> --max-dets 1000 --out docs/reports/test-evaluation.json
-     --predictions-dir docs/reports/predictions` (the new export normalises in the graph, so
-     `--normalise no`);
-   - write `docs/reports/test-evaluation.md` with mAP50, mAP50-95, count MAE/MAPE, bootstrap 95 %
-     intervals, density buckets, the worst images, the sentence that nine CC0 test images give a
-     wide interval, and the FP32-versus-INT8 decision from the measured drop;
-   - `python training/render_failures.py` for the failure gallery (CC0 test images, CC0 licence);
-   - the count/mAP regression bundle, which needs the SKU-110K test images to reach 20 rows:
-     `python training/make_regression_fixtures.py --predictions <new gz> --evaluation <new eval json>
-     --cc0-test-dir training/data/supermarket_shelves --sku-test-dir <SKU110K_fixed>
-     --out-dir training/fixtures` then upload `training/fixtures/shelfsense-regression-v1.tar.gz`
-     to the release;
-   - `gh release create v1.0.0` with the chosen ONNX file(s), `sha256sums.txt` and the fixture
-     bundle from `python training/make_regression_fixtures.py`;
-   - copy the chosen file into `apps/web/public/models/`, update `manifest.json`
-     (`webgpu_capable` true only if the file is not dynamically quantised), deploy with
-     `vercel --prod` from `apps/web`;
-   - re-measure the browser on the live URL with three test-split photos and one non-shelf photo,
-     run axe-core and Lighthouse, and record everything in `docs/reports/`.
-4. Close: README, MODEL_CARD, DATA, DECISIONS, PROJECT_STATE, features.json, then
-   `node scripts/check-done.mjs` must exit 0.
+1. `S7-01`: run the Playwright flows against https://shelfsense-counter.vercel.app - page loads in
+   both themes and languages, upload of a committed CC0 test image produces a count and boxes,
+   CSV export and save-scan behave, and the chat refuses without stored data. Record the command,
+   the pass/fail list and the commit under test in `docs/reports/`.
+2. `S7-02`: axe-core (zero violations) and Lighthouse (mobile and desktop) against the same URL,
+   with the scores, the Date/version and the exact command in the same report.
+3. Then `node scripts/check-done.mjs` must exit 0. It currently reports `S7-01` next.
 
 ## Blocked elsewhere
 
@@ -91,6 +43,5 @@ Exact owner steps are item 2b in `docs/OWNER_TODO.md`.
 
 ## Quota
 
-The first kernel used about 0.3 h of the weekly GPU quota; this run is budgeted at 3 h and writes
-its own plan into `timings.planned_epochs_reason` in `metrics.json`. Record the hours in the run
-report. One improvement round is allowed only if the quota clearly remains.
+Training used one kernel run of about 3.5 h GPU time; the evaluation kernel was CPU-only. No GPU
+quota was spent after that, and none is needed for the remaining items.

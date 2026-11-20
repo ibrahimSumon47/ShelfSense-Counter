@@ -162,12 +162,13 @@
       "id": "S2-04",
       "phase": "S2",
       "title": "Improved run tuned on validation only, report committed",
-      "status": "in_progress",
+      "status": "done",
       "model": "[MODEL: Claude Sonnet 5.5, MID]",
       "evidence": [
-        "report:docs/reports/validation-detection-cap.md",
+        "report:docs/reports/test-evaluation.md",
+        "file:docs/reports/sku110k-val.json",
         "file:training/configs/fcos-dense-v3.json",
-        "in_progress: 6000-image 12-epoch run pushed as ibrahimhossainsumon/shelfsense-fcos-training; its validation numbers replace the two-epoch ones on completion"
+        "kernel ibrahimhossainsumon/shelfsense-fcos-training version 1, 12 epochs: SKU-110K validation mAP50 0.8602 fp32 / 0.8524 int8, count MAE 27.68 on 200 images, thresholds tuned on validation only"
       ]
     },
     {
@@ -213,6 +214,7 @@
       "model": "[MODEL: Claude Sonnet 5.5, MID]",
       "evidence": [
         "report:docs/reports/test-evaluation.md",
+        "SKU-110K test scored once with the thresholds fixed on validation: int8 mAP50 0.8418, mAP50-95 0.4844, count MAE 26.52, MAPE 21.29 %; fp32 0.8418 / 0.4851 / 26.55 / 21.30 % on 200 images, 29,092 items",
         "CC0 test split scored once: int8 mAP50 0.7215, count MAE 25.67, MAPE 19.91 %"
       ]
     },
@@ -254,11 +256,11 @@
       "id": "S3-05",
       "phase": "S3",
       "title": "MODEL_CARD.md with intended use, limits and licence",
-      "status": "todo",
+      "status": "done",
       "model": "[MODEL: Claude Sonnet 5.5, MID]",
       "evidence": [
         "file:docs/MODEL_CARD.md",
-        "not measured yet; pipeline demonstration only"
+        "intended use, exclusions, limits and the SKU-110K non-commercial licence restriction, written against the measured validation and test figures in docs/reports/test-evaluation.md"
       ]
     },
     {
@@ -528,11 +530,12 @@
       "id": "S8-01",
       "phase": "S8",
       "title": "README: live URL, architecture, screenshots, measured numbers with commands, limits, licences",
-      "status": "todo",
+      "status": "done",
       "model": "[MODEL: Gemini 3.8 Flash, LOW]",
       "evidence": [
         "file:README.md",
-        "not measured yet; pipeline demonstration only"
+        "file:docs/reports/live-site.png",
+        "README carries the live URL, a screenshot of the deployed page, the measured SKU-110K and CC0 tables with the command that produced them, the honest-reading limits and the licences"
       ]
     },
     {

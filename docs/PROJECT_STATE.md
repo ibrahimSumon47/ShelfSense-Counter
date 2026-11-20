@@ -1,69 +1,76 @@
 # Project state
 
-Last updated: 2026-11-19 (FCOS pipeline: detection cap measured, export geometry fixed, GPU run pushed)
+Last updated: 2026-11-20 (SKU-110K validation and test measured with the corrected evaluator;
+release published, site deployed, model card and README written against the numbers)
 
 ## Detector
 
 `torchvision.models.detection.fcos_resnet50_fpn`, BSD-3-Clause, 32,064,455 parameters,
 COCO-pretrained, fine-tuned for one class (`item`), 640 px input. The official YOLOX install
 failed twice inside the Kaggle image, so the detector name and every kernel, notebook and ADR
-now say FCOS; the new kernel is `ibrahimhossainsumon/shelfsense-fcos-training`.
+now say FCOS; the training kernel is `ibrahimhossainsumon/shelfsense-fcos-training` version 1.
 
-## Measured now (validation only)
+## Measured now (run fcos-r50-fpn-v3, 12 epochs, best checkpoint from epoch 8)
 
-| Split | Model file | maxDets | mAP50 | mAP50-95 | count MAE | count MAPE |
-| --- | --- | --- | --- | --- | --- | --- |
-| CC0 val (9 images, 1922 items) | improved v2 fp32 | 1000 | 0.5306 | 0.2816 | 72.67 | 68.43 % |
-| CC0 val | improved v2 int8 | 1000 | 0.5309 | 0.2798 | 74.00 | 69.35 % |
-| CC0 val | baseline v1 fp32 | 1000 | 0.5010 | 0.2331 | 141.89 | 109.09 % |
-| CC0 val | improved v2 fp32 | 100 | 0.3006 | 0.1813 | 132.44 | 80.32 % |
+Thresholds were fixed on SKU-110K validation by count MAE (score 0.30, NMS 0.35, maxDets 1000)
+before any test image was scored.
 
-Command, per-image tables, bootstrap intervals and the 2×2 export-defect experiment:
-`docs/reports/validation-detection-cap.md`, machine-readable in
-`docs/reports/validation-cap-cc0-val.json` and `docs/reports/validation-sweep-cc0-val.json`,
-with the prediction boxes committed under `docs/reports/predictions/`.
+| Split | Model file | mAP50 | mAP50-95 | count MAE | count MAPE |
+| --- | --- | --- | --- | --- | --- |
+| SKU-110K test (200 images, 29,092 items) | int8 | 0.8418 | 0.4844 | 26.52 | 21.29 % |
+| SKU-110K test | fp32 | 0.8418 | 0.4851 | 26.55 | 21.30 % |
+| SKU-110K val (200 images, 30,119 items) | int8 | 0.8524 | 0.5009 | 27.68 | 21.00 % |
+| SKU-110K val | fp32 | 0.8602 | 0.5016 | 27.68 | 20.99 % |
+| CC0 test (9 images, 1,950 items) | int8 | 0.7215 | 0.3531 | 25.67 | 19.91 % |
+| CC0 test | fp32 | 0.7227 | 0.3523 | 26.56 | 20.68 % |
 
-Two defects found and fixed in the ONNX export: the graph skipped the ImageNet normalisation,
-and it decoded anchor centres at `(g + 0.5) * stride` instead of torchvision's `g * stride`.
-Together they cost about 0.15 mAP50 on validation.
+Command, per-image tables, bootstrap intervals, density buckets and the rescoring recipe:
+`docs/reports/test-evaluation.md`, machine-readable in `docs/reports/sku110k-val.json`,
+`docs/reports/sku110k-test.json`, `docs/reports/sku110k-summary.json` and
+`docs/reports/test-evaluation.json`, with the prediction boxes committed under
+`docs/reports/predictions/`. The two-epoch run's CC0 validation numbers are kept for history in
+`docs/reports/validation-detection-cap.md`.
+
+Three defects were found and fixed, each costing real accuracy or real numbers:
+
+- the ONNX graph skipped the ImageNet normalisation and decoded anchor centres at
+  `(g + 0.5) * stride` instead of torchvision's `g * stride` (about 0.15 mAP50 on validation);
+- `train.py` then normalised the input a second time on top of the fixed graph, which turned the
+  run's own SKU-110K numbers into mAP50 0.13 garbage; `run_raw_candidates` now defaults to
+  `normalise=False` and a test pins it;
+- the eval notebook's summary cell read `onnx_file` from `primary`, where it does not exist, so it
+  died with `KeyError` after both splits had already been scored; the cell is fixed.
 
 ## Pipeline
 
 - `training/train.py`: one resumable run, AMP, checkpoint every epoch and a separate `best.pt`
   before any export or evaluation, epoch count planned from images/s measured on the first 50
   batches against a 3-hour GPU budget, thresholds tuned on the 200-image SKU-110K validation
-  split, test evaluated once.
+  split, test evaluated once. The 12-epoch run took 12,658 s (4.39 images/s) because
+  `plan_epochs()` clamps to `min_epochs`.
 - Export, evaluation and metrics writing each run in their own try/except and leave a
   `<block>-error.txt`, so a late failure never loses the training.
 - `training/eval_onnx.py`: re-evaluates any ONNX file on a split with `pycocotools`
   (`maxDets` 100 vs 1000 side by side), a threshold grid, bootstrap intervals and density
   buckets, and writes gzipped prediction files.
-- CI exports a tiny randomly initialised FCOS to ONNX on CPU at 128 px before any GPU run.
+- CI exports a tiny randomly initialised FCOS to ONNX on CPU at 128 px before any GPU run, and
+  scores the 20-image regression bundle when release `v1.0.0` exists.
 
-## In-browser detection (development stand-in)
+## In-browser detection (production)
 
 `apps/web` loads `/models/<file>` named by `apps/web/public/models/manifest.json` with
 `onnxruntime-web` 1.31.1, decodes FCOS candidates in `detector.ts` and draws the boxes over the
-photo. Measured on the first two-epoch INT8 file (`docs/reports/browser-detection.md`):
-
-| Photo | Ground truth | Python | Browser | Inference |
-| --- | --- | --- | --- | --- |
-| 002.jpg | 690 | 482 | 481 | 2982 ms |
-| 005.jpg | 251 | 388 | 387 | 3466 ms |
-| 006.jpg | 59 | 161 | 170 | 2985 ms |
-| non-shelf.jpg | 0 | 12 | 12 | 2727 ms |
-
-Two runtime defects were found and are fixed: `onnxruntime-web` 1.20 executed the INT8 graph
-wrongly (12 boxes where Python found 482; 1.31.1 gives 481), and WebGPU returns the detection cap
-(1000 boxes) for quantised weights, so INT8 files declare `webgpu_capable: false` and run on WASM.
-FP32 on WebGPU is correct (504 for the same photo, 4845 ms).
+photo. The deployed site runs the 32.8 MB INT8 graph on WASM: `002.jpg` (690 items) reported 663
+products in 3,996 ms, against 657 from the Python fp32 path on the same image. Three runtime
+defects were found and are fixed: `onnxruntime-web` 1.20 executed the INT8 graph wrongly (12 boxes
+where Python found 482; 1.31.1 gives 481), WebGPU returns the detection cap for quantised weights,
+so INT8 declares `webgpu_capable: false`, and the manifest now carries the production file with
+its SHA-256. Earlier development measurements are in `docs/reports/browser-detection.md`.
 
 ## What is still open
 
-- The 6000-image, 12-epoch run (`shelfsense-fcos-training`) is pushed and queued. Its
-  validation numbers replace the two-epoch table above; the test split is then evaluated once
-  and the weights published.
-- Publish the released weights into `apps/web/public/models/`, deploy, and repeat the browser
-  measurement on production (`S4-05`, `S2-06`).
-- The GitHub release (`S2-07`), the test report (`S3-01`, `S3-02`), production
-  Playwright/axe/Lighthouse (`S7-01`, `S7-02`) and the closing README pass (`S8-01`).
+- `S7-01` Playwright flows against the production URL, and `S7-02` axe-core and Lighthouse
+  scores recorded on production.
+- The live-LLM chat checks cannot be re-run on this PC because `private/.env.local` is missing and
+  the key cannot be read back from Vercel; the owner steps are item 2b in `docs/OWNER_TODO.md`.
+  The `S5-03` figures come from the run made with the key still available.

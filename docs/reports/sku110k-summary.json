@@ -1,0 +1,76 @@
+{
+  "kernel": "ibrahimhossainsumon/shelfsense-fcos-eval",
+  "kernel_version": 1,
+  "finished": "2026-11-20T10:29Z (outputs downloaded)",
+  "thresholds": {
+    "score": 0.3,
+    "nms": 0.35,
+    "max_dets": 1000,
+    "tuned_on": "sku110k val, 200 images, by count MAE"
+  },
+  "commands": {
+    "val": "python training/eval_onnx.py --onnx /kaggle/input/datasets/ibrahimhossainsumon/shelfsense-fcos-v3-onnx/fcos-r50-fpn-v3-fp32.onnx /kaggle/input/datasets/ibrahimhossainsumon/shelfsense-fcos-v3-onnx/fcos-r50-fpn-v3-int8.onnx --dataset sku110k --split val --sku-dir /kaggle/input --input-size 640 --normalise no --center-fix none --score-thresh 0.3 --nms-thresh 0.35 --max-dets 1000 --grid 0.15,0.2,0.25,0.3:0.35,0.45 --out /kaggle/working/val-sku110k.json",
+    "test": "python training/eval_onnx.py --onnx /kaggle/input/datasets/ibrahimhossainsumon/shelfsense-fcos-v3-onnx/fcos-r50-fpn-v3-fp32.onnx /kaggle/input/datasets/ibrahimhossainsumon/shelfsense-fcos-v3-onnx/fcos-r50-fpn-v3-int8.onnx --dataset sku110k --split test --sku-dir /kaggle/input --input-size 640 --normalise no --center-fix none --score-thresh 0.3 --nms-thresh 0.35 --max-dets 1000 --out /kaggle/working/test-sku110k.json --predictions-dir /kaggle/working/predictions"
+  },
+  "val": [
+    {
+      "onnx_file": "fcos-r50-fpn-v3-fp32.onnx",
+      "onnx_sha256": "f303e0f7cb4dbd612528cd5649eeaba1ae1f91c64c9ea04570cbd9aa07143301",
+      "onnx_size_bytes": 128710729,
+      "ms_per_image": 1239.6,
+      "max_dets": 1000,
+      "num_images": 200,
+      "num_gt": 30119,
+      "num_dt": 35231,
+      "map50": 0.8602,
+      "map50_95": 0.5016,
+      "count_mae": 27.68,
+      "count_mape_pct": 20.99
+    },
+    {
+      "onnx_file": "fcos-r50-fpn-v3-int8.onnx",
+      "onnx_sha256": "e00176ae386053f9db49b9fb7e521c10ff25d361411fa9cd6dd7c07bca7863fc",
+      "onnx_size_bytes": 32818871,
+      "ms_per_image": 1054.1,
+      "max_dets": 1000,
+      "num_images": 200,
+      "num_gt": 30119,
+      "num_dt": 35251,
+      "map50": 0.8524,
+      "map50_95": 0.5009,
+      "count_mae": 27.68,
+      "count_mape_pct": 21.0
+    }
+  ],
+  "test": [
+    {
+      "onnx_file": "fcos-r50-fpn-v3-fp32.onnx",
+      "onnx_sha256": "f303e0f7cb4dbd612528cd5649eeaba1ae1f91c64c9ea04570cbd9aa07143301",
+      "onnx_size_bytes": 128710729,
+      "ms_per_image": 1267.3,
+      "max_dets": 1000,
+      "num_images": 200,
+      "num_gt": 29092,
+      "num_dt": 33759,
+      "map50": 0.8418,
+      "map50_95": 0.4851,
+      "count_mae": 26.55,
+      "count_mape_pct": 21.3
+    },
+    {
+      "onnx_file": "fcos-r50-fpn-v3-int8.onnx",
+      "onnx_sha256": "e00176ae386053f9db49b9fb7e521c10ff25d361411fa9cd6dd7c07bca7863fc",
+      "onnx_size_bytes": 32818871,
+      "ms_per_image": 1055.2,
+      "max_dets": 1000,
+      "num_images": 200,
+      "num_gt": 29092,
+      "num_dt": 33793,
+      "map50": 0.8418,
+      "map50_95": 0.4844,
+      "count_mae": 26.52,
+      "count_mape_pct": 21.29
+    }
+  ],
+  "note": "Built from the run's own val-sku110k.json and test-sku110k.json. The notebook failed at this summarisation step with KeyError onnx_file (the key sits on the model entry, not inside primary); both evaluation commands had already finished and written their predictions."
+}

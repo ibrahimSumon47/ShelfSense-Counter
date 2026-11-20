@@ -1,0 +1,2567 @@
+{
+  "dataset": "sku110k",
+  "split": "test",
+  "num_images": 200,
+  "input_size": 640,
+  "command": "python training/eval_onnx.py --onnx /kaggle/input/datasets/ibrahimhossainsumon/shelfsense-fcos-v3-onnx/fcos-r50-fpn-v3-fp32.onnx /kaggle/input/datasets/ibrahimhossainsumon/shelfsense-fcos-v3-onnx/fcos-r50-fpn-v3-int8.onnx --dataset sku110k --split test --sku-dir /kaggle/input --input-size 640 --normalise no --center-fix none --score-thresh 0.3 --nms-thresh 0.35 --max-dets 1000 --out /kaggle/working/test-sku110k.json --predictions-dir /kaggle/working/predictions",
+  "models": [
+    {
+      "onnx_file": "fcos-r50-fpn-v3-fp32.onnx",
+      "onnx_size_bytes": 128710729,
+      "onnx_sha256": "f303e0f7cb4dbd612528cd5649eeaba1ae1f91c64c9ea04570cbd9aa07143301",
+      "ms_per_image": 1267.3,
+      "results": [
+        {
+          "score_thresh": 0.3,
+          "nms_thresh": 0.35,
+          "max_dets": 1000,
+          "num_images": 200,
+          "map50": 0.8418,
+          "map50_95": 0.4851,
+          "pycocotools_map75": 0.5106,
+          "num_gt": 29092,
+          "num_dt": 33759,
+          "count_mae": 26.55,
+          "count_mape_pct": 21.3,
+          "pred_count_total": 33759,
+          "gt_count_total": 29092
+        }
+      ],
+      "threshold_sweep": [],
+      "bootstrap_95_ci": {
+        "map50": [
+          0.8163,
+          0.8648
+        ],
+        "count_mae": [
+          23.2,
+          30.25
+        ],
+        "count_mape_pct": [
+          17.53,
+          26.16
+        ]
+      },
+      "by_density": {
+        "sparse (<50)": {
+          "num_images": 1,
+          "map50": 0.4627,
+          "count_mae": 140.0,
+          "count_mape_pct": 333.33
+        },
+        "medium (50-150)": {
+          "num_images": 134,
+          "map50": 0.8859,
+          "count_mae": 26.9,
+          "count_mape_pct": 23.1
+        },
+        "dense (>150)": {
+          "num_images": 65,
+          "map50": 0.778,
+          "count_mae": 24.08,
+          "count_mape_pct": 12.79
+        }
+      },
+      "per_image": [
+        {
+          "image_id": "test_0.jpg",
+          "gt_count": 121,
+          "pred_count": 138,
+          "abs_error": 17
+        },
+        {
+          "image_id": "test_1.jpg",
+          "gt_count": 132,
+          "pred_count": 146,
+          "abs_error": 14
+        },
+        {
+          "image_id": "test_10.jpg",
+          "gt_count": 143,
+          "pred_count": 170,
+          "abs_error": 27
+        },
+        {
+          "image_id": "test_100.jpg",
+          "gt_count": 154,
+          "pred_count": 182,
+          "abs_error": 28
+        },
+        {
+          "image_id": "test_1000.jpg",
+          "gt_count": 133,
+          "pred_count": 148,
+          "abs_error": 15
+        },
+        {
+          "image_id": "test_1001.jpg",
+          "gt_count": 172,
+          "pred_count": 190,
+          "abs_error": 18
+        },
+        {
+          "image_id": "test_1002.jpg",
+          "gt_count": 188,
+          "pred_count": 260,
+          "abs_error": 72
+        },
+        {
+          "image_id": "test_1003.jpg",
+          "gt_count": 141,
+          "pred_count": 128,
+          "abs_error": 13
+        },
+        {
+          "image_id": "test_1004.jpg",
+          "gt_count": 153,
+          "pred_count": 161,
+          "abs_error": 8
+        },
+        {
+          "image_id": "test_1005.jpg",
+          "gt_count": 148,
+          "pred_count": 181,
+          "abs_error": 33
+        },
+        {
+          "image_id": "test_1006.jpg",
+          "gt_count": 127,
+          "pred_count": 160,
+          "abs_error": 33
+        },
+        {
+          "image_id": "test_1007.jpg",
+          "gt_count": 157,
+          "pred_count": 182,
+          "abs_error": 25
+        },
+        {
+          "image_id": "test_1008.jpg",
+          "gt_count": 100,
+          "pred_count": 155,
+          "abs_error": 55
+        },
+        {
+          "image_id": "test_1009.jpg",
+          "gt_count": 128,
+          "pred_count": 157,
+          "abs_error": 29
+        },
+        {
+          "image_id": "test_101.jpg",
+          "gt_count": 105,
+          "pred_count": 129,
+          "abs_error": 24
+        },
+        {
+          "image_id": "test_1010.jpg",
+          "gt_count": 134,
+          "pred_count": 202,
+          "abs_error": 68
+        },
+        {
+          "image_id": "test_1011.jpg",
+          "gt_count": 161,
+          "pred_count": 189,
+          "abs_error": 28
+        },
+        {
+          "image_id": "test_1012.jpg",
+          "gt_count": 144,
+          "pred_count": 173,
+          "abs_error": 29
+        },
+        {
+          "image_id": "test_1013.jpg",
+          "gt_count": 244,
+          "pred_count": 379,
+          "abs_error": 135
+        },
+        {
+          "image_id": "test_1014.jpg",
+          "gt_count": 129,
+          "pred_count": 144,
+          "abs_error": 15
+        },
+        {
+          "image_id": "test_1015.jpg",
+          "gt_count": 129,
+          "pred_count": 130,
+          "abs_error": 1
+        },
+        {
+          "image_id": "test_1016.jpg",
+          "gt_count": 132,
+          "pred_count": 140,
+          "abs_error": 8
+        },
+        {
+          "image_id": "test_1017.jpg",
+          "gt_count": 137,
+          "pred_count": 163,
+          "abs_error": 26
+        },
+        {
+          "image_id": "test_1018.jpg",
+          "gt_count": 130,
+          "pred_count": 150,
+          "abs_error": 20
+        },
+        {
+          "image_id": "test_1019.jpg",
+          "gt_count": 140,
+          "pred_count": 157,
+          "abs_error": 17
+        },
+        {
+          "image_id": "test_102.jpg",
+          "gt_count": 115,
+          "pred_count": 136,
+          "abs_error": 21
+        },
+        {
+          "image_id": "test_1020.jpg",
+          "gt_count": 42,
+          "pred_count": 182,
+          "abs_error": 140
+        },
+        {
+          "image_id": "test_1021.jpg",
+          "gt_count": 164,
+          "pred_count": 159,
+          "abs_error": 5
+        },
+        {
+          "image_id": "test_1022.jpg",
+          "gt_count": 111,
+          "pred_count": 136,
+          "abs_error": 25
+        },
+        {
+          "image_id": "test_1023.jpg",
+          "gt_count": 173,
+          "pred_count": 183,
+          "abs_error": 10
+        },
+        {
+          "image_id": "test_1024.jpg",
+          "gt_count": 161,
+          "pred_count": 196,
+          "abs_error": 35
+        },
+        {
+          "image_id": "test_1025.jpg",
+          "gt_count": 120,
+          "pred_count": 166,
+          "abs_error": 46
+        },
+        {
+          "image_id": "test_1026.jpg",
+          "gt_count": 187,
+          "pred_count": 191,
+          "abs_error": 4
+        },
+        {
+          "image_id": "test_1027.jpg",
+          "gt_count": 144,
+          "pred_count": 170,
+          "abs_error": 26
+        },
+        {
+          "image_id": "test_1028.jpg",
+          "gt_count": 136,
+          "pred_count": 166,
+          "abs_error": 30
+        },
+        {
+          "image_id": "test_1029.jpg",
+          "gt_count": 166,
+          "pred_count": 178,
+          "abs_error": 12
+        },
+        {
+          "image_id": "test_103.jpg",
+          "gt_count": 123,
+          "pred_count": 140,
+          "abs_error": 17
+        },
+        {
+          "image_id": "test_1030.jpg",
+          "gt_count": 123,
+          "pred_count": 157,
+          "abs_error": 34
+        },
+        {
+          "image_id": "test_1031.jpg",
+          "gt_count": 149,
+          "pred_count": 163,
+          "abs_error": 14
+        },
+        {
+          "image_id": "test_1032.jpg",
+          "gt_count": 261,
+          "pred_count": 198,
+          "abs_error": 63
+        },
+        {
+          "image_id": "test_1033.jpg",
+          "gt_count": 134,
+          "pred_count": 154,
+          "abs_error": 20
+        },
+        {
+          "image_id": "test_1034.jpg",
+          "gt_count": 105,
+          "pred_count": 121,
+          "abs_error": 16
+        },
+        {
+          "image_id": "test_1035.jpg",
+          "gt_count": 147,
+          "pred_count": 158,
+          "abs_error": 11
+        },
+        {
+          "image_id": "test_1036.jpg",
+          "gt_count": 146,
+          "pred_count": 157,
+          "abs_error": 11
+        },
+        {
+          "image_id": "test_1037.jpg",
+          "gt_count": 144,
+          "pred_count": 151,
+          "abs_error": 7
+        },
+        {
+          "image_id": "test_1038.jpg",
+          "gt_count": 133,
+          "pred_count": 276,
+          "abs_error": 143
+        },
+        {
+          "image_id": "test_1039.jpg",
+          "gt_count": 138,
+          "pred_count": 163,
+          "abs_error": 25
+        },
+        {
+          "image_id": "test_104.jpg",
+          "gt_count": 117,
+          "pred_count": 110,
+          "abs_error": 7
+        },
+        {
+          "image_id": "test_1040.jpg",
+          "gt_count": 127,
+          "pred_count": 163,
+          "abs_error": 36
+        },
+        {
+          "image_id": "test_1041.jpg",
+          "gt_count": 102,
+          "pred_count": 142,
+          "abs_error": 40
+        },
+        {
+          "image_id": "test_1042.jpg",
+          "gt_count": 125,
+          "pred_count": 149,
+          "abs_error": 24
+        },
+        {
+          "image_id": "test_1043.jpg",
+          "gt_count": 151,
+          "pred_count": 151,
+          "abs_error": 0
+        },
+        {
+          "image_id": "test_1044.jpg",
+          "gt_count": 127,
+          "pred_count": 144,
+          "abs_error": 17
+        },
+        {
+          "image_id": "test_1045.jpg",
+          "gt_count": 499,
+          "pred_count": 499,
+          "abs_error": 0
+        },
+        {
+          "image_id": "test_1046.jpg",
+          "gt_count": 96,
+          "pred_count": 114,
+          "abs_error": 18
+        },
+        {
+          "image_id": "test_1047.jpg",
+          "gt_count": 132,
+          "pred_count": 145,
+          "abs_error": 13
+        },
+        {
+          "image_id": "test_1048.jpg",
+          "gt_count": 76,
+          "pred_count": 135,
+          "abs_error": 59
+        },
+        {
+          "image_id": "test_1049.jpg",
+          "gt_count": 134,
+          "pred_count": 155,
+          "abs_error": 21
+        },
+        {
+          "image_id": "test_105.jpg",
+          "gt_count": 113,
+          "pred_count": 116,
+          "abs_error": 3
+        },
+        {
+          "image_id": "test_1050.jpg",
+          "gt_count": 175,
+          "pred_count": 198,
+          "abs_error": 23
+        },
+        {
+          "image_id": "test_1051.jpg",
+          "gt_count": 128,
+          "pred_count": 135,
+          "abs_error": 7
+        },
+        {
+          "image_id": "test_1052.jpg",
+          "gt_count": 107,
+          "pred_count": 148,
+          "abs_error": 41
+        },
+        {
+          "image_id": "test_1053.jpg",
+          "gt_count": 177,
+          "pred_count": 230,
+          "abs_error": 53
+        },
+        {
+          "image_id": "test_1054.jpg",
+          "gt_count": 279,
+          "pred_count": 231,
+          "abs_error": 48
+        },
+        {
+          "image_id": "test_1055.jpg",
+          "gt_count": 114,
+          "pred_count": 138,
+          "abs_error": 24
+        },
+        {
+          "image_id": "test_1056.jpg",
+          "gt_count": 110,
+          "pred_count": 165,
+          "abs_error": 55
+        },
+        {
+          "image_id": "test_1057.jpg",
+          "gt_count": 230,
+          "pred_count": 225,
+          "abs_error": 5
+        },
+        {
+          "image_id": "test_1058.jpg",
+          "gt_count": 134,
+          "pred_count": 179,
+          "abs_error": 45
+        },
+        {
+          "image_id": "test_1059.jpg",
+          "gt_count": 137,
+          "pred_count": 153,
+          "abs_error": 16
+        },
+        {
+          "image_id": "test_106.jpg",
+          "gt_count": 122,
+          "pred_count": 135,
+          "abs_error": 13
+        },
+        {
+          "image_id": "test_1060.jpg",
+          "gt_count": 128,
+          "pred_count": 134,
+          "abs_error": 6
+        },
+        {
+          "image_id": "test_1061.jpg",
+          "gt_count": 130,
+          "pred_count": 160,
+          "abs_error": 30
+        },
+        {
+          "image_id": "test_1062.jpg",
+          "gt_count": 86,
+          "pred_count": 148,
+          "abs_error": 62
+        },
+        {
+          "image_id": "test_1063.jpg",
+          "gt_count": 120,
+          "pred_count": 159,
+          "abs_error": 39
+        },
+        {
+          "image_id": "test_1064.jpg",
+          "gt_count": 130,
+          "pred_count": 158,
+          "abs_error": 28
+        },
+        {
+          "image_id": "test_1065.jpg",
+          "gt_count": 154,
+          "pred_count": 175,
+          "abs_error": 21
+        },
+        {
+          "image_id": "test_1066.jpg",
+          "gt_count": 178,
+          "pred_count": 196,
+          "abs_error": 18
+        },
+        {
+          "image_id": "test_1067.jpg",
+          "gt_count": 59,
+          "pred_count": 198,
+          "abs_error": 139
+        },
+        {
+          "image_id": "test_1068.jpg",
+          "gt_count": 173,
+          "pred_count": 186,
+          "abs_error": 13
+        },
+        {
+          "image_id": "test_1069.jpg",
+          "gt_count": 161,
+          "pred_count": 184,
+          "abs_error": 23
+        },
+        {
+          "image_id": "test_107.jpg",
+          "gt_count": 217,
+          "pred_count": 209,
+          "abs_error": 8
+        },
+        {
+          "image_id": "test_1070.jpg",
+          "gt_count": 133,
+          "pred_count": 135,
+          "abs_error": 2
+        },
+        {
+          "image_id": "test_1071.jpg",
+          "gt_count": 146,
+          "pred_count": 177,
+          "abs_error": 31
+        },
+        {
+          "image_id": "test_1072.jpg",
+          "gt_count": 115,
+          "pred_count": 132,
+          "abs_error": 17
+        },
+        {
+          "image_id": "test_1073.jpg",
+          "gt_count": 143,
+          "pred_count": 150,
+          "abs_error": 7
+        },
+        {
+          "image_id": "test_1074.jpg",
+          "gt_count": 75,
+          "pred_count": 125,
+          "abs_error": 50
+        },
+        {
+          "image_id": "test_1075.jpg",
+          "gt_count": 141,
+          "pred_count": 148,
+          "abs_error": 7
+        },
+        {
+          "image_id": "test_1076.jpg",
+          "gt_count": 162,
+          "pred_count": 189,
+          "abs_error": 27
+        },
+        {
+          "image_id": "test_1077.jpg",
+          "gt_count": 140,
+          "pred_count": 156,
+          "abs_error": 16
+        },
+        {
+          "image_id": "test_1078.jpg",
+          "gt_count": 113,
+          "pred_count": 117,
+          "abs_error": 4
+        },
+        {
+          "image_id": "test_1079.jpg",
+          "gt_count": 183,
+          "pred_count": 210,
+          "abs_error": 27
+        },
+        {
+          "image_id": "test_108.jpg",
+          "gt_count": 333,
+          "pred_count": 287,
+          "abs_error": 46
+        },
+        {
+          "image_id": "test_1080.jpg",
+          "gt_count": 145,
+          "pred_count": 192,
+          "abs_error": 47
+        },
+        {
+          "image_id": "test_1081.jpg",
+          "gt_count": 120,
+          "pred_count": 146,
+          "abs_error": 26
+        },
+        {
+          "image_id": "test_1082.jpg",
+          "gt_count": 115,
+          "pred_count": 143,
+          "abs_error": 28
+        },
+        {
+          "image_id": "test_1083.jpg",
+          "gt_count": 95,
+          "pred_count": 147,
+          "abs_error": 52
+        },
+        {
+          "image_id": "test_1084.jpg",
+          "gt_count": 122,
+          "pred_count": 137,
+          "abs_error": 15
+        },
+        {
+          "image_id": "test_1085.jpg",
+          "gt_count": 129,
+          "pred_count": 159,
+          "abs_error": 30
+        },
+        {
+          "image_id": "test_1086.jpg",
+          "gt_count": 163,
+          "pred_count": 200,
+          "abs_error": 37
+        },
+        {
+          "image_id": "test_1087.jpg",
+          "gt_count": 114,
+          "pred_count": 130,
+          "abs_error": 16
+        },
+        {
+          "image_id": "test_1088.jpg",
+          "gt_count": 153,
+          "pred_count": 195,
+          "abs_error": 42
+        },
+        {
+          "image_id": "test_1089.jpg",
+          "gt_count": 119,
+          "pred_count": 146,
+          "abs_error": 27
+        },
+        {
+          "image_id": "test_109.jpg",
+          "gt_count": 137,
+          "pred_count": 168,
+          "abs_error": 31
+        },
+        {
+          "image_id": "test_1090.jpg",
+          "gt_count": 156,
+          "pred_count": 167,
+          "abs_error": 11
+        },
+        {
+          "image_id": "test_1091.jpg",
+          "gt_count": 132,
+          "pred_count": 138,
+          "abs_error": 6
+        },
+        {
+          "image_id": "test_1092.jpg",
+          "gt_count": 113,
+          "pred_count": 124,
+          "abs_error": 11
+        },
+        {
+          "image_id": "test_1093.jpg",
+          "gt_count": 230,
+          "pred_count": 266,
+          "abs_error": 36
+        },
+        {
+          "image_id": "test_1094.jpg",
+          "gt_count": 192,
+          "pred_count": 198,
+          "abs_error": 6
+        },
+        {
+          "image_id": "test_1095.jpg",
+          "gt_count": 136,
+          "pred_count": 145,
+          "abs_error": 9
+        },
+        {
+          "image_id": "test_1096.jpg",
+          "gt_count": 121,
+          "pred_count": 163,
+          "abs_error": 42
+        },
+        {
+          "image_id": "test_1097.jpg",
+          "gt_count": 94,
+          "pred_count": 176,
+          "abs_error": 82
+        },
+        {
+          "image_id": "test_1098.jpg",
+          "gt_count": 169,
+          "pred_count": 175,
+          "abs_error": 6
+        },
+        {
+          "image_id": "test_1099.jpg",
+          "gt_count": 120,
+          "pred_count": 144,
+          "abs_error": 24
+        },
+        {
+          "image_id": "test_11.jpg",
+          "gt_count": 140,
+          "pred_count": 145,
+          "abs_error": 5
+        },
+        {
+          "image_id": "test_110.jpg",
+          "gt_count": 154,
+          "pred_count": 186,
+          "abs_error": 32
+        },
+        {
+          "image_id": "test_1100.jpg",
+          "gt_count": 192,
+          "pred_count": 176,
+          "abs_error": 16
+        },
+        {
+          "image_id": "test_1101.jpg",
+          "gt_count": 124,
+          "pred_count": 147,
+          "abs_error": 23
+        },
+        {
+          "image_id": "test_1102.jpg",
+          "gt_count": 139,
+          "pred_count": 157,
+          "abs_error": 18
+        },
+        {
+          "image_id": "test_1103.jpg",
+          "gt_count": 189,
+          "pred_count": 209,
+          "abs_error": 20
+        },
+        {
+          "image_id": "test_1104.jpg",
+          "gt_count": 181,
+          "pred_count": 201,
+          "abs_error": 20
+        },
+        {
+          "image_id": "test_1105.jpg",
+          "gt_count": 183,
+          "pred_count": 198,
+          "abs_error": 15
+        },
+        {
+          "image_id": "test_1106.jpg",
+          "gt_count": 158,
+          "pred_count": 182,
+          "abs_error": 24
+        },
+        {
+          "image_id": "test_1107.jpg",
+          "gt_count": 112,
+          "pred_count": 144,
+          "abs_error": 32
+        },
+        {
+          "image_id": "test_1108.jpg",
+          "gt_count": 153,
+          "pred_count": 165,
+          "abs_error": 12
+        },
+        {
+          "image_id": "test_1109.jpg",
+          "gt_count": 150,
+          "pred_count": 276,
+          "abs_error": 126
+        },
+        {
+          "image_id": "test_111.jpg",
+          "gt_count": 114,
+          "pred_count": 179,
+          "abs_error": 65
+        },
+        {
+          "image_id": "test_1110.jpg",
+          "gt_count": 204,
+          "pred_count": 190,
+          "abs_error": 14
+        },
+        {
+          "image_id": "test_1111.jpg",
+          "gt_count": 168,
+          "pred_count": 176,
+          "abs_error": 8
+        },
+        {
+          "image_id": "test_1112.jpg",
+          "gt_count": 150,
+          "pred_count": 172,
+          "abs_error": 22
+        },
+        {
+          "image_id": "test_1113.jpg",
+          "gt_count": 105,
+          "pred_count": 119,
+          "abs_error": 14
+        },
+        {
+          "image_id": "test_1114.jpg",
+          "gt_count": 156,
+          "pred_count": 166,
+          "abs_error": 10
+        },
+        {
+          "image_id": "test_1115.jpg",
+          "gt_count": 201,
+          "pred_count": 198,
+          "abs_error": 3
+        },
+        {
+          "image_id": "test_1116.jpg",
+          "gt_count": 131,
+          "pred_count": 145,
+          "abs_error": 14
+        },
+        {
+          "image_id": "test_1117.jpg",
+          "gt_count": 182,
+          "pred_count": 212,
+          "abs_error": 30
+        },
+        {
+          "image_id": "test_1118.jpg",
+          "gt_count": 161,
+          "pred_count": 186,
+          "abs_error": 25
+        },
+        {
+          "image_id": "test_1119.jpg",
+          "gt_count": 169,
+          "pred_count": 163,
+          "abs_error": 6
+        },
+        {
+          "image_id": "test_112.jpg",
+          "gt_count": 120,
+          "pred_count": 147,
+          "abs_error": 27
+        },
+        {
+          "image_id": "test_1120.jpg",
+          "gt_count": 138,
+          "pred_count": 156,
+          "abs_error": 18
+        },
+        {
+          "image_id": "test_1121.jpg",
+          "gt_count": 178,
+          "pred_count": 249,
+          "abs_error": 71
+        },
+        {
+          "image_id": "test_1122.jpg",
+          "gt_count": 121,
+          "pred_count": 138,
+          "abs_error": 17
+        },
+        {
+          "image_id": "test_1123.jpg",
+          "gt_count": 115,
+          "pred_count": 136,
+          "abs_error": 21
+        },
+        {
+          "image_id": "test_1124.jpg",
+          "gt_count": 138,
+          "pred_count": 149,
+          "abs_error": 11
+        },
+        {
+          "image_id": "test_1125.jpg",
+          "gt_count": 147,
+          "pred_count": 172,
+          "abs_error": 25
+        },
+        {
+          "image_id": "test_1126.jpg",
+          "gt_count": 123,
+          "pred_count": 146,
+          "abs_error": 23
+        },
+        {
+          "image_id": "test_1127.jpg",
+          "gt_count": 183,
+          "pred_count": 185,
+          "abs_error": 2
+        },
+        {
+          "image_id": "test_1128.jpg",
+          "gt_count": 177,
+          "pred_count": 191,
+          "abs_error": 14
+        },
+        {
+          "image_id": "test_1129.jpg",
+          "gt_count": 219,
+          "pred_count": 223,
+          "abs_error": 4
+        },
+        {
+          "image_id": "test_113.jpg",
+          "gt_count": 131,
+          "pred_count": 228,
+          "abs_error": 97
+        },
+        {
+          "image_id": "test_1130.jpg",
+          "gt_count": 127,
+          "pred_count": 137,
+          "abs_error": 10
+        },
+        {
+          "image_id": "test_1131.jpg",
+          "gt_count": 103,
+          "pred_count": 115,
+          "abs_error": 12
+        },
+        {
+          "image_id": "test_1132.jpg",
+          "gt_count": 128,
+          "pred_count": 142,
+          "abs_error": 14
+        },
+        {
+          "image_id": "test_1133.jpg",
+          "gt_count": 113,
+          "pred_count": 157,
+          "abs_error": 44
+        },
+        {
+          "image_id": "test_1134.jpg",
+          "gt_count": 117,
+          "pred_count": 131,
+          "abs_error": 14
+        },
+        {
+          "image_id": "test_1135.jpg",
+          "gt_count": 121,
+          "pred_count": 136,
+          "abs_error": 15
+        },
+        {
+          "image_id": "test_1136.jpg",
+          "gt_count": 147,
+          "pred_count": 165,
+          "abs_error": 18
+        },
+        {
+          "image_id": "test_1137.jpg",
+          "gt_count": 230,
+          "pred_count": 224,
+          "abs_error": 6
+        },
+        {
+          "image_id": "test_1138.jpg",
+          "gt_count": 134,
+          "pred_count": 168,
+          "abs_error": 34
+        },
+        {
+          "image_id": "test_1139.jpg",
+          "gt_count": 123,
+          "pred_count": 142,
+          "abs_error": 19
+        },
+        {
+          "image_id": "test_114.jpg",
+          "gt_count": 149,
+          "pred_count": 203,
+          "abs_error": 54
+        },
+        {
+          "image_id": "test_1140.jpg",
+          "gt_count": 111,
+          "pred_count": 128,
+          "abs_error": 17
+        },
+        {
+          "image_id": "test_1141.jpg",
+          "gt_count": 155,
+          "pred_count": 172,
+          "abs_error": 17
+        },
+        {
+          "image_id": "test_1142.jpg",
+          "gt_count": 191,
+          "pred_count": 226,
+          "abs_error": 35
+        },
+        {
+          "image_id": "test_1143.jpg",
+          "gt_count": 118,
+          "pred_count": 151,
+          "abs_error": 33
+        },
+        {
+          "image_id": "test_1144.jpg",
+          "gt_count": 188,
+          "pred_count": 218,
+          "abs_error": 30
+        },
+        {
+          "image_id": "test_1145.jpg",
+          "gt_count": 119,
+          "pred_count": 137,
+          "abs_error": 18
+        },
+        {
+          "image_id": "test_1146.jpg",
+          "gt_count": 128,
+          "pred_count": 170,
+          "abs_error": 42
+        },
+        {
+          "image_id": "test_1147.jpg",
+          "gt_count": 174,
+          "pred_count": 215,
+          "abs_error": 41
+        },
+        {
+          "image_id": "test_1148.jpg",
+          "gt_count": 124,
+          "pred_count": 141,
+          "abs_error": 17
+        },
+        {
+          "image_id": "test_1149.jpg",
+          "gt_count": 138,
+          "pred_count": 158,
+          "abs_error": 20
+        },
+        {
+          "image_id": "test_115.jpg",
+          "gt_count": 131,
+          "pred_count": 146,
+          "abs_error": 15
+        },
+        {
+          "image_id": "test_1150.jpg",
+          "gt_count": 133,
+          "pred_count": 157,
+          "abs_error": 24
+        },
+        {
+          "image_id": "test_1151.jpg",
+          "gt_count": 169,
+          "pred_count": 206,
+          "abs_error": 37
+        },
+        {
+          "image_id": "test_1152.jpg",
+          "gt_count": 165,
+          "pred_count": 150,
+          "abs_error": 15
+        },
+        {
+          "image_id": "test_1153.jpg",
+          "gt_count": 128,
+          "pred_count": 150,
+          "abs_error": 22
+        },
+        {
+          "image_id": "test_1154.jpg",
+          "gt_count": 102,
+          "pred_count": 112,
+          "abs_error": 10
+        },
+        {
+          "image_id": "test_1155.jpg",
+          "gt_count": 122,
+          "pred_count": 157,
+          "abs_error": 35
+        },
+        {
+          "image_id": "test_1156.jpg",
+          "gt_count": 126,
+          "pred_count": 150,
+          "abs_error": 24
+        },
+        {
+          "image_id": "test_1157.jpg",
+          "gt_count": 111,
+          "pred_count": 134,
+          "abs_error": 23
+        },
+        {
+          "image_id": "test_1158.jpg",
+          "gt_count": 202,
+          "pred_count": 219,
+          "abs_error": 17
+        },
+        {
+          "image_id": "test_1159.jpg",
+          "gt_count": 132,
+          "pred_count": 153,
+          "abs_error": 21
+        },
+        {
+          "image_id": "test_116.jpg",
+          "gt_count": 138,
+          "pred_count": 156,
+          "abs_error": 18
+        },
+        {
+          "image_id": "test_1160.jpg",
+          "gt_count": 142,
+          "pred_count": 193,
+          "abs_error": 51
+        },
+        {
+          "image_id": "test_1161.jpg",
+          "gt_count": 129,
+          "pred_count": 139,
+          "abs_error": 10
+        },
+        {
+          "image_id": "test_1162.jpg",
+          "gt_count": 163,
+          "pred_count": 187,
+          "abs_error": 24
+        },
+        {
+          "image_id": "test_1163.jpg",
+          "gt_count": 124,
+          "pred_count": 165,
+          "abs_error": 41
+        },
+        {
+          "image_id": "test_1164.jpg",
+          "gt_count": 129,
+          "pred_count": 150,
+          "abs_error": 21
+        },
+        {
+          "image_id": "test_1165.jpg",
+          "gt_count": 144,
+          "pred_count": 163,
+          "abs_error": 19
+        },
+        {
+          "image_id": "test_1166.jpg",
+          "gt_count": 132,
+          "pred_count": 132,
+          "abs_error": 0
+        },
+        {
+          "image_id": "test_1167.jpg",
+          "gt_count": 320,
+          "pred_count": 254,
+          "abs_error": 66
+        },
+        {
+          "image_id": "test_1168.jpg",
+          "gt_count": 151,
+          "pred_count": 171,
+          "abs_error": 20
+        },
+        {
+          "image_id": "test_1169.jpg",
+          "gt_count": 142,
+          "pred_count": 146,
+          "abs_error": 4
+        },
+        {
+          "image_id": "test_117.jpg",
+          "gt_count": 122,
+          "pred_count": 145,
+          "abs_error": 23
+        },
+        {
+          "image_id": "test_1170.jpg",
+          "gt_count": 158,
+          "pred_count": 166,
+          "abs_error": 8
+        },
+        {
+          "image_id": "test_1171.jpg",
+          "gt_count": 100,
+          "pred_count": 124,
+          "abs_error": 24
+        },
+        {
+          "image_id": "test_1172.jpg",
+          "gt_count": 117,
+          "pred_count": 138,
+          "abs_error": 21
+        },
+        {
+          "image_id": "test_1173.jpg",
+          "gt_count": 140,
+          "pred_count": 160,
+          "abs_error": 20
+        },
+        {
+          "image_id": "test_1174.jpg",
+          "gt_count": 120,
+          "pred_count": 126,
+          "abs_error": 6
+        },
+        {
+          "image_id": "test_1175.jpg",
+          "gt_count": 171,
+          "pred_count": 200,
+          "abs_error": 29
+        },
+        {
+          "image_id": "test_1176.jpg",
+          "gt_count": 123,
+          "pred_count": 143,
+          "abs_error": 20
+        },
+        {
+          "image_id": "test_1177.jpg",
+          "gt_count": 151,
+          "pred_count": 152,
+          "abs_error": 1
+        }
+      ],
+      "predictions_file": {
+        "path": "/kaggle/working/predictions/fcos-r50-fpn-v3-fp32-sku110k-test.json.gz",
+        "size_bytes": 965984
+      },
+      "primary": {
+        "score_thresh": 0.3,
+        "nms_thresh": 0.35,
+        "max_dets": 1000,
+        "num_images": 200,
+        "map50": 0.8418,
+        "map50_95": 0.4851,
+        "pycocotools_map75": 0.5106,
+        "num_gt": 29092,
+        "num_dt": 33759,
+        "count_mae": 26.55,
+        "count_mape_pct": 21.3,
+        "pred_count_total": 33759,
+        "gt_count_total": 29092
+      }
+    },
+    {
+      "onnx_file": "fcos-r50-fpn-v3-int8.onnx",
+      "onnx_size_bytes": 32818871,
+      "onnx_sha256": "e00176ae386053f9db49b9fb7e521c10ff25d361411fa9cd6dd7c07bca7863fc",
+      "ms_per_image": 1055.2,
+      "results": [
+        {
+          "score_thresh": 0.3,
+          "nms_thresh": 0.35,
+          "max_dets": 1000,
+          "num_images": 200,
+          "map50": 0.8418,
+          "map50_95": 0.4844,
+          "pycocotools_map75": 0.5111,
+          "num_gt": 29092,
+          "num_dt": 33793,
+          "count_mae": 26.52,
+          "count_mape_pct": 21.29,
+          "pred_count_total": 33793,
+          "gt_count_total": 29092
+        }
+      ],
+      "threshold_sweep": [],
+      "bootstrap_95_ci": {
+        "map50": [
+          0.8171,
+          0.8649
+        ],
+        "count_mae": [
+          23.18,
+          30.18
+        ],
+        "count_mape_pct": [
+          17.54,
+          26.18
+        ]
+      },
+      "by_density": {
+        "sparse (<50)": {
+          "num_images": 1,
+          "map50": 0.4858,
+          "count_mae": 139.0,
+          "count_mape_pct": 330.95
+        },
+        "medium (50-150)": {
+          "num_images": 134,
+          "map50": 0.8857,
+          "count_mae": 26.87,
+          "count_mape_pct": 23.1
+        },
+        "dense (>150)": {
+          "num_images": 65,
+          "map50": 0.786,
+          "count_mae": 24.05,
+          "count_mape_pct": 12.8
+        }
+      },
+      "per_image": [
+        {
+          "image_id": "test_0.jpg",
+          "gt_count": 121,
+          "pred_count": 136,
+          "abs_error": 15
+        },
+        {
+          "image_id": "test_1.jpg",
+          "gt_count": 132,
+          "pred_count": 146,
+          "abs_error": 14
+        },
+        {
+          "image_id": "test_10.jpg",
+          "gt_count": 143,
+          "pred_count": 171,
+          "abs_error": 28
+        },
+        {
+          "image_id": "test_100.jpg",
+          "gt_count": 154,
+          "pred_count": 185,
+          "abs_error": 31
+        },
+        {
+          "image_id": "test_1000.jpg",
+          "gt_count": 133,
+          "pred_count": 147,
+          "abs_error": 14
+        },
+        {
+          "image_id": "test_1001.jpg",
+          "gt_count": 172,
+          "pred_count": 187,
+          "abs_error": 15
+        },
+        {
+          "image_id": "test_1002.jpg",
+          "gt_count": 188,
+          "pred_count": 263,
+          "abs_error": 75
+        },
+        {
+          "image_id": "test_1003.jpg",
+          "gt_count": 141,
+          "pred_count": 130,
+          "abs_error": 11
+        },
+        {
+          "image_id": "test_1004.jpg",
+          "gt_count": 153,
+          "pred_count": 161,
+          "abs_error": 8
+        },
+        {
+          "image_id": "test_1005.jpg",
+          "gt_count": 148,
+          "pred_count": 179,
+          "abs_error": 31
+        },
+        {
+          "image_id": "test_1006.jpg",
+          "gt_count": 127,
+          "pred_count": 159,
+          "abs_error": 32
+        },
+        {
+          "image_id": "test_1007.jpg",
+          "gt_count": 157,
+          "pred_count": 182,
+          "abs_error": 25
+        },
+        {
+          "image_id": "test_1008.jpg",
+          "gt_count": 100,
+          "pred_count": 155,
+          "abs_error": 55
+        },
+        {
+          "image_id": "test_1009.jpg",
+          "gt_count": 128,
+          "pred_count": 158,
+          "abs_error": 30
+        },
+        {
+          "image_id": "test_101.jpg",
+          "gt_count": 105,
+          "pred_count": 131,
+          "abs_error": 26
+        },
+        {
+          "image_id": "test_1010.jpg",
+          "gt_count": 134,
+          "pred_count": 204,
+          "abs_error": 70
+        },
+        {
+          "image_id": "test_1011.jpg",
+          "gt_count": 161,
+          "pred_count": 189,
+          "abs_error": 28
+        },
+        {
+          "image_id": "test_1012.jpg",
+          "gt_count": 144,
+          "pred_count": 174,
+          "abs_error": 30
+        },
+        {
+          "image_id": "test_1013.jpg",
+          "gt_count": 244,
+          "pred_count": 380,
+          "abs_error": 136
+        },
+        {
+          "image_id": "test_1014.jpg",
+          "gt_count": 129,
+          "pred_count": 143,
+          "abs_error": 14
+        },
+        {
+          "image_id": "test_1015.jpg",
+          "gt_count": 129,
+          "pred_count": 131,
+          "abs_error": 2
+        },
+        {
+          "image_id": "test_1016.jpg",
+          "gt_count": 132,
+          "pred_count": 139,
+          "abs_error": 7
+        },
+        {
+          "image_id": "test_1017.jpg",
+          "gt_count": 137,
+          "pred_count": 163,
+          "abs_error": 26
+        },
+        {
+          "image_id": "test_1018.jpg",
+          "gt_count": 130,
+          "pred_count": 150,
+          "abs_error": 20
+        },
+        {
+          "image_id": "test_1019.jpg",
+          "gt_count": 140,
+          "pred_count": 157,
+          "abs_error": 17
+        },
+        {
+          "image_id": "test_102.jpg",
+          "gt_count": 115,
+          "pred_count": 137,
+          "abs_error": 22
+        },
+        {
+          "image_id": "test_1020.jpg",
+          "gt_count": 42,
+          "pred_count": 181,
+          "abs_error": 139
+        },
+        {
+          "image_id": "test_1021.jpg",
+          "gt_count": 164,
+          "pred_count": 159,
+          "abs_error": 5
+        },
+        {
+          "image_id": "test_1022.jpg",
+          "gt_count": 111,
+          "pred_count": 137,
+          "abs_error": 26
+        },
+        {
+          "image_id": "test_1023.jpg",
+          "gt_count": 173,
+          "pred_count": 182,
+          "abs_error": 9
+        },
+        {
+          "image_id": "test_1024.jpg",
+          "gt_count": 161,
+          "pred_count": 196,
+          "abs_error": 35
+        },
+        {
+          "image_id": "test_1025.jpg",
+          "gt_count": 120,
+          "pred_count": 166,
+          "abs_error": 46
+        },
+        {
+          "image_id": "test_1026.jpg",
+          "gt_count": 187,
+          "pred_count": 191,
+          "abs_error": 4
+        },
+        {
+          "image_id": "test_1027.jpg",
+          "gt_count": 144,
+          "pred_count": 168,
+          "abs_error": 24
+        },
+        {
+          "image_id": "test_1028.jpg",
+          "gt_count": 136,
+          "pred_count": 168,
+          "abs_error": 32
+        },
+        {
+          "image_id": "test_1029.jpg",
+          "gt_count": 166,
+          "pred_count": 179,
+          "abs_error": 13
+        },
+        {
+          "image_id": "test_103.jpg",
+          "gt_count": 123,
+          "pred_count": 141,
+          "abs_error": 18
+        },
+        {
+          "image_id": "test_1030.jpg",
+          "gt_count": 123,
+          "pred_count": 156,
+          "abs_error": 33
+        },
+        {
+          "image_id": "test_1031.jpg",
+          "gt_count": 149,
+          "pred_count": 163,
+          "abs_error": 14
+        },
+        {
+          "image_id": "test_1032.jpg",
+          "gt_count": 261,
+          "pred_count": 202,
+          "abs_error": 59
+        },
+        {
+          "image_id": "test_1033.jpg",
+          "gt_count": 134,
+          "pred_count": 153,
+          "abs_error": 19
+        },
+        {
+          "image_id": "test_1034.jpg",
+          "gt_count": 105,
+          "pred_count": 122,
+          "abs_error": 17
+        },
+        {
+          "image_id": "test_1035.jpg",
+          "gt_count": 147,
+          "pred_count": 159,
+          "abs_error": 12
+        },
+        {
+          "image_id": "test_1036.jpg",
+          "gt_count": 146,
+          "pred_count": 157,
+          "abs_error": 11
+        },
+        {
+          "image_id": "test_1037.jpg",
+          "gt_count": 144,
+          "pred_count": 152,
+          "abs_error": 8
+        },
+        {
+          "image_id": "test_1038.jpg",
+          "gt_count": 133,
+          "pred_count": 276,
+          "abs_error": 143
+        },
+        {
+          "image_id": "test_1039.jpg",
+          "gt_count": 138,
+          "pred_count": 162,
+          "abs_error": 24
+        },
+        {
+          "image_id": "test_104.jpg",
+          "gt_count": 117,
+          "pred_count": 117,
+          "abs_error": 0
+        },
+        {
+          "image_id": "test_1040.jpg",
+          "gt_count": 127,
+          "pred_count": 162,
+          "abs_error": 35
+        },
+        {
+          "image_id": "test_1041.jpg",
+          "gt_count": 102,
+          "pred_count": 142,
+          "abs_error": 40
+        },
+        {
+          "image_id": "test_1042.jpg",
+          "gt_count": 125,
+          "pred_count": 149,
+          "abs_error": 24
+        },
+        {
+          "image_id": "test_1043.jpg",
+          "gt_count": 151,
+          "pred_count": 151,
+          "abs_error": 0
+        },
+        {
+          "image_id": "test_1044.jpg",
+          "gt_count": 127,
+          "pred_count": 145,
+          "abs_error": 18
+        },
+        {
+          "image_id": "test_1045.jpg",
+          "gt_count": 499,
+          "pred_count": 499,
+          "abs_error": 0
+        },
+        {
+          "image_id": "test_1046.jpg",
+          "gt_count": 96,
+          "pred_count": 116,
+          "abs_error": 20
+        },
+        {
+          "image_id": "test_1047.jpg",
+          "gt_count": 132,
+          "pred_count": 145,
+          "abs_error": 13
+        },
+        {
+          "image_id": "test_1048.jpg",
+          "gt_count": 76,
+          "pred_count": 137,
+          "abs_error": 61
+        },
+        {
+          "image_id": "test_1049.jpg",
+          "gt_count": 134,
+          "pred_count": 156,
+          "abs_error": 22
+        },
+        {
+          "image_id": "test_105.jpg",
+          "gt_count": 113,
+          "pred_count": 115,
+          "abs_error": 2
+        },
+        {
+          "image_id": "test_1050.jpg",
+          "gt_count": 175,
+          "pred_count": 201,
+          "abs_error": 26
+        },
+        {
+          "image_id": "test_1051.jpg",
+          "gt_count": 128,
+          "pred_count": 137,
+          "abs_error": 9
+        },
+        {
+          "image_id": "test_1052.jpg",
+          "gt_count": 107,
+          "pred_count": 144,
+          "abs_error": 37
+        },
+        {
+          "image_id": "test_1053.jpg",
+          "gt_count": 177,
+          "pred_count": 232,
+          "abs_error": 55
+        },
+        {
+          "image_id": "test_1054.jpg",
+          "gt_count": 279,
+          "pred_count": 230,
+          "abs_error": 49
+        },
+        {
+          "image_id": "test_1055.jpg",
+          "gt_count": 114,
+          "pred_count": 140,
+          "abs_error": 26
+        },
+        {
+          "image_id": "test_1056.jpg",
+          "gt_count": 110,
+          "pred_count": 169,
+          "abs_error": 59
+        },
+        {
+          "image_id": "test_1057.jpg",
+          "gt_count": 230,
+          "pred_count": 229,
+          "abs_error": 1
+        },
+        {
+          "image_id": "test_1058.jpg",
+          "gt_count": 134,
+          "pred_count": 181,
+          "abs_error": 47
+        },
+        {
+          "image_id": "test_1059.jpg",
+          "gt_count": 137,
+          "pred_count": 154,
+          "abs_error": 17
+        },
+        {
+          "image_id": "test_106.jpg",
+          "gt_count": 122,
+          "pred_count": 135,
+          "abs_error": 13
+        },
+        {
+          "image_id": "test_1060.jpg",
+          "gt_count": 128,
+          "pred_count": 132,
+          "abs_error": 4
+        },
+        {
+          "image_id": "test_1061.jpg",
+          "gt_count": 130,
+          "pred_count": 160,
+          "abs_error": 30
+        },
+        {
+          "image_id": "test_1062.jpg",
+          "gt_count": 86,
+          "pred_count": 149,
+          "abs_error": 63
+        },
+        {
+          "image_id": "test_1063.jpg",
+          "gt_count": 120,
+          "pred_count": 159,
+          "abs_error": 39
+        },
+        {
+          "image_id": "test_1064.jpg",
+          "gt_count": 130,
+          "pred_count": 158,
+          "abs_error": 28
+        },
+        {
+          "image_id": "test_1065.jpg",
+          "gt_count": 154,
+          "pred_count": 176,
+          "abs_error": 22
+        },
+        {
+          "image_id": "test_1066.jpg",
+          "gt_count": 178,
+          "pred_count": 198,
+          "abs_error": 20
+        },
+        {
+          "image_id": "test_1067.jpg",
+          "gt_count": 59,
+          "pred_count": 195,
+          "abs_error": 136
+        },
+        {
+          "image_id": "test_1068.jpg",
+          "gt_count": 173,
+          "pred_count": 186,
+          "abs_error": 13
+        },
+        {
+          "image_id": "test_1069.jpg",
+          "gt_count": 161,
+          "pred_count": 188,
+          "abs_error": 27
+        },
+        {
+          "image_id": "test_107.jpg",
+          "gt_count": 217,
+          "pred_count": 211,
+          "abs_error": 6
+        },
+        {
+          "image_id": "test_1070.jpg",
+          "gt_count": 133,
+          "pred_count": 134,
+          "abs_error": 1
+        },
+        {
+          "image_id": "test_1071.jpg",
+          "gt_count": 146,
+          "pred_count": 178,
+          "abs_error": 32
+        },
+        {
+          "image_id": "test_1072.jpg",
+          "gt_count": 115,
+          "pred_count": 131,
+          "abs_error": 16
+        },
+        {
+          "image_id": "test_1073.jpg",
+          "gt_count": 143,
+          "pred_count": 151,
+          "abs_error": 8
+        },
+        {
+          "image_id": "test_1074.jpg",
+          "gt_count": 75,
+          "pred_count": 130,
+          "abs_error": 55
+        },
+        {
+          "image_id": "test_1075.jpg",
+          "gt_count": 141,
+          "pred_count": 148,
+          "abs_error": 7
+        },
+        {
+          "image_id": "test_1076.jpg",
+          "gt_count": 162,
+          "pred_count": 190,
+          "abs_error": 28
+        },
+        {
+          "image_id": "test_1077.jpg",
+          "gt_count": 140,
+          "pred_count": 159,
+          "abs_error": 19
+        },
+        {
+          "image_id": "test_1078.jpg",
+          "gt_count": 113,
+          "pred_count": 117,
+          "abs_error": 4
+        },
+        {
+          "image_id": "test_1079.jpg",
+          "gt_count": 183,
+          "pred_count": 207,
+          "abs_error": 24
+        },
+        {
+          "image_id": "test_108.jpg",
+          "gt_count": 333,
+          "pred_count": 291,
+          "abs_error": 42
+        },
+        {
+          "image_id": "test_1080.jpg",
+          "gt_count": 145,
+          "pred_count": 193,
+          "abs_error": 48
+        },
+        {
+          "image_id": "test_1081.jpg",
+          "gt_count": 120,
+          "pred_count": 148,
+          "abs_error": 28
+        },
+        {
+          "image_id": "test_1082.jpg",
+          "gt_count": 115,
+          "pred_count": 144,
+          "abs_error": 29
+        },
+        {
+          "image_id": "test_1083.jpg",
+          "gt_count": 95,
+          "pred_count": 146,
+          "abs_error": 51
+        },
+        {
+          "image_id": "test_1084.jpg",
+          "gt_count": 122,
+          "pred_count": 139,
+          "abs_error": 17
+        },
+        {
+          "image_id": "test_1085.jpg",
+          "gt_count": 129,
+          "pred_count": 159,
+          "abs_error": 30
+        },
+        {
+          "image_id": "test_1086.jpg",
+          "gt_count": 163,
+          "pred_count": 197,
+          "abs_error": 34
+        },
+        {
+          "image_id": "test_1087.jpg",
+          "gt_count": 114,
+          "pred_count": 130,
+          "abs_error": 16
+        },
+        {
+          "image_id": "test_1088.jpg",
+          "gt_count": 153,
+          "pred_count": 195,
+          "abs_error": 42
+        },
+        {
+          "image_id": "test_1089.jpg",
+          "gt_count": 119,
+          "pred_count": 145,
+          "abs_error": 26
+        },
+        {
+          "image_id": "test_109.jpg",
+          "gt_count": 137,
+          "pred_count": 168,
+          "abs_error": 31
+        },
+        {
+          "image_id": "test_1090.jpg",
+          "gt_count": 156,
+          "pred_count": 166,
+          "abs_error": 10
+        },
+        {
+          "image_id": "test_1091.jpg",
+          "gt_count": 132,
+          "pred_count": 138,
+          "abs_error": 6
+        },
+        {
+          "image_id": "test_1092.jpg",
+          "gt_count": 113,
+          "pred_count": 125,
+          "abs_error": 12
+        },
+        {
+          "image_id": "test_1093.jpg",
+          "gt_count": 230,
+          "pred_count": 268,
+          "abs_error": 38
+        },
+        {
+          "image_id": "test_1094.jpg",
+          "gt_count": 192,
+          "pred_count": 193,
+          "abs_error": 1
+        },
+        {
+          "image_id": "test_1095.jpg",
+          "gt_count": 136,
+          "pred_count": 145,
+          "abs_error": 9
+        },
+        {
+          "image_id": "test_1096.jpg",
+          "gt_count": 121,
+          "pred_count": 166,
+          "abs_error": 45
+        },
+        {
+          "image_id": "test_1097.jpg",
+          "gt_count": 94,
+          "pred_count": 171,
+          "abs_error": 77
+        },
+        {
+          "image_id": "test_1098.jpg",
+          "gt_count": 169,
+          "pred_count": 177,
+          "abs_error": 8
+        },
+        {
+          "image_id": "test_1099.jpg",
+          "gt_count": 120,
+          "pred_count": 143,
+          "abs_error": 23
+        },
+        {
+          "image_id": "test_11.jpg",
+          "gt_count": 140,
+          "pred_count": 144,
+          "abs_error": 4
+        },
+        {
+          "image_id": "test_110.jpg",
+          "gt_count": 154,
+          "pred_count": 185,
+          "abs_error": 31
+        },
+        {
+          "image_id": "test_1100.jpg",
+          "gt_count": 192,
+          "pred_count": 172,
+          "abs_error": 20
+        },
+        {
+          "image_id": "test_1101.jpg",
+          "gt_count": 124,
+          "pred_count": 148,
+          "abs_error": 24
+        },
+        {
+          "image_id": "test_1102.jpg",
+          "gt_count": 139,
+          "pred_count": 159,
+          "abs_error": 20
+        },
+        {
+          "image_id": "test_1103.jpg",
+          "gt_count": 189,
+          "pred_count": 209,
+          "abs_error": 20
+        },
+        {
+          "image_id": "test_1104.jpg",
+          "gt_count": 181,
+          "pred_count": 200,
+          "abs_error": 19
+        },
+        {
+          "image_id": "test_1105.jpg",
+          "gt_count": 183,
+          "pred_count": 198,
+          "abs_error": 15
+        },
+        {
+          "image_id": "test_1106.jpg",
+          "gt_count": 158,
+          "pred_count": 184,
+          "abs_error": 26
+        },
+        {
+          "image_id": "test_1107.jpg",
+          "gt_count": 112,
+          "pred_count": 146,
+          "abs_error": 34
+        },
+        {
+          "image_id": "test_1108.jpg",
+          "gt_count": 153,
+          "pred_count": 164,
+          "abs_error": 11
+        },
+        {
+          "image_id": "test_1109.jpg",
+          "gt_count": 150,
+          "pred_count": 276,
+          "abs_error": 126
+        },
+        {
+          "image_id": "test_111.jpg",
+          "gt_count": 114,
+          "pred_count": 183,
+          "abs_error": 69
+        },
+        {
+          "image_id": "test_1110.jpg",
+          "gt_count": 204,
+          "pred_count": 191,
+          "abs_error": 13
+        },
+        {
+          "image_id": "test_1111.jpg",
+          "gt_count": 168,
+          "pred_count": 174,
+          "abs_error": 6
+        },
+        {
+          "image_id": "test_1112.jpg",
+          "gt_count": 150,
+          "pred_count": 170,
+          "abs_error": 20
+        },
+        {
+          "image_id": "test_1113.jpg",
+          "gt_count": 105,
+          "pred_count": 118,
+          "abs_error": 13
+        },
+        {
+          "image_id": "test_1114.jpg",
+          "gt_count": 156,
+          "pred_count": 166,
+          "abs_error": 10
+        },
+        {
+          "image_id": "test_1115.jpg",
+          "gt_count": 201,
+          "pred_count": 199,
+          "abs_error": 2
+        },
+        {
+          "image_id": "test_1116.jpg",
+          "gt_count": 131,
+          "pred_count": 147,
+          "abs_error": 16
+        },
+        {
+          "image_id": "test_1117.jpg",
+          "gt_count": 182,
+          "pred_count": 208,
+          "abs_error": 26
+        },
+        {
+          "image_id": "test_1118.jpg",
+          "gt_count": 161,
+          "pred_count": 187,
+          "abs_error": 26
+        },
+        {
+          "image_id": "test_1119.jpg",
+          "gt_count": 169,
+          "pred_count": 164,
+          "abs_error": 5
+        },
+        {
+          "image_id": "test_112.jpg",
+          "gt_count": 120,
+          "pred_count": 145,
+          "abs_error": 25
+        },
+        {
+          "image_id": "test_1120.jpg",
+          "gt_count": 138,
+          "pred_count": 153,
+          "abs_error": 15
+        },
+        {
+          "image_id": "test_1121.jpg",
+          "gt_count": 178,
+          "pred_count": 246,
+          "abs_error": 68
+        },
+        {
+          "image_id": "test_1122.jpg",
+          "gt_count": 121,
+          "pred_count": 138,
+          "abs_error": 17
+        },
+        {
+          "image_id": "test_1123.jpg",
+          "gt_count": 115,
+          "pred_count": 135,
+          "abs_error": 20
+        },
+        {
+          "image_id": "test_1124.jpg",
+          "gt_count": 138,
+          "pred_count": 149,
+          "abs_error": 11
+        },
+        {
+          "image_id": "test_1125.jpg",
+          "gt_count": 147,
+          "pred_count": 169,
+          "abs_error": 22
+        },
+        {
+          "image_id": "test_1126.jpg",
+          "gt_count": 123,
+          "pred_count": 145,
+          "abs_error": 22
+        },
+        {
+          "image_id": "test_1127.jpg",
+          "gt_count": 183,
+          "pred_count": 187,
+          "abs_error": 4
+        },
+        {
+          "image_id": "test_1128.jpg",
+          "gt_count": 177,
+          "pred_count": 190,
+          "abs_error": 13
+        },
+        {
+          "image_id": "test_1129.jpg",
+          "gt_count": 219,
+          "pred_count": 223,
+          "abs_error": 4
+        },
+        {
+          "image_id": "test_113.jpg",
+          "gt_count": 131,
+          "pred_count": 233,
+          "abs_error": 102
+        },
+        {
+          "image_id": "test_1130.jpg",
+          "gt_count": 127,
+          "pred_count": 136,
+          "abs_error": 9
+        },
+        {
+          "image_id": "test_1131.jpg",
+          "gt_count": 103,
+          "pred_count": 116,
+          "abs_error": 13
+        },
+        {
+          "image_id": "test_1132.jpg",
+          "gt_count": 128,
+          "pred_count": 144,
+          "abs_error": 16
+        },
+        {
+          "image_id": "test_1133.jpg",
+          "gt_count": 113,
+          "pred_count": 155,
+          "abs_error": 42
+        },
+        {
+          "image_id": "test_1134.jpg",
+          "gt_count": 117,
+          "pred_count": 128,
+          "abs_error": 11
+        },
+        {
+          "image_id": "test_1135.jpg",
+          "gt_count": 121,
+          "pred_count": 135,
+          "abs_error": 14
+        },
+        {
+          "image_id": "test_1136.jpg",
+          "gt_count": 147,
+          "pred_count": 164,
+          "abs_error": 17
+        },
+        {
+          "image_id": "test_1137.jpg",
+          "gt_count": 230,
+          "pred_count": 224,
+          "abs_error": 6
+        },
+        {
+          "image_id": "test_1138.jpg",
+          "gt_count": 134,
+          "pred_count": 168,
+          "abs_error": 34
+        },
+        {
+          "image_id": "test_1139.jpg",
+          "gt_count": 123,
+          "pred_count": 141,
+          "abs_error": 18
+        },
+        {
+          "image_id": "test_114.jpg",
+          "gt_count": 149,
+          "pred_count": 199,
+          "abs_error": 50
+        },
+        {
+          "image_id": "test_1140.jpg",
+          "gt_count": 111,
+          "pred_count": 128,
+          "abs_error": 17
+        },
+        {
+          "image_id": "test_1141.jpg",
+          "gt_count": 155,
+          "pred_count": 171,
+          "abs_error": 16
+        },
+        {
+          "image_id": "test_1142.jpg",
+          "gt_count": 191,
+          "pred_count": 226,
+          "abs_error": 35
+        },
+        {
+          "image_id": "test_1143.jpg",
+          "gt_count": 118,
+          "pred_count": 151,
+          "abs_error": 33
+        },
+        {
+          "image_id": "test_1144.jpg",
+          "gt_count": 188,
+          "pred_count": 218,
+          "abs_error": 30
+        },
+        {
+          "image_id": "test_1145.jpg",
+          "gt_count": 119,
+          "pred_count": 136,
+          "abs_error": 17
+        },
+        {
+          "image_id": "test_1146.jpg",
+          "gt_count": 128,
+          "pred_count": 169,
+          "abs_error": 41
+        },
+        {
+          "image_id": "test_1147.jpg",
+          "gt_count": 174,
+          "pred_count": 217,
+          "abs_error": 43
+        },
+        {
+          "image_id": "test_1148.jpg",
+          "gt_count": 124,
+          "pred_count": 140,
+          "abs_error": 16
+        },
+        {
+          "image_id": "test_1149.jpg",
+          "gt_count": 138,
+          "pred_count": 157,
+          "abs_error": 19
+        },
+        {
+          "image_id": "test_115.jpg",
+          "gt_count": 131,
+          "pred_count": 145,
+          "abs_error": 14
+        },
+        {
+          "image_id": "test_1150.jpg",
+          "gt_count": 133,
+          "pred_count": 159,
+          "abs_error": 26
+        },
+        {
+          "image_id": "test_1151.jpg",
+          "gt_count": 169,
+          "pred_count": 209,
+          "abs_error": 40
+        },
+        {
+          "image_id": "test_1152.jpg",
+          "gt_count": 165,
+          "pred_count": 152,
+          "abs_error": 13
+        },
+        {
+          "image_id": "test_1153.jpg",
+          "gt_count": 128,
+          "pred_count": 151,
+          "abs_error": 23
+        },
+        {
+          "image_id": "test_1154.jpg",
+          "gt_count": 102,
+          "pred_count": 112,
+          "abs_error": 10
+        },
+        {
+          "image_id": "test_1155.jpg",
+          "gt_count": 122,
+          "pred_count": 159,
+          "abs_error": 37
+        },
+        {
+          "image_id": "test_1156.jpg",
+          "gt_count": 126,
+          "pred_count": 148,
+          "abs_error": 22
+        },
+        {
+          "image_id": "test_1157.jpg",
+          "gt_count": 111,
+          "pred_count": 139,
+          "abs_error": 28
+        },
+        {
+          "image_id": "test_1158.jpg",
+          "gt_count": 202,
+          "pred_count": 221,
+          "abs_error": 19
+        },
+        {
+          "image_id": "test_1159.jpg",
+          "gt_count": 132,
+          "pred_count": 154,
+          "abs_error": 22
+        },
+        {
+          "image_id": "test_116.jpg",
+          "gt_count": 138,
+          "pred_count": 155,
+          "abs_error": 17
+        },
+        {
+          "image_id": "test_1160.jpg",
+          "gt_count": 142,
+          "pred_count": 193,
+          "abs_error": 51
+        },
+        {
+          "image_id": "test_1161.jpg",
+          "gt_count": 129,
+          "pred_count": 138,
+          "abs_error": 9
+        },
+        {
+          "image_id": "test_1162.jpg",
+          "gt_count": 163,
+          "pred_count": 187,
+          "abs_error": 24
+        },
+        {
+          "image_id": "test_1163.jpg",
+          "gt_count": 124,
+          "pred_count": 161,
+          "abs_error": 37
+        },
+        {
+          "image_id": "test_1164.jpg",
+          "gt_count": 129,
+          "pred_count": 150,
+          "abs_error": 21
+        },
+        {
+          "image_id": "test_1165.jpg",
+          "gt_count": 144,
+          "pred_count": 163,
+          "abs_error": 19
+        },
+        {
+          "image_id": "test_1166.jpg",
+          "gt_count": 132,
+          "pred_count": 132,
+          "abs_error": 0
+        },
+        {
+          "image_id": "test_1167.jpg",
+          "gt_count": 320,
+          "pred_count": 251,
+          "abs_error": 69
+        },
+        {
+          "image_id": "test_1168.jpg",
+          "gt_count": 151,
+          "pred_count": 172,
+          "abs_error": 21
+        },
+        {
+          "image_id": "test_1169.jpg",
+          "gt_count": 142,
+          "pred_count": 144,
+          "abs_error": 2
+        },
+        {
+          "image_id": "test_117.jpg",
+          "gt_count": 122,
+          "pred_count": 145,
+          "abs_error": 23
+        },
+        {
+          "image_id": "test_1170.jpg",
+          "gt_count": 158,
+          "pred_count": 166,
+          "abs_error": 8
+        },
+        {
+          "image_id": "test_1171.jpg",
+          "gt_count": 100,
+          "pred_count": 124,
+          "abs_error": 24
+        },
+        {
+          "image_id": "test_1172.jpg",
+          "gt_count": 117,
+          "pred_count": 139,
+          "abs_error": 22
+        },
+        {
+          "image_id": "test_1173.jpg",
+          "gt_count": 140,
+          "pred_count": 160,
+          "abs_error": 20
+        },
+        {
+          "image_id": "test_1174.jpg",
+          "gt_count": 120,
+          "pred_count": 126,
+          "abs_error": 6
+        },
+        {
+          "image_id": "test_1175.jpg",
+          "gt_count": 171,
+          "pred_count": 201,
+          "abs_error": 30
+        },
+        {
+          "image_id": "test_1176.jpg",
+          "gt_count": 123,
+          "pred_count": 140,
+          "abs_error": 17
+        },
+        {
+          "image_id": "test_1177.jpg",
+          "gt_count": 151,
+          "pred_count": 152,
+          "abs_error": 1
+        }
+      ],
+      "predictions_file": {
+        "path": "/kaggle/working/predictions/fcos-r50-fpn-v3-int8-sku110k-test.json.gz",
+        "size_bytes": 966407
+      },
+      "primary": {
+        "score_thresh": 0.3,
+        "nms_thresh": 0.35,
+        "max_dets": 1000,
+        "num_images": 200,
+        "map50": 0.8418,
+        "map50_95": 0.4844,
+        "pycocotools_map75": 0.5111,
+        "num_gt": 29092,
+        "num_dt": 33793,
+        "count_mae": 26.52,
+        "count_mape_pct": 21.29,
+        "pred_count_total": 33793,
+        "gt_count_total": 29092
+      }
+    }
+  ]
+}
