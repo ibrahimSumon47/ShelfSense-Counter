@@ -1,2 +1,8 @@
 packages:
   - "apps/*"
+
+# protobufjs (a transitive dependency of the Lighthouse dev tooling) is the only package here with
+# an install script, and it only prints a notice. pnpm 12 refuses an install that has an unreviewed
+# build script, which failed the deploy from Git, so the decision is recorded as a refusal here.
+allowBuilds:
+  protobufjs: false

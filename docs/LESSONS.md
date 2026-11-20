@@ -101,3 +101,16 @@ strict `getByRole('alert')` locator matches two elements - scope it to `p[role="
 message change needed a real check rather than a claim: the flow holds `/models/manifest.json`,
 dispatches the change event into the still-disabled input and asserts the alert text, which is the
 only way to exercise a branch the disabled control normally hides.
+
+## 2026-11-20 pnpm 12 refuses an install with an unreviewed build script
+
+The push that carried this slice produced a Vercel deployment that failed in 16 seconds, before any
+compile: `ERR_PNPM_IGNORED_BUILDS` for `protobufjs`, a transitive dependency of the Lighthouse
+tooling. Since pnpm 11 the allow/deny list for dependency build scripts is the `allowBuilds` map in
+`pnpm-workspace.yaml`; `onlyBuiltDependencies` and `ignoredBuiltDependencies`, in either
+`package.json#pnpm` or the workspace file, are silently ignored in pnpm 12 - the install keeps
+failing, so it looks like the setting did nothing. `allowBuilds: protobufjs: false` records the
+review (its script only prints a notice) and `pnpm install --frozen-lockfile` now exits 0. The local
+machine never noticed because `node_modules` was already populated and only a fresh install checks.
+Lesson: when a deploy fails at install while local commands work, reproduce with
+`pnpm install --frozen-lockfile`, not just the app's own scripts.
