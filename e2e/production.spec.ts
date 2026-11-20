@@ -30,6 +30,42 @@ test('loads with the trained detector available', async ({ page }) => {
   await expect(page.getByTestId('kpi-count')).toHaveText('—');
 });
 
+// A photo that arrives before /models/manifest.json has resolved has nothing to run it on. The
+// input is disabled until then, so a file can only get here from a drop, an extension or an
+// automation; the page must say why nothing happened rather than dropping it silently.
+test('explains a photo chosen before the detector has loaded', async ({ page }) => {
+  let releaseManifest = () => {};
+  const held = new Promise<void>((resolve) => {
+    releaseManifest = resolve;
+  });
+  // Hold the manifest request so the page stays in its pre-load state for the whole check.
+  await page.route('**/models/manifest.json', async (route) => {
+    await held;
+    await route.continue();
+  });
+
+  await page.goto('/');
+  const input = page.locator('#photo-upload');
+  await expect(input).toBeDisabled();
+
+  await page.evaluate(() => {
+    const field = document.getElementById('photo-upload') as HTMLInputElement;
+    const data = new DataTransfer();
+    data.items.add(new File([new Uint8Array([137, 80, 78, 71])], 'shelf.png', { type: 'image/png' }));
+    field.files = data.files;
+    field.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+
+  // Scoped to the page's own alert: Next also renders an empty route announcer with role="alert".
+  await expect(page.locator('p[role="alert"]')).toContainText('still loading');
+  // Nothing was analysed, so the KPI cards keep their empty state.
+  await expect(page.getByTestId('kpi-count')).toHaveText('—');
+
+  // Releasing the manifest returns the page to its normal ready state.
+  releaseManifest();
+  await expect(input).toBeEnabled();
+});
+
 test('counts the products in a shelf photo and draws the boxes', async ({ page }) => {
   await page.goto('/');
   await uploadPhoto(page, SHELF_PHOTO);

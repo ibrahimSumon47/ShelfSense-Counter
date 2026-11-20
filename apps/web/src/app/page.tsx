@@ -12,7 +12,6 @@ import { DICTIONARIES } from '../lib/i18n.ts';
 import {
   DEFAULT_DETECTOR_PARAMS,
   buildDetectionResult,
-  computeResizedDimensions,
   loadOnnxDetector,
   runFcosDetection,
   type DetectionResult,
@@ -170,9 +169,14 @@ export default function ShelfSensePage() {
       return;
     }
     if (!MODEL_AVAILABLE) {
-      // Do not fabricate detections when no trained model is published.
-      computeResizedDimensions(1280, 720, 1280);
+      // Nothing can run this photo: either /models/manifest.json is still in flight or the build
+      // has no detector. The input is disabled in both cases, so a file reaches this handler only
+      // from a drop, an extension or automation - say why nothing happened instead of dropping it
+      // silently, and clear the field so choosing the same photo again still fires a change event.
       setDetection(null);
+      setPreviewUrl(null);
+      setErrorMsg(modelChecked ? dict.modelMissingBody : dict.errorModelLoading);
+      e.target.value = '';
       return;
     }
     void analysePhoto(file);

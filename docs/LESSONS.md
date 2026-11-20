@@ -85,3 +85,19 @@ until then, and a file dropped in before that is silently ignored because the ch
 early. The specs now wait for the input to enable and for the blob preview. Lesson: an app that
 gates its main control on an async fetch needs an explicit ready signal, and an automated check
 against production is what exposes the difference between the two.
+
+## 2026-11-20 A stale server on port 3000 served a build that no longer existed
+
+The analysed-state accessibility run failed with the upload input never enabling, and the browser
+log showed `400 (Bad Request)` on `_next/static/chunks/app/page-*.js`. Nothing was wrong with the
+code: an older `next start` was still holding port 3000, `next build` had replaced the files under
+it, so its HTML pointed at chunk hashes that were gone. The new build was served on port 3100
+instead of killing a process this session did not start, and both checks passed immediately. Lesson:
+when a static chunk 400s while the HTML and the manifest clearly load, check who owns the port
+before debugging the app.
+
+Two smaller ones from the same run. Next renders an empty `role="alert"` route announcer, so a
+strict `getByRole('alert')` locator matches two elements - scope it to `p[role="alert"]`. And the
+message change needed a real check rather than a claim: the flow holds `/models/manifest.json`,
+dispatches the change event into the still-disabled input and asserts the alert text, which is the
+only way to exercise a branch the disabled control normally hides.

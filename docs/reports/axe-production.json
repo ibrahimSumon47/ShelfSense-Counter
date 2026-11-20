@@ -30,5 +30,49 @@
     "passes": 32,
     "incomplete": 0,
     "violations": []
+  },
+  {
+    "state": "scan-dark-bn",
+    "url": "http://localhost:3100/",
+    "engine": "axe-core 4.14.1",
+    "passes": 39,
+    "incomplete": 0,
+    "count": 294,
+    "boxes": 305,
+    "rows": 2,
+    "violations": []
+  },
+  {
+    "state": "scan-dark-en",
+    "url": "http://localhost:3100/",
+    "engine": "axe-core 4.14.1",
+    "passes": 39,
+    "incomplete": 0,
+    "count": 294,
+    "boxes": 305,
+    "rows": 2,
+    "violations": []
+  },
+  {
+    "state": "scan-light-bn",
+    "url": "http://localhost:3100/",
+    "engine": "axe-core 4.14.1",
+    "passes": 39,
+    "incomplete": 0,
+    "count": 294,
+    "boxes": 305,
+    "rows": 2,
+    "violations": []
+  },
+  {
+    "state": "scan-light-en",
+    "url": "http://localhost:3100/",
+    "engine": "axe-core 4.14.1",
+    "passes": 39,
+    "incomplete": 0,
+    "count": 294,
+    "boxes": 305,
+    "rows": 2,
+    "violations": []
   }
 ]

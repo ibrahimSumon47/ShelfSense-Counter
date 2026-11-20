@@ -41,6 +41,7 @@ export interface Dictionary {
   analysingTitle: string;
   analysingBody: string;
   errorModelLoad: string;
+  errorModelLoading: string;
   overlayLabel: string;
   modelMissingTitle: string;
   modelMissingBody: string;
@@ -86,6 +87,8 @@ export const DICTIONARIES: Record<ChatLocale, Dictionary> = {
     analysingTitle: 'Analysing the photo',
     analysingBody: 'Detecting products in this browser. Nothing is uploaded while this runs.',
     errorModelLoad: 'The detector could not be loaded in this browser, so this photo was not analysed.',
+    errorModelLoading:
+      'The detector is still loading in this browser, so this photo was not analysed. Wait a moment, then choose the photo again.',
     overlayLabel: 'Detected products on this shelf photo',
     modelMissingTitle: 'Detector not published in this build',
     modelMissingBody:
@@ -130,6 +133,8 @@ export const DICTIONARIES: Record<ChatLocale, Dictionary> = {
     analysingTitle: 'ছবিটি বিশ্লেষণ করা হচ্ছে',
     analysingBody: 'পণ্য শনাক্ত হচ্ছে আপনার ব্রাউজারেই। এই সময়ে কোনো ছবি আপলোড হয় না।',
     errorModelLoad: 'এই ব্রাউজারে ডিটেক্টর চালু করা যায়নি, তাই ছবিটি বিশ্লেষণ করা হয়নি।',
+    errorModelLoading:
+      'এই ব্রাউজারে ডিটেক্টর এখনো লোড হচ্ছে, তাই ছবিটি বিশ্লেষণ করা হয়নি। কিছুক্ষণ অপেক্ষা করে আবার ছবিটি নির্বাচন করুন।',
     overlayLabel: 'এই শেলফ ছবিতে শনাক্ত করা পণ্য',
     modelMissingTitle: 'এই সংস্করণে ডিটেক্টর যুক্ত নেই',
     modelMissingBody: 'ছবি বিশ্লেষণের জন্য রিলিজের সাথে আসা ডিটেক্টর ফাইল দরকার; এখানে সেটি নেই, তাই কোনোকিছু বিশ্লেষণ বা বক্স দেখানো হচ্ছে না।',

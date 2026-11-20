@@ -21,7 +21,7 @@ the production checks are all recorded:
 ## Re-running the production checks
 
 ```
-pnpm exec playwright test             # 11 checks, about two minutes, needs the 32.8 MB model
+pnpm exec playwright test             # 13 checks, about two minutes, needs the 32.8 MB model
 node scripts/lighthouse-report.mjs    # mobile and desktop, rewrites the three JSON files
 ```
 
@@ -31,8 +31,14 @@ flows would pull 33 MB three times per push, while CI already scores the 20-imag
 against the released ONNX file, which is the check that belongs on every commit.
 
 If a flow fails on the upload step, check whether it waited for `#photo-upload` to become enabled.
-The input is disabled until `/models/manifest.json` resolves, and a file that arrives before that is
-ignored without an error (see the last entry in `docs/LESSONS.md`).
+The input is disabled until `/models/manifest.json` resolves; a file that arrives before that now
+produces a readable alert rather than being dropped silently, and one flow holds the manifest
+request to prove it. If a local run fails with `400` on a `_next/static/chunks/...` file, an older
+`next start` is probably still holding port 3000 and serving a build whose files were replaced - run
+the new build on another port instead of killing that process. The axe states added for the
+analysed photo were captured on `http://localhost:3100` for that reason and say so in
+`docs/reports/axe-production.json`; the deployment still needs one redeploy to carry the message
+fix.
 
 ## Blocked elsewhere
 

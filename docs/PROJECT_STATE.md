@@ -69,10 +69,12 @@ its SHA-256. Earlier development measurements are in `docs/reports/browser-detec
 
 ## Production checks
 
-`pnpm exec playwright test` drives the deployed site with 11 checks: seven visitor flows (load,
+`pnpm exec playwright test` drives the deployed site with 13 checks: eight visitor flows (load,
 count a shelf photo, do not invent a shelf, save and export a scan, language switch, owner-only
-threshold, chat refusing without data) and axe-core in both themes and both languages, where it
-reports zero violations across 32 rules. `node scripts/lighthouse-report.mjs` produced mobile
+threshold, chat refusing without data, and a photo chosen before the detector has loaded) and
+axe-core in both themes and both languages, on the empty page and again after a photo is analysed,
+where it reports zero violations across 32 rules on the empty page and 39 on the analysed one (the
+overlay, the filled KPI cards, the history table and both stock badges exist only there). `node scripts/lighthouse-report.mjs` produced mobile
 99/100/100/100 and desktop 100/100/100/100, with LCP 869 ms and 289 ms and CLS 0. The first runs
 found two serious accessibility defects (aria-labels that replaced the visible button text, and a
 4.09:1 light-theme button contrast) and a 404 console error for the missing icon; all three are

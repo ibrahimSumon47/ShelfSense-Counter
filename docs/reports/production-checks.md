@@ -2,7 +2,10 @@
 
 Everything in this report was run against the deployed site, not a local build:
 https://shelfsense-counter.vercel.app (Vercel deployment `shelfsense-counter-iwmsov0ds`,
-the build that also carries the icon added below).
+the build that also carries the icon added below). The exception is marked where it applies: the
+analysed-photo scan and the pre-load message check exercise code that is not in that deployment
+yet, so they ran against `next start` of the same commit on `http://localhost:3100`. Every entry in
+`axe-production.json` records the URL it was scanned on.
 
 Run on 2026-11-20 with Node 24.22.1, Playwright 1.65.1 (bundled Chromium), axe-core 4.14.0 and
 Lighthouse 13.6.0. The raw artifacts are committed next to this file:
@@ -12,14 +15,14 @@ Lighthouse 13.6.0. The raw artifacts are committed next to this file:
 ## Commands
 
 ```
-pnpm exec playwright test                    # 11 flows + 4 accessibility states
+pnpm exec playwright test                    # 8 flows + 5 accessibility checks (8 states)
 node scripts/lighthouse-report.mjs           # mobile and desktop, writes the three JSON files
 ```
 
 Both default to the production URL; `SHELFSENSE_URL=http://localhost:3000` points them at a local
 build, which is how the fixes below were checked before deploying.
 
-## Flows (7, all passing)
+## Flows (8, all passing)
 
 | Flow | What it asserts |
 | --- | --- |
@@ -30,6 +33,7 @@ build, which is how the fixes below were checked before deploying.
 | Switches language without losing the page | The toggle flips the section headings, the upload input stays enabled, and switching back restores English |
 | Only the owner can edit the low-stock threshold | The threshold input is enabled for the owner, disabled for staff, enabled again for the owner |
 | Chat refuses to invent numbers when nothing is stored | A question with no stored scans is answered with `refusal_missing_data` |
+| Explains a photo chosen before the detector has loaded | With `/models/manifest.json` held, a file is dispatched into the still-disabled input; the page answers with a readable alert instead of doing nothing, the KPIs stay empty, and releasing the manifest enables the input again |
 
 The three upload flows each transfer the 32.8 MB model over the network, so the suite takes about
 two minutes against production. It is a manual check, not a CI job: CI already scores a 20-image
@@ -39,7 +43,8 @@ regression bundle on the released file, which is the check that belongs on every
 
 Scanned after the fixes with the WCAG A/AA and best-practice rule sets, in both themes and both
 languages, because the Bangla copy and the light palette are the two states most likely to break
-contrast or labels.
+contrast or labels. Each of those four states is scanned twice: once on the page as a visitor first
+sees it, and once after a real photo has been through the detector.
 
 | State | Rules passed | Violations |
 | --- | --- | --- |
@@ -47,6 +52,27 @@ contrast or labels.
 | light, English | 32 | 0 |
 | dark, Bangla | 32 | 0 |
 | light, Bangla | 32 | 0 |
+| dark, English, photo analysed | 39 | 0 |
+| light, English, photo analysed | 39 | 0 |
+| dark, Bangla, photo analysed | 39 | 0 |
+| light, Bangla, photo analysed | 39 | 0 |
+
+### What the analysed state adds
+
+The empty page has no detection surface at all, so the first four rows say nothing about the parts a
+visitor actually uses. The analysed check uploads the committed CC0 shelf photo once, waits for the
+measured count (**294 products** on this browser's WASM run), saves one scan at the default
+threshold and a second at threshold 500, then scans the same page in all four theme and language
+states. That single page carries every surface the result state renders:
+
+- the box overlay (`svg[role="img"]` with its accessibility label) over the photo preview;
+- both KPI cards with real numbers in them, and the runtime line beside them;
+- the history table with two saved rows and both stock badges - `Stock Normal` for the default
+  threshold and `Low Stock Alert` for the row above the limit.
+
+Those states were scanned on the local production build noted at the top, because they need the
+message fix below, which is not deployed yet. The rules went from 32 to 39 per state: the table,
+the badges and the overlay expose checks the empty page cannot run.
 
 ### What the first run found, and what changed
 
@@ -83,10 +109,17 @@ scores are high while the first detection still takes a few seconds.
 
 Against production the two upload flows timed out while the same flows passed locally. The cause
 was not the deploy: `MODEL_AVAILABLE` is false until `/models/manifest.json` resolves, the upload
-input is disabled until then, and a file dropped in before that moment is ignored without any
-error, because the change handler returns early. The tests now wait for the input to become
-enabled - the app's own ready signal - and for the blob preview that proves the handler ran. The
-test helper documents it, and the same pattern applies to anything that automates this page.
+input is disabled until then, and a file that arrived before that moment was ignored without any
+error, because the change handler returned early. The tests wait for the input to become enabled -
+the app's own ready signal - and for the blob preview that proves the handler ran.
+
+The silent path is now closed as well. If a photo does reach the page before the manifest resolves
+(the input is disabled, so this takes a drop, an extension or automation), the handler shows a
+readable alert - "The detector is still loading in this browser, so this photo was not analysed.
+Wait a moment, then choose the photo again." - in both languages, and clears the field so the same
+file can be chosen again. With no detector published at all it shows the existing `Detector not
+published in this build` explanation instead. The `Explains a photo chosen before the detector has
+loaded` flow holds the manifest request and dispatches exactly that change event to prove it.
 
 ## Not covered here
 
