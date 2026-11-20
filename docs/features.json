@@ -398,7 +398,9 @@
       "model": "[MODEL: Gemini 4 Argon, MID]",
       "evidence": [
         "file:docs/DEPLOY.md",
-        "https://shelfsense-counter.vercel.app"
+        "https://shelfsense-counter.vercel.app",
+        "Vercel Root Directory set to apps/web through `vercel api -X PATCH` on 2026-11-20, so a push builds the app directory instead of stopping at NEXT_NO_VERSION (ADR-012)",
+        "open blocker, not a repository defect: the alias answers 402 DEPLOYMENT_DISABLED because Vercel blocked the team for fair use on 2026-11-20; owner steps in docs/OWNER_TODO.md item 4"
       ]
     },
     {

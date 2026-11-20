@@ -122,5 +122,32 @@ setting, not a file), so until then the site is updated with a CLI deploy from `
 gates, two different causes: read the last log line of the failing step, not the first error found.
 The site was then shipped with `vercel deploy --prod --yes` from `apps/web`, which aliased
 `shelfsense-counter-pogxu6nig` to https://shelfsense-counter.vercel.app, and all 13 checks passed
-against it. The project setting is still unset, so every push keeps producing one failed deployment
-until someone changes Root Directory to `apps/web`; that noise is the cost of leaving it.
+against it.
+
+The setting itself needed no dashboard click, which the first pass assumed it did: `vercel api` makes
+authenticated requests with the CLI's own session, so `printf '%s' '{"rootDirectory":"apps/web"}' |
+vercel api "/v9/projects/<id>?teamId=<team>" -X PATCH --input -` set it, and the project then
+reported `rootDirectory: "apps/web"`. Lesson: before writing an owner step for a dashboard toggle,
+check `vercel <command> --help` and `vercel api` - project settings are reachable from the CLI even
+when `vercel project --help` lists no command for them.
+
+## 2026-11-20 A READY deployment can still be refused, and only the CLI said why
+
+Minutes after the 13 checks passed, the production alias answered `402 Payment Required` with
+`X-Vercel-Error: DEPLOYMENT_DISABLED` while the deployment list still showed it READY and correctly
+aliased. Two earlier failures had been build problems, so the first instinct was configuration
+again. The next `vercel deploy --prod` printed the real cause:
+`Your Team exceeded our fair use limits and has been blocked`. A 402 on a READY deployment is an
+account state, not a code defect, and it is not something the repository can fix. Lesson: read the
+deployment tool's own output before diagnosing the build, and treat the alias status code separately
+from the deployment status in the dashboard.
+
+## 2026-11-20 Lighthouse writes four zero scores and exits 0 when the page does not load
+
+With the site blocked, `node scripts/lighthouse-report.mjs` printed
+`{"performance":0,"accessibility":0,"best-practices":0,"seo":0}` twice, wrote the four raw files
+and exited 0, overwriting good numbers in `docs/reports/` with nulls. The cause sat in
+`runtimeError: ERRORED_DOCUMENT_REQUEST (Status code: 402)`, which nothing read. The script now
+throws on `runtimeError` before writing anything, so a failed load cannot be committed as a score.
+Lesson: a measurement tool that reports a number for a failed run is worse than one that crashes;
+the committed files had to be restored from git to keep the report honest.

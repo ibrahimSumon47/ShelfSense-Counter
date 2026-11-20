@@ -48,6 +48,12 @@ try {
     };
     const result = await lighthouse(url, options);
     if (!result) throw new Error(`lighthouse returned nothing for ${formFactor}`);
+    // A blocked or unreachable page still returns an LHR whose four scores are 0; that is a failed
+    // load, not a measurement, and writing it would overwrite good numbers in docs/reports.
+    if (result.lhr.runtimeError) {
+      const err = result.lhr.runtimeError;
+      throw new Error(`${formFactor}: ${err.code} for ${url} - ${err.message}`);
+    }
 
     const scores = {};
     for (const key of categories) scores[key] = Math.round(result.lhr.categories[key].score * 100);

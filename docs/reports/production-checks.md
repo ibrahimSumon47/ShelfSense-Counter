@@ -5,6 +5,14 @@ https://shelfsense-counter.vercel.app, deployment `shelfsense-counter-pogxu6nig`
 and `shelfsense-counter-iwmsov0ds` for the Lighthouse scores, which are unaffected by later copy
 changes. Every entry in `axe-production.json` records the URL it was scanned on.
 
+These runs were captured against the build that was serving on 2026-11-20. At 09:36Z the same alias
+began answering `402 Payment Required` with `X-Vercel-Error: DEPLOYMENT_DISABLED`, and the next
+`vercel deploy --prod` printed `Your Team exceeded our fair use limits and has been blocked`. The
+deployment is READY and still aliased; Vercel refuses to serve it. That is why the Lighthouse
+re-run planned for this slice did not happen: it saw the 402, so there is no new score to report and
+the numbers in the Lighthouse section remain the ones measured on `iwmsov0ds`. Owner steps are item
+4 in `docs/OWNER_TODO.md`.
+
 Run on 2026-11-20 with Node 24.22.1, Playwright 1.65.1 (bundled Chromium), axe-core 4.14.1 and
 Lighthouse 13.6.0. The raw artifacts are committed next to this file:
 `axe-production.json`, `lighthouse-mobile.json`, `lighthouse-desktop.json`,
@@ -90,6 +98,11 @@ tool noise, and both are fixed in `apps/web`:
 
 ## Lighthouse (production)
 
+Measured on deployment `shelfsense-counter-iwmsov0ds`, the last build before the copy changes of
+2026-11-20 and before the block described at the top. The 2026-11-20 attempt against the current
+deployment produced `runtimeError: ERRORED_DOCUMENT_REQUEST (Status code: 402)` and was discarded
+rather than recorded as a score.
+
 | Form factor | Performance | Accessibility | Best practices | SEO | FCP | LCP | TBT | CLS |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Mobile (412x823, 4x CPU, 1.6 Mbps) | 99 | 100 | 100 | 100 | 869 ms | 869 ms | 118 ms | 0 |
@@ -121,12 +134,23 @@ loaded` flow holds the manifest request and dispatches exactly that change event
 
 ## How this build reached production
 
-The deployment was made with `vercel deploy --prod --yes` from `apps/web`, which is the directory
-linked to the Vercel project. Deploying from a push does not work yet: the project's Root Directory
-is the repository root, the app lives in `apps/web`, and the build stops at `NEXT_NO_VERSION` before
-compiling. Setting Root Directory to `apps/web` in the Vercel project settings is what would make
-pushes deploy on their own. The earlier `ERR_PNPM_IGNORED_BUILDS` failure is fixed in the repository
-by `allowBuilds` in `pnpm-workspace.yaml`; both causes are written up in `docs/LESSONS.md`.
+The serving build was made with `vercel deploy --prod --yes` from `apps/web`, the directory linked
+to the Vercel project.
+
+Push-triggered builds failed for two reasons in sequence. First `ERR_PNPM_IGNORED_BUILDS`, fixed in
+the repository by `allowBuilds` in `pnpm-workspace.yaml`. Then `NEXT_NO_VERSION`, because the
+project's Root Directory was empty and Vercel looked for `next` in the repository root's
+`package.json` while the app lives in `apps/web`. `vercel.json` has no key for the root directory,
+but the CLI reaches project settings, so it was set without a dashboard click:
+
+```
+printf '%s' '{"rootDirectory":"apps/web"}' | vercel api \
+  "/v9/projects/<project-id>?teamId=<team-id>" -X PATCH --input -
+```
+
+The project now reports `rootDirectory: "apps/web"`, so the next push builds `apps/web` inside the
+same pnpm workspace. That could not be proven on 2026-11-20 because the team was blocked for fair
+use before a push-triggered build could run (ADR-012, `docs/OWNER_TODO.md` item 4).
 
 ## Not covered here
 
@@ -135,3 +159,6 @@ by `allowBuilds` in `pnpm-workspace.yaml`; both causes are written up in `docs/L
   `S5-03` figures come from the run made while the key was still available.
 - No load or concurrency testing. The detector runs in the visitor's browser, so server load is
   limited to serving static files.
+- No Lighthouse measurement of the current deployment. The site answered 402 while the team was
+  blocked, so the scores above still describe `shelfsense-counter-iwmsov0ds`; they have to be
+  re-measured after the block is lifted.

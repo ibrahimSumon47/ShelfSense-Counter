@@ -82,10 +82,18 @@ fixed and re-verified on the deployed build. All 13 checks were re-run on 2026-1
 deployment `shelfsense-counter-pogxu6nig`, which is what https://shelfsense-counter.vercel.app now
 serves: 13/13 passed, and the analysed-photo state passed with zero violations across 39 rules in
 all four theme and language combinations. That build was deployed with `vercel deploy --prod` from
-`apps/web`, because a push-triggered build still stops at Next detection: the Vercel project's root
-directory is the repository root while the app lives in `apps/web`. The install gate that failed
-first is fixed in the repository with `allowBuilds` in `pnpm-workspace.yaml`. Details and raw JSON:
-`docs/reports/production-checks.md`.
+`apps/web`. Push-triggered builds used to stop at Next detection because the Vercel project's root
+directory was empty while the app lives in `apps/web`; the Root Directory is now set to `apps/web`
+(ADR-012), so a push builds the app directory inside the same workspace. The install gate that
+failed first is fixed in the repository with `allowBuilds` in `pnpm-workspace.yaml`.
+
+**The site is currently offline.** Minutes after those checks, the alias began answering
+`402 Payment Required` with `X-Vercel-Error: DEPLOYMENT_DISABLED`, and a new deploy printed
+`Your Team exceeded our fair use limits and has been blocked`. The deployment is READY and aliased;
+Vercel is refusing to serve it, so no deployment can be created until the owner clears the block
+(`docs/OWNER_TODO.md` item 4). The Lighthouse scores in the report still describe
+`shelfsense-counter-iwmsov0ds`, because the re-run hit the 402 and was discarded. Details and raw
+JSON: `docs/reports/production-checks.md`.
 
 ## What is still open
 

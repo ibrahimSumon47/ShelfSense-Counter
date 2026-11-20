@@ -191,4 +191,33 @@ FP32 and 0.5309 INT8 at a 1000-detection cap, 128.7 MB FP32 and 32.8 MB INT8, ~0
 (torchvision's `AnchorGenerator` convention, with distances scaled by the full stride). The first
 exports got both wrong and lost 0.15 mAP50.
 
+---
+
+## ADR-012 Vercel Root Directory is `apps/web` (2026-11-20)
+
+**Decision.** The Vercel project `shelfsense-counter` builds from `apps/web`, the directory that was
+already linked for CLI deploys. The setting was changed through the authenticated CLI rather than the
+dashboard:
+
+```
+printf '%s' '{"rootDirectory":"apps/web"}' | vercel api \
+  "/v9/projects/prj_gWZzYfP61AbAnEESBRlHyyCHn1Ow?teamId=team_In93JcercltRyUatHkMZJ3b4" \
+  -X PATCH --input -
+```
+
+**Why.** Every push produced a failed production deployment. `ERR_PNPM_IGNORED_BUILDS` was a
+repository problem and is fixed with `allowBuilds` in `pnpm-workspace.yaml`. `NEXT_NO_VERSION` was
+the root directory: Vercel looked for `next` in the repository root's `package.json`. There is no
+`vercel.json` key for the root directory, so this decision cannot live in the repository; it lives
+here and in `docs/HANDOFF.md` so a project rebuilt from scratch reproduces it. pnpm still finds the
+workspace root above `apps/web`, so install and build use the committed lockfile.
+
+**Same-day blocker.** After the change the production alias began answering `402 Payment Required`
+with `X-Vercel-Error: DEPLOYMENT_DISABLED` while the deployment stayed READY, and a fresh deploy
+printed `Your Team exceeded our fair use limits and has been blocked`. Vercel's Hobby fair-use terms
+(checked 2026-11-20) let Vercel block a team that exceeds the plan's limits, after which its
+deployments are no longer served and new ones cannot be created. Nothing in the repository causes or
+clears it, so it is an owner item (`docs/OWNER_TODO.md` item 4), and the Root Directory fix stays in
+place for the first push after the block is lifted.
+
 

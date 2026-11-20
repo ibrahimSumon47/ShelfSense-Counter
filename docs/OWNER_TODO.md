@@ -53,3 +53,39 @@ measurement, and they are not re-verified in the 2026-11-19 slices.
 ## 3. Keys for services you already have (needed for S4 and S5)
 
 Status: **done in Vercel, missing on this PC** (verified 2026-11-19: all four keys are present in the Vercel project; `private/.env.local` itself is absent, see item 2b. `vercel whoami` and `neonctl me` are authenticated).
+
+---
+
+## 4. Vercel blocked the team for fair use (2026-11-20, the site is down)
+
+Status: **blocked, owner only**. https://shelfsense-counter.vercel.app answers `402 Payment Required`
+with `X-Vercel-Error: DEPLOYMENT_DISABLED`, and `vercel deploy --prod --yes` from `apps/web` prints:
+
+```
+x Your Team exceeded our fair use limits and has been blocked.
+  Check the billing or feature requirement reported above with a team owner. Retry after that requirement is resolved.
+```
+
+The deployment itself is READY and still has the production alias; Vercel is refusing to serve it,
+and it will refuse new deployments too. Nothing in the repository causes or clears this. The Root
+Directory has already been fixed to `apps/web`, so pushes are configured correctly and will deploy
+once the block is gone.
+
+1. Open https://vercel.com/ibrahimsumon47s-projects in a browser where you are signed in.
+2. Click the team **ibrahimsumon47's projects**, then **Settings**, then **Billing**. Read the notice
+   at the top of that page: it names the limit that was exceeded and whether an upgrade or a support
+   reply clears it.
+3. Open the **Usage** tab and note this month's **Fast Data Transfer** and **Deployments** figures.
+   Each production check uploads the 32.8 MB detector, which is what most of the transfer is.
+4. If the notice asks for a support reply, open https://vercel.com/help, choose the project
+   `shelfsense-counter` and ask for the block to be reviewed and lifted. Say what the site is and
+   that it is a personal portfolio project on the Hobby plan.
+5. If the notice instead offers an upgrade, decide whether to stay on Hobby. Under `Free forever
+   only` in `AGENTS.md` an upgrade that needs a card is not acceptable, so a support reply is the
+   only option that keeps this project within the rules.
+6. When the notice is gone, tell the assistant "Vercel block done". It verifies with
+   `curl -sI https://shelfsense-counter.vercel.app` (expect `200`), then pushes a commit and checks
+   that the git-triggered deployment reaches READY on its own.
+
+Do not delete the project or its deployments to clear the block: the block is on the team, not on a
+deployment, and deleting removes the D1 database, the R2 bucket and the production secrets with it.

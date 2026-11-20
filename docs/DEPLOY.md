@@ -4,6 +4,11 @@ How to deploy and run each part of **ShelfSense** using free-forever tiers only.
 
 ## 1. Web App on Vercel (`apps/web/`)
 
+As of 2026-11-20 the Vercel team is blocked for exceeding the Hobby plan's fair-use limits: the
+production alias answers `402 Payment Required` (`DEPLOYMENT_DISABLED`) and new deployments are
+refused. Owner steps are item 4 in [docs/OWNER_TODO.md](OWNER_TODO.md). Everything below is correct
+for the first push after the block is lifted.
+
 1. Complete the account steps in [docs/OWNER_TODO.md](OWNER_TODO.md) so `private/.env.local` has your Clerk, Neon (`DATABASE_URL`), Cloudinary, and Google AI Studio keys.
 2. Push each secret from `private/.env.local` to Vercel Production without printing it:
    ```powershell
@@ -15,10 +20,19 @@ How to deploy and run each part of **ShelfSense** using free-forever tiers only.
    }
    ```
 3. Provision the Neon Postgres tables (`stores`, `aisles`, `shelves`, `scans`) using the SQL DDL in `apps/web/src/lib/schema.ts`.
-4. Deploy once per finished web slice (respecting Vercel Hobby's daily deployment limit):
-   ```powershell
-   vercel --prod
+4. The Vercel project's **Root Directory** is `apps/web` (ADR-012). Every push to `main` therefore
+   builds the app directory on its own; `vercel.json` has no key for this setting, so a project
+   rebuilt from scratch needs it set the same way:
    ```
+   printf '%s' '{"rootDirectory":"apps/web"}' | vercel api \
+     "/v9/projects/<project-id>?teamId=<team-id>" -X PATCH --input -
+   ```
+   A manual deploy from the same directory is:
+   ```
+   cd apps/web
+   vercel deploy --prod --yes
+   ```
+   Batch web changes into one push per slice: Hobby counts deployments per day.
 
 ## 2. Python Package, CLI & Batch FastAPI Service (`python/`)
 
